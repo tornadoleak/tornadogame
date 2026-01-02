@@ -3,93 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V5.6 | GLOBAL TOP</title>
+    <title>TORNADO V5.9 | EMERGENCY FIX</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00e5ff; --pink: #ff0055; --bg: #06080c; --card: rgba(15, 20, 28, 0.9); --border: rgba(255, 255, 255, 0.08); }
+        :root { --accent: #00e5ff; --pink: #ff0055; --gold: #ffd700; --bg: #06080c; --card: rgba(15, 20, 28, 0.95); --border: rgba(255, 255, 255, 0.08); }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
         .app { display: grid; grid-template-columns: 1fr 380px; gap: 15px; width: 98vw; height: 92vh; max-width: 1400px; }
-        .glass { background: var(--card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
-        
-        /* Навигация */
-        .nav { display: flex; background: rgba(0,0,0,0.5); padding: 8px; gap: 5px; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 10px; font-weight: 800; color: #64748b; border-radius: 10px; text-transform: uppercase; transition: 0.3s; }
+        .glass { background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .nav { display: flex; background: rgba(0,0,0,0.4); padding: 10px; gap: 8px; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 10px; font-weight: 800; color: #64748b; border-radius: 12px; text-transform: uppercase; }
         .tab.active { color: var(--accent); background: rgba(0, 229, 255, 0.1); }
-
-        /* Секции */
         .section { display: none; padding: 25px; flex-direction: column; gap: 15px; flex: 1; overflow-y: auto; }
         .section.active { display: flex; }
-
-        /* Стиль ТОПа */
-        .leader-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
-        .leader-rank { font-family: 'Orbitron'; width: 30px; font-weight: 900; color: var(--accent); }
-        .leader-name { flex: 1; margin-left: 10px; font-weight: 600; }
-        .leader-val { font-family: 'Orbitron'; color: #fff; }
-        .leader-item.gold { border-color: #ffd700; background: rgba(255, 215, 0, 0.05); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
-        .leader-item.gold .leader-rank { color: #ffd700; }
-
-        /* Кнопки и инпуты */
-        .btn { border: none; padding: 18px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; font-family: 'Inter'; }
+        #crash-area { background: radial-gradient(circle at center, rgba(0,229,255,0.05) 0%, transparent 70%); border-radius: 20px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); position: relative; }
+        .mult-display { font-family: 'Orbitron'; font-size: 5rem; font-weight: 900; }
+        .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 13px; }
+        .msg.system { border-color: var(--pink); color: #ffb3c6; }
+        .btn { border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-family: 'Inter'; font-size: 12px; }
         .btn-main { background: var(--accent); color: #000; }
-        input { background: rgba(0,0,0,0.6); border: 1px solid var(--border); padding: 14px; border-radius: 10px; color: #fff; width: 100%; box-sizing: border-box; }
-        #crash-area { background: rgba(0,0,0,0.5); border-radius: 18px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); }
+        .btn-cashout { background: #afff00; color: #000; box-shadow: 0 0 20px rgba(175,255,0,0.3); }
+        .tips-bar { background: rgba(0,0,0,0.3); padding: 8px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
+        .tips-track { display: inline-block; animation: scrollTips 25s linear infinite; }
+        @keyframes scrollTips { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+        input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 15px; border-radius: 14px; color: #fff; outline: none; }
     </style>
 </head>
 <body>
 
-<div class="glass" id="auth-box" style="width: 380px; padding: 40px; text-align: center;">
+<div class="glass" id="auth-box" style="width: 400px; padding: 40px; text-align: center;">
     <h1 style="font-family: 'Orbitron'; color: var(--accent);">TORNADO</h1>
-    <input type="text" id="auth-user" placeholder="ЛОГИН" style="margin-bottom: 12px;">
-    <input type="password" id="auth-pass" placeholder="ПАРОЛЬ" style="margin-bottom: 25px;">
-    <button class="btn btn-main" onclick="handleAuth()">ВХОД / СТАРТ</button>
+    <p style="color: #64748b; font-size: 11px; margin-bottom: 20px;">STABLE PROTOCOL V5.9</p>
+    <input type="text" id="auth-user" placeholder="Логин" style="width: 100%; margin-bottom: 10px;">
+    <input type="password" id="auth-pass" placeholder="Пароль" style="width: 100%; margin-bottom: 20px;">
+    <button class="btn btn-main" style="width: 100%;" onclick="handleAuth()">ВОЙТИ / СОЗДАТЬ</button>
 </div>
 
 <div class="app" id="main-app" style="display: none;">
     <div class="glass">
         <div class="nav">
             <div class="tab active" data-target="tab-crash" onclick="switchTab(this)">КРАШ</div>
-            <div class="tab" data-target="tab-duel" onclick="switchTab(this)">ДУЭЛИ</div>
-            <div class="tab" data-target="tab-top" onclick="switchTab(this)">РЕЙТИНГ</div>
-            <div class="tab" data-target="tab-mine" onclick="switchTab(this)">МАЙНИНГ</div>
+            <div class="tab" data-target="tab-shop" onclick="switchTab(this)">МАГАЗИН</div>
+            <div class="tab" data-target="tab-top" onclick="switchTab(this)">ТОП</div>
+            <div class="tab" data-target="tab-mine" onclick="switchTab(this)">ДОБЫЧА</div>
         </div>
 
         <div id="tab-crash" class="section active">
             <div id="crash-area">
-                <div class="multiplier" id="crash-mult" style="font-size: 4rem; font-family: 'Orbitron'; color: var(--accent);">1.00x</div>
-                <div id="crash-timer" style="color: #64748b; margin-top: 10px;">ОЖИДАНИЕ...</div>
+                <div id="my-bet-info" style="position:absolute; top:20px; color:var(--gold); font-weight:800;"></div>
+                <div class="mult-display" id="crash-mult">1.00x</div>
+                <div id="crash-timer" style="color: #64748b; font-size: 14px; margin-top: 10px;">ЖДЕМ СТАВОК...</div>
             </div>
-            <div style="display: flex; gap: 12px;">
-                <input type="number" id="crash-bet" placeholder="Ставка">
-                <button id="crash-btn" class="btn btn-main" onclick="crashAction()">СТАВКА</button>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="crash-bet" placeholder="Сумма" style="flex: 1;">
+                <button id="crash-btn" class="btn btn-main" style="flex: 1;" onclick="crashAction()">СТАВКА</button>
             </div>
         </div>
 
-        <div id="tab-top" class="section">
-            <h3 style="font-family: 'Orbitron'; color: var(--accent); margin-bottom: 20px;">ТОП 10 ОЛИГАРХОВ</h3>
-            <div id="leaderboard">
-                </div>
+        <div id="tab-shop" class="section">
+            <button class="btn" style="background: var(--gold); color:#000; margin-bottom:15px;" id="daily-btn" onclick="claimDaily()">ЗАБРАТЬ ЕЖЕДНЕВНЫЙ БОНУС</button>
+            <div class="msg" style="border-color:var(--gold); display:flex; justify-content:space-between; align-items:center;">
+                <span><b>VIP СТАТУС</b> (+20% XP)</span>
+                <button class="btn btn-main" style="padding:8px;" onclick="buyStatus('VIP', 50000)">50,000₽</button>
+            </div>
         </div>
 
-        <div id="tab-duel" class="section">
-            <input type="number" id="duel-bet" placeholder="Ставка дуэли">
-            <button class="btn btn-main" onclick="createDuel()">БРОСИТЬ ВЫЗОВ</button>
-            <div id="duel-list" style="margin-top: 20px;"></div>
-        </div>
-
+        <div id="tab-top" class="section"><div id="leaderboard"></div></div>
         <div id="tab-mine" class="section" style="align-items: center; justify-content: center;">
-            <button class="btn btn-main" style="width: 200px; height: 200px; border-radius: 50%; font-size: 3rem;" onclick="mineClick()">T</button>
+            <button class="btn btn-main" style="width: 180px; height: 180px; border-radius: 50%; font-size: 3rem;" onclick="mineClick()">T</button>
         </div>
+
+        <div class="tips-bar"><div class="tips-track">Успей забрать ставку до взрыва! • VIP статус дает синий ник в чате • Не забывай заходить каждый день за бонусом.</div></div>
     </div>
 
     <div class="glass">
         <div style="padding: 25px; text-align: center; border-bottom: 1px solid var(--border);">
-            <div id="user-balance" style="font-family: 'Orbitron'; font-size: 2.5rem; font-weight: 900; color: var(--accent);">0</div>
-            <div style="font-size: 10px; color: #64748b; letter-spacing: 2px;">ВАШ БАЛАНС (₽)</div>
+            <div id="user-balance" style="font-family: 'Orbitron'; font-size: 2.5rem; color: var(--accent);">0</div>
+            <div id="user-subinfo" style="font-size: 10px; color: #64748b;">LVL 1 | USER</div>
         </div>
         <div class="chat-area" id="chat-box"></div>
         <div style="padding: 20px; display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="Сообщение...">
-            <button class="btn btn-main" style="width: 60px;" onclick="sendChat()">></button>
+            <input type="text" id="chat-input" placeholder="Сообщение..." style="flex: 1;">
+            <button class="btn btn-main" onclick="sendChat()">></button>
         </div>
     </div>
 </div>
@@ -103,151 +99,151 @@
         authDomain: "tornadogame-41ae2.firebaseapp.com",
         databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "tornadogame-41ae2",
-        storageBucket: "tornadogame-41ae2.firebasestorage.app",
-        messagingSenderId: "926174944730",
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let user = null, balance = 0, crashState = 'waiting', currentMult = 1.0, myBet = 0, isCashedOut = false;
+    let user = null, userData = {};
+    let crash = { state: 'waiting', mult: 1.0, myBet: 0, cashed: false };
 
-    // --- ЛОГИКА ТОПА ---
-    function updateLeaderboard() {
-        db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
-            const list = document.getElementById('leaderboard');
-            list.innerHTML = '';
-            let leaders = [];
-            snap.forEach(s => { leaders.push({name: s.key, balance: s.val().balance}); });
-            leaders.reverse(); // Чтобы самый богатый был сверху
+    // Звуковой движок
+    const sound = (freq, type = 'sine', dur = 0.1) => {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        g.gain.setValueAtTime(0.1, ctx.currentTime);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + dur);
+    };
 
-            leaders.forEach((l, index) => {
-                const div = document.createElement('div');
-                div.className = `leader-item ${index === 0 ? 'gold' : ''}`;
-                div.innerHTML = `
-                    <div class="leader-rank">#${index + 1}</div>
-                    <div class="leader-name">${l.name.toUpperCase()}</div>
-                    <div class="leader-val">${l.balance.toLocaleString()} ₽</div>
-                `;
-                list.appendChild(div);
-            });
-        });
-    }
-
-    function switchTab(el) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById(el.dataset.target).classList.add('active');
-        if(el.dataset.target === 'tab-top') updateLeaderboard();
-    }
-
-    // --- СТАНДАРТНЫЕ ФУНКЦИИ ---
     function handleAuth() {
         const u = document.getElementById('auth-user').value.trim().toLowerCase();
         const p = document.getElementById('auth-pass').value.trim();
         if(u.length < 3) return;
         db.ref('users/'+u).once('value', s => {
             if(s.exists()) {
-                if(s.val().pass === p) startApp(u); else alert("Пароль!");
+                if(s.val().pass === p) startApp(u, s.val()); else alert("Пароль!");
             } else {
-                db.ref('users/'+u).set({pass:p, balance:1000}).then(()=>startApp(u));
+                const d = {pass:p, balance:1000, xp:0, lvl:1, status:'USER', lastDaily:0};
+                db.ref('users/'+u).set(d).then(() => startApp(u, d));
             }
         });
     }
 
-    function startApp(u) {
-        user = u; document.getElementById('auth-box').style.display='none'; document.getElementById('main-app').style.display='grid';
-        db.ref('users/'+user+'/balance').on('value', s => { 
-            balance = s.val() || 0; document.getElementById('user-balance').innerText = balance.toLocaleString(); 
+    function startApp(u, data) {
+        user = u;
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('main-app').style.display = 'grid';
+        db.ref('users/'+user).on('value', s => {
+            userData = s.val();
+            document.getElementById('user-balance').innerText = Math.floor(userData.balance).toLocaleString();
+            document.getElementById('user-subinfo').innerText = `LVL ${userData.lvl} | ${userData.status}`;
         });
-        db.ref('chat').limitToLast(20).on('child_added', s => {
-            const m = s.val(); const d = document.createElement('div'); 
-            d.innerHTML = `<div style="margin-bottom:8px; font-size:13px;"><b style="color:var(--accent); font-size:10px;">${m.user}</b><br>${m.text}</div>`;
-            const b = document.getElementById('chat-box'); b.appendChild(d); b.scrollTop = b.scrollHeight;
+        db.ref('chat').limitToLast(15).on('child_added', s => {
+            const m = s.val(); const b = document.getElementById('chat-box');
+            const d = document.createElement('div'); d.className = 'msg';
+            d.innerHTML = `<b>${m.user}:</b> ${m.text}`;
+            b.appendChild(d); b.scrollTop = b.scrollHeight;
         });
-        initCrashCycle(); initDuels();
+        initCrash();
     }
 
-    function initCrashCycle() {
-        if (crashState !== 'waiting') return;
+    function initCrash() {
         let timeLeft = 8;
-        const timerLabel = document.getElementById('crash-timer');
-        const countdown = setInterval(() => {
+        crash.state = 'waiting';
+        crash.myBet = 0;
+        document.getElementById('crash-btn').className = "btn btn-main";
+        document.getElementById('crash-btn').innerText = "СТАВКА";
+        document.getElementById('my-bet-info').innerText = "";
+        
+        let t = setInterval(() => {
             timeLeft--;
-            timerLabel.innerText = `СТАРТ ЧЕРЕЗ: ${timeLeft}С`;
-            if (timeLeft <= 0) { clearInterval(countdown); startCrashRise(); }
+            document.getElementById('crash-timer').innerText = `СТАРТ ЧЕРЕЗ ${timeLeft}С`;
+            if(timeLeft <= 0) { clearInterval(t); runCrash(); }
         }, 1000);
     }
 
-    function startCrashRise() {
-        crashState = 'rising'; isCashedOut = false;
-        let crashPoint = (Math.random() * 4 + 1.1).toFixed(2);
-        let riseInterval = setInterval(() => {
-            if (currentMult >= crashPoint) { clearInterval(riseInterval); doCrash(); }
-            else {
-                currentMult = (parseFloat(currentMult) + 0.01).toFixed(2);
-                document.getElementById('crash-mult').innerText = currentMult + 'x';
+    function runCrash() {
+        crash.state = 'rising';
+        crash.mult = 1.0;
+        crash.cashed = false;
+        document.getElementById('crash-timer').innerText = "ГРАФИК ЛЕТИТ!";
+        if(crash.myBet > 0) {
+            document.getElementById('crash-btn').innerText = "ЗАБРАТЬ";
+            document.getElementById('crash-btn').className = "btn btn-cashout";
+        }
+        
+        let limit = (Math.random() * 3.5 + 1.1).toFixed(2);
+        let r = setInterval(() => {
+            if(crash.mult >= limit) {
+                clearInterval(r);
+                crash.state = 'crashed';
+                sound(150, 'sawtooth', 0.3);
+                document.getElementById('crash-mult').innerText = "BOOM!";
+                document.getElementById('crash-mult').style.color = 'var(--pink)';
+                setTimeout(() => {
+                    document.getElementById('crash-mult').innerText = "1.00x";
+                    document.getElementById('crash-mult').style.color = 'var(--accent)';
+                    initCrash();
+                }, 3000);
+            } else {
+                crash.mult = (parseFloat(crash.mult) + 0.01).toFixed(2);
+                document.getElementById('crash-mult').innerText = crash.mult + "x";
+                if(crash.mult > 2) document.getElementById('crash-mult').style.color = 'var(--gold)';
             }
-        }, 80);
-    }
-
-    function doCrash() {
-        crashState = 'crashed'; document.getElementById('crash-mult').innerText = "CRASH!";
-        setTimeout(() => {
-            crashState = 'waiting'; currentMult = 1.0;
-            document.getElementById('crash-mult').innerText = "1.00x";
-            initCrashCycle();
-        }, 4000);
+        }, 100);
     }
 
     function crashAction() {
         const amt = parseInt(document.getElementById('crash-bet').value);
-        if (crashState === 'waiting' && amt > 0 && amt <= balance) {
-            myBet = amt; db.ref('users/'+user+'/balance').set(balance - amt);
-        } else if (crashState === 'rising' && myBet > 0 && !isCashedOut) {
-            isCashedOut = true;
-            db.ref('users/'+user+'/balance').set(balance + Math.floor(myBet * currentMult));
-            myBet = 0;
+        if(crash.state === 'waiting' && amt > 0 && amt <= userData.balance) {
+            crash.myBet = amt;
+            db.ref('users/'+user+'/balance').transaction(b => b - amt);
+            document.getElementById('my-bet-info').innerText = `СТАВКА: ${amt}₽`;
+            document.getElementById('crash-btn').innerText = "ГОТОВО";
+            document.getElementById('crash-btn').style.opacity = "0.5";
+            sound(440);
+        } else if(crash.state === 'rising' && crash.myBet > 0 && !crash.cashed) {
+            crash.cashed = true;
+            let win = Math.floor(crash.myBet * crash.mult);
+            db.ref('users/'+user+'/balance').transaction(b => b + win);
+            document.getElementById('crash-btn').innerText = "ВЫВЕДЕНО!";
+            document.getElementById('crash-btn').className = "btn btn-main";
+            document.getElementById('my-bet-info').innerText = `ВЫИГРЫШ: ${win}₽`;
+            sound(880, 'sine', 0.2);
         }
     }
 
-    function mineClick() { db.ref('users/'+user+'/balance').set(balance + 1); }
+    function claimDaily() {
+        const now = Date.now();
+        if(now - userData.lastDaily < 86400000) return alert("Бонус завтра!");
+        db.ref('users/'+user).transaction(u => {
+            if(u) { u.balance += 1000; u.lastDaily = now; } return u;
+        });
+        sound(600, 'sine', 0.4);
+        alert("Получено 1000₽!");
+    }
+
+    function mineClick() {
+        db.ref('users/'+user).transaction(u => {
+            if(u) { u.balance += 1; u.xp += 1; if(u.xp >= u.lvl*200) { u.lvl++; u.xp=0; } } return u;
+        });
+        sound(1000, 'sine', 0.05);
+    }
+
+    function switchTab(el) {
+        document.querySelectorAll('.tab, .section').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById(el.dataset.target).classList.add('active');
+    }
+
     function sendChat() {
-        let t = document.getElementById('chat-input').value.trim();
+        const t = document.getElementById('chat-input').value.trim();
         if(t) { db.ref('chat').push({user: user, text: t}); document.getElementById('chat-input').value = ''; }
-    }
-
-    function initDuels() {
-        db.ref('duels').on('value', s => {
-            const l = document.getElementById('duel-list'); l.innerHTML = '';
-            s.forEach(d => {
-                const data = d.val(); if(data.creator === user) return;
-                l.innerHTML += `<div style="padding:10px; background:rgba(255,255,255,0.05); margin-bottom:5px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>⚔️ ${data.creator} [${data.bet}₽]</span>
-                    <button class="btn btn-main" style="width:80px; padding:5px; font-size:10px" onclick="acceptDuel('${d.key}', ${data.bet}, '${data.creator}')">ИГРАТЬ</button>
-                </div>`;
-            });
-        });
-    }
-
-    function createDuel() {
-        let amt = parseInt(document.getElementById('duel-bet').value);
-        if(amt > 0 && amt <= balance) {
-            db.ref('users/'+user+'/balance').set(balance - amt);
-            db.ref('duels').push({creator: user, bet: amt});
-        }
-    }
-
-    function acceptDuel(id, amt, creator) {
-        db.ref('duels/'+id).remove().then(() => {
-            db.ref('users/'+user+'/balance').set(balance - amt);
-            let win = Math.random() > 0.5;
-            let winner = win ? user : creator;
-            db.ref('users/'+winner+'/balance').transaction(b => (b || 0) + (amt * 2));
-            alert(win ? "ПОБЕДА!" : "ПРОИГРЫШ...");
-        });
     }
 </script>
 </body>
 </html>
+
