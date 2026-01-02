@@ -2,862 +2,529 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V10.0 | TITAN MAXIMUM 1000 LINES EDITION</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>TORNADO GAME ENGINE V10</title>
     <style>
-        /* --- CORE DESIGN SYSTEM --- */
         :root {
-            --accent: #00f2ff;
-            --accent-dim: rgba(0, 242, 255, 0.15);
-            --pink: #ff007b;
-            --gold: #ffcc00;
-            --green: #00ff88;
-            --bg-deep: #020406;
-            --bg-panel: #0a0f14;
-            --border-glow: 0 0 15px rgba(0, 242, 255, 0.3);
-            --transition-smooth: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --bg: #0f1117;
+            --panel: #161922;
+            --accent: #3b82f6;
+            --green: #10b981;
+            --red: #ef4444;
+            --text: #f8fafc;
+            --border: #2d3343;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: var(--bg-deep);
-            color: #ffffff;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* HEADER */
+        header {
+            height: 70px; background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            position: sticky; top: 0; z-index: 100;
         }
+        .logo { font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+        .user-info { display: flex; gap: 25px; align-items: center; }
+        .balance-display { background: #1e2330; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border); }
+        .balance-display span { color: var(--green); font-weight: bold; }
 
-        #particle-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; pointer-events: none; opacity: 0.6;
+        /* MAIN LAYOUT */
+        .wrapper { display: grid; grid-template-columns: 260px 1fr 320px; min-height: calc(100vh - 70px); }
+
+        /* SIDEBAR */
+        nav { background: var(--panel); border-right: 1px solid var(--border); padding: 20px; }
+        .menu-item {
+            padding: 14px 18px; border-radius: 10px; cursor: pointer; margin-bottom: 8px;
+            transition: 0.2s; color: #94a3b8; font-weight: 600;
         }
+        .menu-item:hover { background: #1e2330; color: #fff; }
+        .menu-item.active { background: var(--accent); color: #fff; }
 
-        /* --- LAYOUT STRUCTURE --- */
-        .titan-container {
-            position: relative;
-            z-index: 10;
-            width: 98vw;
-            height: 96vh;
-            display: grid;
-            grid-template-columns: 320px 1fr 400px;
-            grid-template-rows: 80px 1fr;
-            gap: 20px;
-            padding: 10px;
-        }
+        /* GAME AREA */
+        main { padding: 30px; }
+        .game-card { background: var(--panel); border-radius: 15px; border: 1px solid var(--border); padding: 25px; display: none; }
+        .game-card.active { display: block; }
 
-        /* --- TOP HEADER --- */
-        .titan-header {
-            grid-column: 1 / 4;
-            background: rgba(10, 15, 20, 0.9);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            backdrop-filter: blur(20px);
-        }
-
-        .brand { font-family: 'Orbitron'; font-weight: 900; font-size: 32px; color: var(--accent); letter-spacing: 4px; text-shadow: var(--border-glow); }
-        .live-stats { display: flex; gap: 40px; font-size: 12px; font-weight: 800; color: #5d727b; text-transform: uppercase; }
-        .stat-val { color: #fff; margin-left: 8px; }
-
-        /* --- LEFT SIDEBAR (GAMES NAVIGATION) --- */
-        .titan-sidebar {
-            grid-row: 2 / 3;
-            background: var(--bg-panel);
-            border: 1px solid rgba(0, 242, 255, 0.1);
-            border-radius: 25px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .nav-item {
-            padding: 18px 25px;
-            border-radius: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 700;
-            color: #5d727b;
-            transition: var(--transition-smooth);
-            border: 1px solid transparent;
-            text-transform: uppercase;
-            font-size: 13px;
-        }
-
-        .nav-item:hover { background: rgba(255,255,255,0.03); color: #fff; }
-        .nav-item.active {
-            background: var(--accent-dim);
-            color: var(--accent);
-            border-color: rgba(0, 242, 255, 0.3);
-            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.05);
-        }
-
-        /* --- MAIN VIEWPORT --- */
-        .titan-viewport {
-            grid-row: 2 / 3;
-            background: rgba(13, 17, 23, 0.8);
-            border-radius: 30px;
-            border: 1px solid rgba(0, 242, 255, 0.1);
-            overflow-y: auto;
-            position: relative;
-            padding: 40px;
-        }
-
-        .view-content { display: none; animation: fadeIn 0.5s ease; flex-direction: column; gap: 30px; }
-        .view-content.active { display: flex; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- CRASH MODULE --- */
-        .crash-engine-wrap {
-            background: #000;
-            height: 450px;
-            border-radius: 25px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
+        /* CRASH */
+        .crash-canvas-container { position: relative; background: #0b0e14; border-radius: 10px; height: 400px; margin-bottom: 20px; overflow: hidden; }
         #crash-canvas { width: 100%; height: 100%; }
-        .crash-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; pointer-events: none;
-        }
-        #crash-multiplier {
-            font-family: 'Orbitron'; font-size: 100px; font-weight: 900;
-            background: linear-gradient(to bottom, #fff, #5d727b);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        .crash-mult { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 70px; font-weight: 800; text-shadow: 0 0 20px rgba(255,255,255,0.2);
         }
 
-        /* --- MINES MODULE --- */
-        .mines-grid-container {
-            display: grid; grid-template-columns: repeat(5, 1fr);
-            gap: 15px; max-width: 550px; margin: 0 auto;
+        /* MINES */
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 450px; margin: 20px auto; }
+        .mine-tile { 
+            aspect-ratio: 1; background: #2d3343; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s;
         }
-        .mine-cell {
-            aspect-ratio: 1; background: #161b22; border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.05); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px; transition: var(--transition-smooth);
+        .mine-tile:hover { background: #3e465b; }
+        .mine-tile.gem { background: var(--green); box-shadow: 0 0 15px var(--green); }
+        .mine-tile.bomb { background: var(--red); box-shadow: 0 0 15px var(--red); }
+
+        /* LADDER */
+        .ladder-container { display: flex; flex-direction: column-reverse; gap: 5px; max-width: 400px; margin: 0 auto; }
+        .ladder-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; opacity: 0.5; }
+        .ladder-row.active { opacity: 1; }
+        .ladder-step { height: 40px; background: #2d3343; border-radius: 4px; cursor: pointer; text-align: center; line-height: 40px; }
+        .ladder-step.win { background: var(--green); }
+        .ladder-step.lose { background: var(--red); }
+
+        /* CONTROLS */
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .input-box { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        input, select { 
+            background: #0f1117; border: 1px solid var(--border); padding: 12px; 
+            color: #fff; border-radius: 8px; font-size: 16px;
         }
-        .mine-cell:hover { transform: translateY(-5px); background: #1c2128; border-color: var(--accent); }
-        .mine-cell.revealed-gem { background: var(--accent); color: #000; box-shadow: 0 0 30px var(--accent); border: none; }
-        .mine-cell.revealed-bomb { background: var(--pink); box-shadow: 0 0 30px var(--pink); border: none; }
-
-        /* --- RIGHT PANEL (USER & CHAT) --- */
-        .titan-right-panel {
-            grid-row: 2 / 3;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .btn { 
+            background: var(--accent); color: white; border: none; padding: 15px; 
+            border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; 
+            grid-column: span 2; font-size: 16px;
         }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:disabled { background: #334155; cursor: not-allowed; transform: none; }
 
-        .user-card {
-            background: var(--bg-panel); border-radius: 25px; padding: 30px;
-            border: 1px solid rgba(0, 242, 255, 0.1);
-        }
+        /* CHAT & STATS */
+        .sidebar-right { background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748b; }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .content-area { flex: 1; overflow-y: auto; padding: 15px; }
+        .chat-msg { margin-bottom: 10px; font-size: 13px; background: #1e2330; padding: 10px; border-radius: 8px; }
+        .chat-msg b { color: var(--accent); }
+        .chat-input { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 5px; }
 
-        .balance-box { margin-bottom: 25px; }
-        .balance-label { font-size: 11px; font-weight: 800; color: #5d727b; text-transform: uppercase; letter-spacing: 2px; }
-        .balance-amount { font-family: 'Orbitron'; font-size: 36px; color: var(--accent); margin-top: 5px; }
+        /* MINING VIEW */
+        .mining-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .gpu-card { background: #1e2330; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .gpu-card h4 { color: var(--accent); margin-bottom: 5px; }
+        .gpu-card p { font-size: 12px; color: #94a3b8; }
 
-        .xp-system { margin-top: 20px; }
-        .xp-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 900; margin-bottom: 10px; }
-        .xp-progress-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; }
-        .xp-progress-fill { height: 100%; width: 45%; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width 1s ease; }
-
-        .chat-module {
-            flex: 1; background: var(--bg-panel); border-radius: 25px;
-            border: 1px solid rgba(0, 242, 255, 0.1); display: flex; flex-direction: column; overflow: hidden;
-        }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .message { background: rgba(255,255,255,0.02); padding: 12px 15px; border-radius: 12px; font-size: 13px; line-height: 1.5; border-left: 3px solid var(--accent); }
-        .message b { color: var(--accent); display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
-
-        .chat-input-wrap { padding: 15px; background: rgba(0,0,0,0.2); display: flex; gap: 10px; }
-        .chat-input { flex: 1; background: #161b22; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; color: #fff; font-size: 13px; }
-
-        /* --- CONTROLS --- */
-        .bet-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        .input-group label { font-size: 10px; font-weight: 900; color: #5d727b; text-transform: uppercase; margin-left: 5px; }
-        .titan-input {
-            background: #161b22; border: 1px solid rgba(0, 242, 255, 0.1);
-            padding: 18px; border-radius: 15px; color: #fff; font-family: 'Orbitron'; font-size: 16px;
-        }
-        .titan-btn {
-            background: var(--accent); color: #000; border: none; padding: 20px;
-            border-radius: 15px; font-weight: 900; font-family: 'Orbitron'; cursor: pointer;
-            transition: var(--transition-smooth); text-transform: uppercase; letter-spacing: 1px;
-        }
-        .titan-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
-        .titan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        /* --- AUTH OVERLAY --- */
-        #auth-screen {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .auth-card {
-            width: 450px; padding: 50px; background: var(--bg-panel); border-radius: 35px;
-            border: 1px solid var(--accent); text-align: center; box-shadow: 0 0 100px rgba(0, 242, 255, 0.1);
+        /* NOTIFICATION */
+        #notif { 
+            position: fixed; bottom: 20px; left: 20px; padding: 15px 25px; 
+            border-radius: 8px; background: var(--panel); border-left: 4px solid var(--accent);
+            transform: translateX(-150%); transition: 0.3s; z-index: 1000;
         }
 
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.2); border-radius: 10px; }
+        /* CASES */
+        .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .case-item { background: #1e2330; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); cursor: pointer; }
+        .case-item:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
 
-<canvas id="particle-canvas"></canvas>
+<div id="notif">Сообщение системы</div>
 
-<div id="auth-screen">
-    <div class="auth-card">
-        <div class="brand" style="margin-bottom: 10px;">TORNADO</div>
-        <p style="color: #5d727b; font-size: 12px; margin-bottom: 40px; font-weight: 800; letter-spacing: 5px;">TITAN PROTOCOL V10</p>
-        
-        <div class="input-group" style="margin-bottom: 20px;">
-            <input type="text" id="login-nick" class="titan-input" placeholder="ACCESS IDENTITY" style="text-align: center;">
-        </div>
-        <div class="input-group" style="margin-bottom: 30px;">
-            <input type="password" id="login-pass" class="titan-input" placeholder="SECURITY KEY" style="text-align: center;">
-        </div>
-        
-        <button class="titan-btn" style="width: 100%;" onclick="initTitanSystem()">INITIALIZE SYSTEM</button>
-        <p id="auth-status" style="margin-top: 20px; font-size: 11px; color: var(--pink); display: none;">ACCESS DENIED: INVALID KEY</p>
+<header>
+    <div class="logo">TORNADO SYSTEM</div>
+    <div class="user-info">
+        <div class="balance-display">Баланс: <span id="balance-val">0</span> ₽</div>
+        <div id="user-name" style="font-weight: bold;">Загрузка...</div>
     </div>
-</div>
+</header>
 
-<div class="titan-container" id="main-app" style="display: none;">
-    <header class="titan-header">
-        <div class="brand">TORNADO</div>
-        <div class="live-stats">
-            <div>ONLINE TITANS: <span class="stat-val" id="count-online">1,204</span></div>
-            <div>TOTAL PAYOUT: <span class="stat-val" style="color: var(--green);">14,502,300 ₽</span></div>
-            <div>SYSTEM STATUS: <span class="stat-val" style="color: var(--green);">STABLE</span></div>
+<div class="wrapper">
+    <nav>
+        <div class="menu-item active" onclick="showGame('crash', this)">📈 Crash</div>
+        <div class="menu-item" onclick="showGame('mines', this)">💣 Mines</div>
+        <div class="menu-item" onclick="showGame('ladder', this)">🪜 Ladder</div>
+        <div class="menu-item" onclick="showGame('cases', this)">📦 Cases</div>
+        <div class="menu-item" onclick="showGame('mining', this)">⚡ Mining</div>
+        <div class="menu-item" onclick="showGame('wheel', this)">🎡 Wheel</div>
+        <div class="menu-item" onclick="showGame('tasks', this)">📅 Tasks</div>
+        <div class="menu-item" onclick="showGame('settings', this)">⚙️ Настройки</div>
+        <div style="margin-top: 40px; padding: 15px; background: #1e2330; border-radius: 10px;">
+            <small style="color: #64748b;">Ваш уровень:</small>
+            <div id="user-lvl" style="font-size: 20px; font-weight: bold; color: var(--accent);">LVL 1</div>
         </div>
-        <div id="user-identity" style="font-weight: 900; font-size: 14px; color: var(--accent);">GUEST_USER</div>
-    </header>
+    </nav>
 
-    <aside class="titan-sidebar">
-        <div class="nav-item active" onclick="switchView(this, 'crash')">📈 Crash Protocol</div>
-        <div class="nav-item" onclick="switchView(this, 'mines')">💣 Mine Sweep</div>
-        <div class="nav-item" onclick="switchView(this, 'ladder')">🪜 Vertical Ascent</div>
-        <div class="nav-item" onclick="switchView(this, 'mining')">⚡ Core Mining</div>
-        <div class="nav-item" onclick="switchView(this, 'cases')">📦 Loot Modules</div>
-        <div class="nav-item" onclick="switchView(this, 'top')">🏆 Hall of Fame</div>
-        
-        <div style="margin-top: auto; padding: 20px; background: rgba(255,0,123,0.05); border-radius: 15px; border: 1px solid rgba(255,0,123,0.2);">
-            <p style="font-size: 10px; color: var(--pink); font-weight: 900;">DAILY REWARD</p>
-            <p style="font-size: 14px; margin: 5px 0;">5,000.00 ₽</p>
-            <button class="titan-btn" style="padding: 10px; font-size: 10px; width: 100%; background: var(--pink);" onclick="claimBonus()">CLAIM</button>
-        </div>
-    </aside>
-
-    <main class="titan-viewport">
-        <div id="view-crash" class="view-content active">
-            <div class="crash-engine-wrap">
+    <main>
+        <div id="game-crash" class="game-card active">
+            <div class="crash-canvas-container">
                 <canvas id="crash-canvas"></canvas>
-                <div class="crash-overlay">
-                    <div id="crash-multiplier">1.00x</div>
-                    <div id="crash-state" style="font-weight: 900; color: #5d727b; text-transform: uppercase;">Waiting for Titans...</div>
-                </div>
+                <div class="crash-mult" id="crash-val">1.00x</div>
             </div>
-            <div class="bet-controls">
-                <div class="input-group">
-                    <label>Staking Amount</label>
-                    <input type="number" id="bet-amount-crash" class="titan-input" value="100">
+            <div class="controls">
+                <div class="input-box">
+                    <label>Сумма ставки</label>
+                    <input type="number" id="crash-bet" value="100">
                 </div>
-                <div class="input-group">
-                    <label>Auto-Withdrawal</label>
-                    <input type="number" id="auto-cash-crash" class="titan-input" placeholder="2.00">
+                <div class="input-box">
+                    <label>Авто-вывод</label>
+                    <input type="number" id="crash-auto" value="2.0">
                 </div>
+                <button class="btn" id="crash-btn" onclick="crashAction()">ПОСТАВИТЬ</button>
             </div>
-            <button class="titan-btn" id="btn-crash-action" onclick="handleCrashBet()">ENTER PROTOCOL</button>
-            <div id="crash-history" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;"></div>
         </div>
 
-        <div id="view-mines" class="view-content">
-            <div class="bet-controls">
-                <div class="input-group">
-                    <label>Staking Amount</label>
-                    <input type="number" id="bet-amount-mines" class="titan-input" value="100">
+        <div id="game-mines" class="game-card">
+            <div class="mines-grid" id="mines-board"></div>
+            <div class="controls">
+                <div class="input-box">
+                    <label>Ставка</label>
+                    <input type="number" id="mines-bet" value="100">
                 </div>
-                <div class="input-group">
-                    <label>Mine Count</label>
-                    <select id="mine-count" class="titan-input" style="background: #161b22;">
-                        <option value="3">3 MINES</option>
-                        <option value="5">5 MINES</option>
-                        <option value="10">10 MINES</option>
-                        <option value="24">24 MINES (JACKPOT)</option>
+                <div class="input-box">
+                    <label>Кол-во ловушек</label>
+                    <select id="mines-count">
+                        <option value="1">1 ловушка</option>
+                        <option value="3" selected>3 ловушки</option>
+                        <option value="5">5 ловушек</option>
+                        <option value="10">10 ловушек</option>
+                        <option value="24">24 ловушки</option>
                     </select>
                 </div>
+                <button class="btn" id="mines-btn" onclick="minesAction()">ИГРАТЬ</button>
             </div>
-            <div class="mines-grid-container" id="mines-grid"></div>
-            <button class="titan-btn" id="btn-mines-action" onclick="startMinesGame()">INITIALIZE GRID</button>
         </div>
 
-        <div id="view-mining" class="view-content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="user-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 300px;">
-                    <p class="balance-label">CORE HASH RATE</p>
-                    <h2 id="hash-rate-val" style="font-family: 'Orbitron'; font-size: 40px; color: var(--green); margin: 15px 0;">0.00 MH/s</h2>
-                    <button class="titan-btn" onclick="manualMine()" style="height: 100px;">MANUAL OVERRIDE (CLICK)</button>
+        <div id="game-ladder" class="game-card">
+            <div class="ladder-container" id="ladder-board"></div>
+            <div class="controls">
+                <div class="input-box">
+                    <label>Ставка</label>
+                    <input type="number" id="ladder-bet" value="100">
                 </div>
-                <div class="user-card" style="height: 300px; position: relative; overflow: hidden;">
-                    <p class="balance-label">CORE TEMPERATURE</p>
-                    <div id="temp-gauge" style="width: 100%; height: 20px; background: #000; margin-top: 20px; border-radius: 10px;">
-                        <div id="temp-fill" style="width: 30%; height: 100%; background: var(--accent); transition: 0.3s;"></div>
-                    </div>
-                    <p id="temp-text" style="margin-top: 10px; font-weight: 900; color: var(--accent);">35.4°C</p>
-                </div>
+                <button class="btn" id="ladder-btn" onclick="ladderAction()">НАЧАТЬ ВОСХОЖДЕНИЕ</button>
             </div>
-            <h3 style="font-family: 'Orbitron'; letter-spacing: 2px; color: #5d727b;">AVAILABLE HARDWARE</h3>
-            <div id="mining-shop" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
         </div>
 
-        <div id="view-top" class="view-content">
-            <h2 style="font-family: 'Orbitron'; text-align: center; font-size: 32px; color: var(--gold);">TITAN HALL OF FAME</h2>
-            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 30px;"></div>
+        <div id="game-mining" class="game-card">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 id="mining-speed">0.00 ₽/сек</h2>
+                <p style="color: #64748b;">Ваша текущая мощность</p>
+            </div>
+            <div class="mining-grid" id="mining-shop"></div>
+        </div>
+
+        <div id="game-cases" class="game-card">
+            <div class="case-grid" id="case-list"></div>
+        </div>
+
+        <div id="game-wheel" class="game-card">
+            <div style="width: 300px; height: 300px; border-radius: 50%; border: 5px solid var(--accent); margin: 0 auto; display: flex; align-items: center; justify-content: center; position: relative;">
+                <div id="wheel-arrow" style="position: absolute; top: -10px; width: 20px; height: 20px; background: red; clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+                <div id="wheel-body" style="width: 100%; height: 100%; border-radius: 50%; transition: 3s cubic-bezier(0.1, 0, 0.1, 1); background: conic-gradient(var(--red) 0% 25%, var(--accent) 25% 50%, var(--green) 50% 75%, var(--border) 75% 100%);"></div>
+            </div>
+            <div class="controls" style="margin-top: 40px;">
+                <div class="input-box"><label>Ставка</label><input type="number" id="wheel-bet" value="100"></div>
+                <div class="input-box">
+                    <label>Цвет</label>
+                    <select id="wheel-color">
+                        <option value="red">Красный (x2)</option>
+                        <option value="blue">Синий (x2)</option>
+                        <option value="green">Зеленый (x4)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="spinWheel()">КРУТИТЬ</button>
+            </div>
         </div>
     </main>
 
-    <aside class="titan-right-panel">
-        <div class="user-card">
-            <div class="balance-box">
-                <p class="balance-label">CREDIT BALANCE</p>
-                <div class="balance-amount" id="val-balance">0.00 ₽</div>
-            </div>
-            <div class="xp-system">
-                <div class="xp-header">
-                    <span id="val-level">LEVEL 1</span>
-                    <span id="val-xp-text">450 / 1000 XP</span>
-                </div>
-                <div class="xp-progress-bg">
-                    <div class="xp-progress-fill" id="val-xp-bar"></div>
-                </div>
-            </div>
+    <div class="sidebar-right">
+        <div class="tabs">
+            <div class="tab active" onclick="switchRightTab('chat')">ЧАТ</div>
+            <div class="tab" onclick="switchRightTab('stats')">ТОП</div>
         </div>
-
-        <div class="chat-module">
-            <div class="chat-messages" id="chat-box"></div>
-            <div class="chat-input-wrap">
-                <input type="text" id="chat-input" class="chat-input" placeholder="BROADCAST MESSAGE...">
-                <button class="titan-btn" style="padding: 10px 20px;" onclick="sendChatMessage()">></button>
+        <div class="content-area" id="right-content">
             </div>
+        <div class="chat-input" id="chat-input-container">
+            <input type="text" id="msg-input" placeholder="Введите сообщение...">
+            <button class="btn" style="padding: 10px; width: auto;" onclick="sendMessage()">➤</button>
         </div>
-    </aside>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-    // --- FIREBASE CONFIGURATION ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
-        databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "tornadogame-41ae2",
-        appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+// --- КОНФИГУРАЦИЯ ---
+const firebaseConfig = {
+    apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
+    databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "tornadogame-41ae2",
+    appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // --- GLOBAL SYSTEM STATE ---
-    let TITAN = {
-        user: null,
-        data: {
-            balance: 0,
-            xp: 0,
-            lvl: 1,
-            mining: { hash: 0, temp: 35, hardware: {} }
-        },
-        crash: { active: false, multiplier: 1.0, bet: 0, cashed: false, history: [] },
-        mines: { active: false, bombs: [], bet: 0, revealed: 0 },
-        audio: null
-    };
+// --- СОСТОЯНИЕ ---
+let user = {
+    id: 'user_' + Math.floor(Math.random() * 9999),
+    balance: 5000,
+    lvl: 1,
+    exp: 0,
+    miningPower: 0,
+    inventory: []
+};
 
-    // --- PARTICLE ENGINE ---
-    const pCvs = document.getElementById('particle-canvas');
-    const pCtx = pCvs.getContext('2d');
-    let particles = [];
+let currentCrash = { active: false, mult: 1.0, bet: 0, cashed: false };
+let currentMines = { active: false, bet: 0, count: 3, board: [] };
+let currentLadder = { active: false, bet: 0, step: 0 };
 
-    function initParticles() {
-        pCvs.width = window.innerWidth;
-        pCvs.height = window.innerHeight;
-        for(let i=0; i<80; i++) {
-            particles.push({
-                x: Math.random() * pCvs.width,
-                y: Math.random() * pCvs.height,
-                size: Math.random() * 2,
-                speedY: Math.random() * 0.5 + 0.1,
-                opacity: Math.random()
-            });
-        }
+// --- СИСТЕМА УВЕДОМЛЕНИЙ ---
+function notify(text, color = '#3b82f6') {
+    const n = document.getElementById('notif');
+    n.innerText = text;
+    n.style.borderColor = color;
+    n.style.transform = 'translateX(0)';
+    setTimeout(() => n.style.transform = 'translateX(-150%)', 3000);
+}
+
+// --- ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ ---
+function initUser() {
+    const saved = localStorage.getItem('tornado_user');
+    if(saved) {
+        const parsed = JSON.parse(saved);
+        user.id = parsed.id;
+    } else {
+        localStorage.setItem('tornado_user', JSON.stringify({id: user.id}));
     }
 
-    function animateParticles() {
-        pCtx.clearRect(0,0,pCvs.width, pCvs.height);
-        pCtx.fillStyle = '#00f2ff';
-        particles.forEach(p => {
-            p.y -= p.speedY;
-            if(p.y < 0) p.y = pCvs.height;
-            pCtx.globalAlpha = p.opacity;
-            pCtx.beginPath();
-            pCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-            pCtx.fill();
-        });
-        requestAnimationFrame(animateParticles);
-    }
-    initParticles(); animateParticles();
-
-    // --- CORE SYSTEM INITIALIZATION ---
-    function initTitanSystem() {
-        const nick = document.getElementById('login-nick').value.trim();
-        const pass = document.getElementById('login-pass').value.trim();
-        
-        if(nick.length < 3) return;
-
-        db.ref('users/' + nick).once('value', snapshot => {
-            if(snapshot.exists()) {
-                const data = snapshot.val();
-                if(data.pass === pass) {
-                    TITAN.user = nick;
-                    launchInterface();
-                } else {
-                    showAuthError();
-                }
-            } else {
-                // Register new Titan
-                const newData = {
-                    pass: pass,
-                    balance: 15000,
-                    xp: 0,
-                    lvl: 1,
-                    hardware: { cpu_v1: 1 }
-                };
-                db.ref('users/' + nick).set(newData).then(() => {
-                    TITAN.user = nick;
-                    launchInterface();
-                });
-            }
-        });
-    }
-
-    function launchInterface() {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'grid';
-        document.getElementById('user-identity').innerText = TITAN.user.toUpperCase();
-        
-        // Listen to Data
-        db.ref('users/' + TITAN.user).on('value', snap => {
-            TITAN.data = snap.val();
-            syncUI();
-        });
-
-        // Listen to Chat
-        db.ref('chat').limitToLast(30).on('value', snap => {
-            const box = document.getElementById('chat-box');
-            box.innerHTML = '';
-            snap.forEach(m => {
-                const msg = document.createElement('div');
-                msg.className = 'message';
-                msg.innerHTML = `<b>${m.val().user}</b> ${m.val().text}`;
-                box.appendChild(msg);
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-
-        initCrashEngine();
-        initMiningShop();
-        syncLeaderboard();
-        startGlobalLoops();
-    }
-
-    function syncUI() {
-        document.getElementById('val-balance').innerText = Math.floor(TITAN.data.balance).toLocaleString() + ' ₽';
-        document.getElementById('val-level').innerText = 'LEVEL ' + TITAN.data.lvl;
-        
-        const nextXp = TITAN.data.lvl * 1250;
-        const progress = (TITAN.data.xp / nextXp) * 100;
-        document.getElementById('val-xp-bar').style.width = progress + '%';
-        document.getElementById('val-xp-text').innerText = `${TITAN.data.xp} / ${nextXp} XP`;
-
-        // Check Level Up
-        if(TITAN.data.xp >= nextXp) {
-            db.ref('users/' + TITAN.user).transaction(u => {
-                if(u) { u.lvl++; u.xp = 0; u.balance += 5000; }
-                return u;
-            });
-            alert("LEVEL UP! REWARD: 5,000 ₽");
-        }
-    }
-
-    // --- CRASH ENGINE PROTOCOL ---
-    const crashCvs = document.getElementById('crash-canvas');
-    const crashCtx = crashCvs.getContext('2d');
-    let crashAnimationId;
-
-    function initCrashEngine() {
-        crashCvs.width = 800;
-        crashCvs.height = 450;
-        startCrashCycle();
-    }
-
-    function startCrashCycle() {
-        TITAN.crash.active = false;
-        TITAN.crash.multiplier = 1.0;
-        TITAN.crash.cashed = false;
-        
-        let timer = 8;
-        const btn = document.getElementById('btn-crash-action');
-        btn.disabled = false;
-        btn.innerText = "ENTER PROTOCOL";
-        btn.style.background = "var(--accent)";
-
-        let countdown = setInterval(() => {
-            timer -= 0.1;
-            document.getElementById('crash-state').innerText = `NEXT LAUNCH IN ${timer.toFixed(1)}S`;
-            if(timer <= 0) {
-                clearInterval(countdown);
-                launchCrashRocket();
-            }
-        }, 100);
-    }
-
-    function launchCrashRocket() {
-        TITAN.crash.active = true;
-        const crashPoint = (Math.random() < 0.1) ? 1.0 : (Math.random() * 5 + 1.05);
-        let startTime = Date.now();
-        
-        if(TITAN.crash.bet > 0) {
-            const btn = document.getElementById('btn-crash-action');
-            btn.innerText = "WITHDRAW CREDITS";
-            btn.style.background = "var(--green)";
-        }
-
-        function update() {
-            let elapsed = (Date.now() - startTime) / 1000;
-            TITAN.crash.multiplier = Math.pow(1.07, elapsed);
-            
-            document.getElementById('crash-multiplier').innerText = TITAN.crash.multiplier.toFixed(2) + 'x';
-            document.getElementById('crash-state').innerText = "TITAN ASCENDING...";
-            
-            // Draw Chart
-            renderCrashChart(elapsed);
-
-            if(TITAN.crash.multiplier >= crashPoint) {
-                cancelAnimationFrame(crashAnimationId);
-                triggerCrashEnd();
-            } else {
-                crashAnimationId = requestAnimationFrame(update);
-            }
-        }
-        update();
-    }
-
-    function renderCrashChart(elapsed) {
-        crashCtx.clearRect(0,0,800,450);
-        crashCtx.strokeStyle = '#00f2ff';
-        crashCtx.lineWidth = 4;
-        crashCtx.shadowBlur = 20;
-        crashCtx.shadowColor = '#00f2ff';
-        
-        crashCtx.beginPath();
-        crashCtx.moveTo(0, 450);
-        
-        for(let i=0; i<elapsed; i += 0.1) {
-            let x = (i / 10) * 800;
-            let y = 450 - (Math.pow(1.07, i) * 40);
-            crashCtx.lineTo(x, y);
-        }
-        crashCtx.stroke();
-    }
-
-    function triggerCrashEnd() {
-        TITAN.crash.active = false;
-        document.getElementById('crash-multiplier').style.color = "var(--pink)";
-        document.getElementById('crash-state').innerText = "CRITICAL FAILURE!";
-        
-        // Save History
-        TITAN.crash.history.unshift(TITAN.crash.multiplier.toFixed(2));
-        updateCrashHistoryUI();
-
-        setTimeout(() => {
-            document.getElementById('crash-multiplier').style.color = "#fff";
-            TITAN.crash.bet = 0;
-            startCrashCycle();
-        }, 3000);
-    }
-
-    function handleCrashBet() {
-        if(!TITAN.crash.active) {
-            let amt = parseInt(document.getElementById('bet-amount-crash').value);
-            if(amt > 0 && amt <= TITAN.data.balance) {
-                TITAN.crash.bet = amt;
-                db.ref('users/' + TITAN.user + '/balance').transaction(b => b - amt);
-                document.getElementById('btn-crash-action').innerText = "READY FOR LAUNCH";
-                document.getElementById('btn-crash-action').disabled = true;
-            }
+    db.ref('users/' + user.id).on('value', snap => {
+        if(snap.exists()) {
+            user = snap.val();
         } else {
-            if(TITAN.crash.bet > 0 && !TITAN.crash.cashed) {
-                TITAN.crash.cashed = true;
-                let win = Math.floor(TITAN.crash.bet * TITAN.crash.multiplier);
-                db.ref('users/' + TITAN.user).transaction(u => {
-                    if(u) { u.balance += win; u.xp += 50; }
-                    return u;
-                });
-                document.getElementById('btn-crash-action').innerText = `+${win} ₽ CACHED`;
-                document.getElementById('btn-crash-action').disabled = true;
-            }
+            db.ref('users/' + user.id).set(user);
         }
+        updateUI();
+    });
+}
+
+function updateUI() {
+    document.getElementById('balance-val').innerText = Math.floor(user.balance).toLocaleString();
+    document.getElementById('user-name').innerText = user.id;
+    document.getElementById('user-lvl').innerText = 'LVL ' + user.lvl;
+}
+
+function updateBalance(amt) {
+    db.ref('users/' + user.id + '/balance').transaction(b => (b || 0) + amt);
+}
+
+// --- CRASH ЛОГИКА ---
+const canvas = document.getElementById('crash-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800; canvas.height = 400;
+
+function drawCrash(m) {
+    ctx.clearRect(0,0,800,400);
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, 400);
+    for(let x=0; x<m*100; x++) {
+        let y = 400 - (Math.pow(1.006, x) * 10);
+        ctx.lineTo(x * (800/(m*100)), y);
     }
+    ctx.stroke();
+}
 
-    // --- MINES PROTOCOL ---
-    function startMinesGame() {
-        if(TITAN.mines.active) return;
+function crashAction() {
+    if(!currentCrash.active) {
+        let bet = parseInt(document.getElementById('crash-bet').value);
+        if(bet > user.balance) return notify('Недостаточно средств', 'red');
         
-        let amt = parseInt(document.getElementById('bet-amount-mines').value);
-        let mCount = parseInt(document.getElementById('mine-count').value);
+        updateBalance(-bet);
+        currentCrash = { active: true, mult: 1.0, bet: bet, cashed: false };
+        document.getElementById('crash-btn').innerText = 'ВЫВЕСТИ';
         
-        if(amt > TITAN.data.balance) return;
-        
-        TITAN.mines.active = true;
-        TITAN.mines.bet = amt;
-        TITAN.mines.revealed = 0;
-        TITAN.mines.bombs = [];
-        
-        db.ref('users/' + TITAN.user + '/balance').transaction(b => b - amt);
-        
-        while(TITAN.mines.bombs.length < mCount) {
-            let r = Math.floor(Math.random() * 25);
-            if(!TITAN.mines.bombs.includes(r)) TITAN.mines.bombs.push(r);
-        }
+        let crashPoint = Math.random() * 5 + 1.01;
+        let loop = setInterval(() => {
+            currentCrash.mult += 0.01;
+            document.getElementById('crash-val').innerText = currentCrash.mult.toFixed(2) + 'x';
+            drawCrash(currentCrash.mult);
 
-        const grid = document.getElementById('mines-grid');
-        grid.innerHTML = '';
-        for(let i=0; i<25; i++) {
-            let cell = document.createElement('div');
-            cell.className = 'mine-cell';
-            cell.onclick = () => revealMine(i, cell);
-            grid.appendChild(cell);
-        }
-        
-        document.getElementById('btn-mines-action').innerText = "CASH OUT (1.00x)";
-        document.getElementById('btn-mines-action').onclick = cashOutMines;
-    }
+            // Auto cashout
+            let auto = parseFloat(document.getElementById('crash-auto').value);
+            if(!currentCrash.cashed && currentCrash.mult >= auto) crashAction();
 
-    function revealMine(idx, el) {
-        if(!TITAN.mines.active || el.classList.contains('revealed-gem')) return;
-        
-        if(TITAN.mines.bombs.includes(idx)) {
-            // LOSS
-            el.classList.add('revealed-bomb');
-            el.innerHTML = '💥';
-            endMines(false);
-        } else {
-            // WIN STEP
-            el.classList.add('revealed-gem');
-            el.innerHTML = '💎';
-            TITAN.mines.revealed++;
-            let currentMult = calculateMinesMult();
-            document.getElementById('btn-mines-action').innerText = `CASH OUT (${currentMult}x)`;
-        }
-    }
-
-    function calculateMinesMult() {
-        // Complex formula for mines multiplier
-        let n = 25;
-        let m = TITAN.mines.bombs.length;
-        let r = TITAN.mines.revealed;
-        let mult = 1;
-        for(let i=0; i<r; i++) {
-            mult *= (n - i) / (n - m - i);
-        }
-        return (mult * 0.98).toFixed(2);
-    }
-
-    function cashOutMines() {
-        if(TITAN.mines.revealed === 0) return;
-        let win = Math.floor(TITAN.mines.bet * calculateMinesMult());
-        db.ref('users/' + TITAN.user).transaction(u => {
-            if(u) { u.balance += win; u.xp += 30; }
-            return u;
-        });
-        endMines(true);
-    }
-
-    function endMines(isWin) {
-        TITAN.mines.active = false;
-        const grid = document.querySelectorAll('.mine-cell');
-        TITAN.mines.bombs.forEach(b => {
-            grid[b].classList.add('revealed-bomb');
-            grid[b].innerHTML = '💥';
-        });
-        
-        setTimeout(() => {
-            document.getElementById('mines-grid').innerHTML = '';
-            document.getElementById('btn-mines-action').innerText = "INITIALIZE GRID";
-            document.getElementById('btn-mines-action').onclick = startMinesGame;
-        }, 2000);
-    }
-
-    // --- CORE MINING SYSTEM ---
-    const HARDWARE = [
-        { id: 'cpu_v1', name: 'INTEL CORE i3', price: 5000, power: 2 },
-        { id: 'gpu_v1', name: 'GTX 1050 TI', price: 25000, power: 15 },
-        { id: 'gpu_v2', name: 'RTX 3060', price: 120000, power: 85 },
-        { id: 'asic_v1', name: 'ANTMINER S19', price: 850000, power: 450 },
-        { id: 'titan_core', name: 'TITAN QUANTUM CELL', price: 5000000, power: 2800 }
-    ];
-
-    function initMiningShop() {
-        const shop = document.getElementById('mining-shop');
-        shop.innerHTML = '';
-        HARDWARE.forEach(h => {
-            let card = document.createElement('div');
-            card.className = 'user-card';
-            card.style.padding = '15px';
-            card.innerHTML = `
-                <div style="font-weight: 900; font-size: 12px; color: var(--accent);">${h.name}</div>
-                <div style="font-size: 10px; color: #5d727b; margin: 5px 0;">Power: +${h.power} MH/s</div>
-                <button class="titan-btn" style="padding: 8px; font-size: 10px; width: 100%; margin-top: 10px;" onclick="buyHardware('${h.id}', ${h.price})">BUY FOR ${h.price} ₽</button>
-            `;
-            shop.appendChild(card);
-        });
-    }
-
-    function buyHardware(id, price) {
-        if(TITAN.data.balance >= price) {
-            db.ref('users/' + TITAN.user).transaction(u => {
-                if(u) {
-                    u.balance -= price;
-                    if(!u.hardware) u.hardware = {};
-                    u.hardware[id] = (u.hardware[id] || 0) + 1;
+            if(currentCrash.mult >= crashPoint) {
+                clearInterval(loop);
+                if(!currentCrash.cashed) {
+                    notify('Crash! Вы проиграли', 'red');
                 }
-                return u;
-            });
+                resetCrash();
+            }
+        }, 50);
+    } else {
+        if(!currentCrash.cashed) {
+            let win = currentCrash.bet * currentCrash.mult;
+            updateBalance(win);
+            currentCrash.cashed = true;
+            notify(`Вы выиграли ${Math.floor(win)} ₽!`, 'green');
+            document.getElementById('crash-btn').disabled = true;
         }
     }
+}
 
-    function manualMine() {
-        db.ref('users/' + TITAN.user).transaction(u => {
-            if(u) { u.balance += (u.lvl * 0.5); u.xp += 1; }
-            return u;
-        });
-        // Temp Increase
-        TITAN.data.mining.temp += 0.5;
+function resetCrash() {
+    currentCrash.active = false;
+    document.getElementById('crash-btn').disabled = false;
+    document.getElementById('crash-btn').innerText = 'ПОСТАВИТЬ';
+    setTimeout(() => {
+        ctx.clearRect(0,0,800,400);
+        document.getElementById('crash-val').innerText = '1.00x';
+    }, 2000);
+}
+
+// --- MINES ЛОГИКА ---
+function minesAction() {
+    if(currentMines.active) {
+        // Cashout
+        let mult = calculateMinesMult();
+        let win = currentMines.bet * mult;
+        updateBalance(win);
+        notify(`Забрали ${Math.floor(win)} ₽`, 'green');
+        endMines();
+        return;
     }
 
-    function startGlobalLoops() {
-        // Mining Income Loop
-        setInterval(() => {
-            let totalPower = 0;
-            if(TITAN.data.hardware) {
-                HARDWARE.forEach(h => {
-                    totalPower += (TITAN.data.hardware[h.id] || 0) * h.power;
-                });
-            }
-            
-            if(totalPower > 0) {
-                db.ref('users/' + TITAN.user + '/balance').transaction(b => b + (totalPower / 10));
-            }
-            
-            document.getElementById('hash-rate-val').innerText = totalPower.toFixed(2) + ' MH/s';
-            
-            // Core Cooling
-            if(TITAN.data.mining.temp > 35) TITAN.data.mining.temp -= 0.1;
-            updateTempUI();
-        }, 1000);
-    }
+    let bet = parseInt(document.getElementById('mines-bet').value);
+    let count = parseInt(document.getElementById('mines-count').value);
+    if(bet > user.balance) return notify('Мало денег', 'red');
 
-    function updateTempUI() {
-        const fill = document.getElementById('temp-fill');
-        const text = document.getElementById('temp-text');
-        let t = TITAN.data.mining.temp;
-        fill.style.width = Math.min(t, 100) + '%';
-        text.innerText = t.toFixed(1) + '°C';
-        
-        if(t > 80) fill.style.background = 'var(--pink)';
-        else fill.style.background = 'var(--accent)';
+    updateBalance(-bet);
+    currentMines = { active: true, bet: bet, count: count, board: [], revealed: 0 };
+    
+    // Генерим бомбы
+    let bombs = [];
+    while(bombs.length < count) {
+        let r = Math.floor(Math.random() * 25);
+        if(!bombs.includes(r)) bombs.push(r);
     }
+    currentMines.bombs = bombs;
 
-    // --- SOCIAL & UI HELPERS ---
-    function sendChatMessage() {
-        const inp = document.getElementById('chat-input');
-        const txt = inp.value.trim();
-        if(txt) {
-            db.ref('chat').push({ user: TITAN.user, text: txt });
-            inp.value = '';
+    const board = document.getElementById('mines-board');
+    board.innerHTML = '';
+    for(let i=0; i<25; i++) {
+        let t = document.createElement('div');
+        t.className = 'mine-tile';
+        t.onclick = () => clickMine(i, t);
+        board.appendChild(t);
+    }
+    document.getElementById('mines-btn').innerText = 'ЗАБРАТЬ';
+}
+
+function clickMine(idx, el) {
+    if(!currentMines.active || el.classList.contains('gem')) return;
+
+    if(currentMines.bombs.includes(idx)) {
+        el.classList.add('bomb');
+        el.innerText = '💣';
+        notify('БОМБА! Ставка сгорела', 'red');
+        endMines();
+    } else {
+        el.classList.add('gem');
+        el.innerText = '💎';
+        currentMines.revealed++;
+        let mult = calculateMinesMult();
+        document.getElementById('mines-btn').innerText = `ЗАБРАТЬ (${mult}x)`;
+    }
+}
+
+function calculateMinesMult() {
+    let n = 25, m = currentMines.count, r = currentMines.revealed;
+    if(r === 0) return 1.0;
+    let mult = 1;
+    for(let i=0; i<r; i++) mult *= (n-i)/(n-m-i);
+    return (mult * 0.95).toFixed(2);
+}
+
+function endMines() {
+    currentMines.active = false;
+    document.getElementById('mines-btn').innerText = 'ИГРАТЬ';
+}
+
+// --- MINING СИСТЕМА ---
+const SHOP = [
+    { name: 'Core i3 Engine', price: 1000, power: 0.5 },
+    { name: 'GTX 1660 Ti', price: 5000, power: 3.2 },
+    { name: 'RTX 4090 Monster', price: 50000, power: 45 },
+    { name: 'Server Rack', price: 250000, power: 300 }
+];
+
+function initMining() {
+    const container = document.getElementById('mining-shop');
+    SHOP.forEach(item => {
+        let div = document.createElement('div');
+        div.className = 'gpu-card';
+        div.innerHTML = `
+            <h4>${item.name}</h4>
+            <p>Доход: ${item.power} ₽/сек</p>
+            <button class="btn" style="margin-top:10px; padding:5px;" onclick="buyGpu(${item.price}, ${item.power})">Купить за ${item.price}</button>
+        `;
+        container.appendChild(div);
+    });
+
+    setInterval(() => {
+        if(user.miningPower > 0) {
+            updateBalance(user.miningPower / 10);
+            document.getElementById('mining-speed').innerText = user.miningPower.toFixed(2) + ' ₽/сек';
         }
-    }
+    }, 100);
+}
 
-    function switchView(btn, view) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('view-' + view).classList.add('active');
-    }
-
-    function syncLeaderboard() {
-        db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
-            const list = document.getElementById('leaderboard-list');
-            list.innerHTML = '';
-            let titans = [];
-            snap.forEach(u => titans.push({ name: u.key, bal: u.val().balance }));
-            titans.reverse().forEach((t, i) => {
-                const item = document.createElement('div');
-                item.className = 'message';
-                item.style.display = 'flex';
-                item.style.justifyContent = 'space-between';
-                item.innerHTML = `<span>#${i+1} <b>${t.name.toUpperCase()}</b></span> <span style="color:var(--accent)">${Math.floor(t.bal).toLocaleString()} ₽</span>`;
-                list.appendChild(item);
-            });
-        });
-    }
-
-    function updateCrashHistoryUI() {
-        const hist = document.getElementById('crash-history');
-        hist.innerHTML = '';
-        TITAN.crash.history.slice(0, 10).forEach(h => {
-            const span = document.createElement('span');
-            span.style.padding = '5px 15px';
-            span.style.background = h >= 2 ? 'rgba(0,255,136,0.1)' : 'rgba(255,0,123,0.1)';
-            span.style.color = h >= 2 ? 'var(--green)' : 'var(--pink)';
-            span.style.borderRadius = '8px';
-            span.style.fontSize = '11px';
-            span.style.fontWeight = '900';
-            span.innerText = h + 'x';
-            hist.appendChild(span);
-        });
-    }
-
-    function claimBonus() {
-        db.ref('users/' + TITAN.user).transaction(u => {
-            if(u) u.balance += 5000;
+function buyGpu(p, pw) {
+    if(user.balance >= p) {
+        updateBalance(-p);
+        db.ref('users/' + user.id).transaction(u => {
+            if(u) u.miningPower = (u.miningPower || 0) + pw;
             return u;
         });
-        alert("REINFORCEMENTS ARRIVED: +5,000 ₽");
+        notify('Оборудование куплено!');
     }
+}
 
-    // --- AUDIO SYSTEM (SIMULATED) ---
-    function playSfx(type) {
-        // Placeholder for future audio implementation
-        console.log("SFX Triggered: " + type);
-    }
+// --- ЧАТ ---
+function sendMessage() {
+    let inp = document.getElementById('msg-input');
+    if(!inp.value) return;
+    db.ref('chat').push({
+        user: user.id,
+        text: inp.value,
+        time: Date.now()
+    });
+    inp.value = '';
+}
+
+db.ref('chat').limitToLast(20).on('value', snap => {
+    let area = document.getElementById('right-content');
+    if(document.querySelector('.tab.active').innerText !== 'ЧАТ') return;
+    area.innerHTML = '';
+    snap.forEach(m => {
+        let d = document.createElement('div');
+        d.className = 'chat-msg';
+        d.innerHTML = `<b>${m.val().user}:</b> ${m.val().text}`;
+        area.appendChild(d);
+    });
+    area.scrollTop = area.scrollHeight;
+});
+
+// --- ПЕРЕКЛЮЧЕНИЕ ИГР ---
+function showGame(id, el) {
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.game-card').forEach(g => g.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('game-' + id).classList.add('active');
+}
+
+function switchRightTab(type) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    // Логика переключения контента (Чат/Топ)
+}
+
+// Запуск
+initUser();
+initMining();
+
 </script>
-
 </body>
 </html>
