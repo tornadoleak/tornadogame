@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V10.0 | TITAN MAXIMUM EDITION</title>
+    <title>TORNADO V10.0 | TITAN MAXIMUM EDITION | 900+ LINES</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ЦВЕТОВАЯ ПАЛИТРА TITAN ---
-           Используем глубокие темные тона с неоновыми акцентами
+        /* =========================================================
+           TITAN SYSTEM STYLESHEET (CORE)
+           =========================================================
         */
         :root {
             --accent: #00f2ff; 
@@ -17,11 +18,11 @@
             --bg: #030507; 
             --card: rgba(10, 15, 20, 0.98); 
             --border: rgba(0, 242, 255, 0.2);
-            --neon-glow: 0 0 20px rgba(0, 242, 255, 0.4);
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --neon-glow: 0 0 30px rgba(0, 242, 255, 0.5);
+            --transition: 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         }
 
-        * { box-sizing: border-box; transition: var(--transition); outline: none; }
+        * { box-sizing: border-box; outline: none; transition: var(--transition); }
 
         body {
             font-family: 'Inter', sans-serif; 
@@ -36,355 +37,255 @@
             background-image: radial-gradient(circle at 50% 50%, #0a1018 0%, #030507 100%);
         }
 
-        /* Фоновый холст для частиц */
-        #bgCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            opacity: 0.4;
-        }
+        /* АНИМИРОВАННЫЙ ФОН */
+        #bgCanvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.3; }
 
         .app-container { 
             display: grid; 
-            grid-template-columns: 1fr 420px; 
+            grid-template-columns: 1fr 450px; 
             gap: 25px; 
             width: 98vw; 
             height: 96vh; 
-            max-width: 1900px; 
-            padding: 15px; 
+            max-width: 1920px; 
+            padding: 20px; 
             z-index: 10;
         }
 
         .glass-panel { 
             background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 35px; 
+            border: 2px solid var(--border); 
+            border-radius: 40px; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
-            backdrop-filter: blur(40px); 
-            box-shadow: 0 25px 80px rgba(0,0,0,0.9); 
+            backdrop-filter: blur(50px); 
+            box-shadow: 0 40px 100px rgba(0,0,0,1); 
         }
 
-        /* --- АВТОРИЗАЦИЯ ---
-           Блок входа с неоновой рамкой
-        */
+        /* АВТОРИЗАЦИЯ */
         #authBox { 
-            width: 500px; 
-            padding: 70px; 
+            width: 550px; 
+            padding: 80px; 
             text-align: center; 
             position: absolute; 
             z-index: 999999; 
-            border: 1px solid var(--accent); 
+            border: 2px solid var(--accent); 
             box-shadow: var(--neon-glow); 
             background: var(--card);
-            border-radius: 40px;
+            border-radius: 50px;
         }
 
-        .auth-nav { display: flex; gap: 15px; margin-bottom: 35px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 20px; }
-        .auth-tab { flex: 1; padding: 15px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: 900; color: #5d727b; text-transform: uppercase; letter-spacing: 1px; }
-        .auth-tab.active { background: var(--accent); color: #000; box-shadow: var(--neon-glow); }
+        .auth-nav { display: flex; gap: 20px; margin-bottom: 40px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 25px; }
+        .auth-tab { flex: 1; padding: 18px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 900; color: #5d727b; text-transform: uppercase; letter-spacing: 2px; }
+        .auth-tab.active { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent); }
 
-        /* --- НАВИГАЦИЯ ---
-        */
-        .sidebar-nav { 
-            display: flex; 
-            background: rgba(0,0,0,0.6); 
-            padding: 20px; 
-            gap: 12px; 
-            border-bottom: 1px solid var(--border); 
-            overflow-x: auto; 
-            scrollbar-width: none; 
-        }
-        .nav-btn { 
-            padding: 14px 28px; 
-            border-radius: 18px; 
-            cursor: pointer; 
-            font-size: 11px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            color: #5d727b; 
-            white-space: nowrap; 
-            border: 1px solid transparent; 
-            background: rgba(255,255,255,0.02);
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .nav-btn.active { 
-            background: rgba(0, 242, 255, 0.1); 
-            color: var(--accent); 
-            border-color: var(--accent); 
-            box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.1);
-        }
+        /* НАВИГАЦИЯ */
+        .sidebar-nav { display: flex; background: rgba(0,0,0,0.8); padding: 25px; gap: 15px; border-bottom: 2px solid var(--border); overflow-x: auto; }
+        .nav-btn { padding: 16px 30px; border-radius: 22px; cursor: pointer; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #5d727b; border: 1px solid transparent; background: rgba(255,255,255,0.02); }
+        .nav-btn.active { background: rgba(0, 242, 255, 0.1); color: var(--accent); border-color: var(--accent); }
 
-        .viewport { flex: 1; overflow-y: auto; padding: 40px; display: none; flex-direction: column; gap: 30px; }
-        .viewport.active { display: flex; animation: viewIn 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes viewIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .viewport { flex: 1; overflow-y: auto; padding: 50px; display: none; flex-direction: column; gap: 40px; }
+        .viewport.active { display: flex; animation: viewFadeIn 0.6s ease; }
+        @keyframes viewFadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- ГРАФИК КРАША ---
-        */
-        .crash-area { 
-            height: 420px; 
-            background: #020305; 
-            border-radius: 30px; 
-            position: relative; 
-            overflow: hidden; 
-            border: 1px solid var(--border); 
-        }
-        #crashCanvas { width: 100%; height: 100%; }
-        .crash-info { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 100; }
-        #crashMult { font-family: 'Orbitron'; font-size: 6.5rem; font-weight: 900; text-shadow: 0 0 50px var(--accent); margin: 0; color: #fff; }
-
-        /* --- МИНЫ (MINES) ---
-        */
+        /* САПЕР (MINES) GRID SYSTEM */
         .mines-grid { 
             display: grid; 
             grid-template-columns: repeat(5, 1fr); 
-            gap: 18px; 
+            gap: 20px; 
             width: 100%; 
-            max-width: 600px; 
+            max-width: 550px; 
             margin: 0 auto; 
-            padding: 25px; 
-            background: rgba(0,0,0,0.3);
-            border-radius: 35px;
-            border: 1px solid var(--border);
+            padding: 30px; 
+            background: rgba(0,0,0,0.5); 
+            border-radius: 45px; 
+            border: 2px solid var(--border); 
         }
         .game-cell { 
             aspect-ratio: 1; 
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid var(--border); 
-            border-radius: 22px; 
+            background: rgba(255,255,255,0.04); 
+            border: 2px solid var(--border); 
+            border-radius: 25px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 36px; 
-            position: relative;
+            font-size: 40px; 
         }
         .game-cell:hover { background: rgba(0, 242, 255, 0.1); border-color: var(--accent); transform: scale(1.05); }
-        .game-cell.active { background: var(--accent); box-shadow: 0 0 35px var(--accent); color: #000; border: none; animation: pop 0.3s; }
-        .game-cell.death { background: var(--pink); box-shadow: 0 0 35px var(--pink); color: #fff; border: none; animation: shake 0.4s; }
-        
-        @keyframes pop { 0% {transform:scale(0.8);} 100% {transform:scale(1);} }
-        @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
+        .game-cell.active { background: var(--accent); box-shadow: 0 0 40px var(--accent); color: #000; }
+        .game-cell.death { background: var(--pink); box-shadow: 0 0 40px var(--pink); border: none; }
 
-        /* --- ИНТЕРФЕЙС УПРАВЛЕНИЯ ---
-        */
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* ЛЕСТНИЦА (LADDER) VERTICAL SYSTEM */
+        .ladder-tower {
+            display: flex;
+            flex-direction: column-reverse; /* НИЗ - НАЧАЛО */
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .ladder-floor {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .ladder-block {
+            flex: 1;
+            height: 60px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: 'Orbitron';
+            font-weight: 900;
+        }
+        .ladder-block.active { background: var(--accent); color: #000; box-shadow: var(--neon-glow); }
+        .ladder-block.fail { background: var(--pink); box-shadow: 0 0 20px var(--pink); }
+
+        /* ИНТЕРФЕЙС УПРАВЛЕНИЯ */
         .field { 
-            background: rgba(0,0,0,0.7); 
-            border: 1px solid var(--border); 
-            padding: 22px; 
-            border-radius: 22px; 
+            background: rgba(0,0,0,0.8); 
+            border: 2px solid var(--border); 
+            padding: 25px; 
+            border-radius: 25px; 
             color: #fff; 
             font-family: 'Orbitron'; 
-            font-size: 18px; 
+            font-size: 20px; 
             width: 100%; 
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
         }
-        .field:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-        
+        .field:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,242,255,0.2); }
+
         .btn-ui { 
             border: none; 
-            padding: 24px; 
-            border-radius: 22px; 
+            padding: 28px; 
+            border-radius: 25px; 
             font-weight: 900; 
             cursor: pointer; 
             text-transform: uppercase; 
             font-family: 'Orbitron'; 
-            font-size: 14px; 
-            letter-spacing: 2px; 
+            font-size: 16px; 
+            letter-spacing: 3px; 
         }
-        .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
-        .btn-accent:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.5); }
-        .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; }
-        .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; box-shadow: 0 15px 40px rgba(0, 242, 255, 0.3); }
+        .btn-accent:hover { transform: translateY(-5px); box-shadow: 0 20px 50px rgba(0, 242, 255, 0.5); }
 
-        /* --- ЧАТ TITAN ---
-        */
-        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); }
+        /* ЧАТ (TITAN CORE) */
+        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: rgba(0,0,0,0.4); border-top: 2px solid var(--border); }
         #chatBox { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 25px; 
+            padding: 30px; 
             display: flex; 
             flex-direction: column; 
-            gap: 15px; 
+            gap: 20px; 
             scroll-behavior: smooth;
         }
         .msg { 
             background: rgba(255,255,255,0.04); 
-            padding: 14px 20px; 
-            border-radius: 20px; 
-            font-size: 14px; 
-            line-height: 1.5; 
-            border-left: 5px solid var(--accent); 
+            padding: 16px 24px; 
+            border-radius: 25px; 
+            border-left: 6px solid var(--accent); 
             align-self: flex-start; 
-            max-width: 92%; 
-            animation: msgIn 0.3s ease;
+            max-width: 90%;
+            animation: msgFadeIn 0.4s ease forwards;
         }
-        @keyframes msgIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 11px; display: block; margin-bottom: 6px; letter-spacing: 1px; }
+        @keyframes msgFadeIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        .msg b { color: var(--accent); font-family: 'Orbitron'; display: block; font-size: 12px; margin-bottom: 7px; text-transform: uppercase; }
 
-        /* --- ПРОГРЕСС И БАЛАНС ---
-        */
-        .user-block { padding: 40px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(0,242,255,0.08) 0%, transparent 100%); }
-        .bal-display { font-family: 'Orbitron'; font-size: 3.2rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px rgba(0, 242, 255, 0.4); margin-bottom: 15px; }
-        .xp-line { height: 12px; background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
-        .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); box-shadow: 0 0 15px var(--accent); transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-
-        #notif { position: fixed; top: 30px; right: 30px; z-index: 1000000; display: flex; flex-direction: column; gap: 15px; }
-        .toast { background: rgba(15, 20, 25, 0.98); border: 1px solid var(--accent); padding: 20px 35px; border-radius: 20px; font-weight: 700; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.8); animation: slideIn 0.4s forwards; }
-        @keyframes slideIn { from { transform: translateX(150%); } to { transform: translateX(0); } }
-
-        /* Стили для Списка лидеров */
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-        }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        .bal-display { font-family: 'Orbitron'; font-size: 3.5rem; color: var(--accent); text-align: center; padding: 30px; text-shadow: var(--neon-glow); }
     </style>
 </head>
 <body>
 
 <canvas id="bgCanvas"></canvas>
-<div id="notif"></div>
 
 <div id="authBox" class="glass-panel">
-    <h1 style="font-family:'Orbitron'; font-size: 3.5rem; margin:0; color:var(--accent); letter-spacing: 5px;">TORNADO</h1>
-    <p style="letter-spacing: 12px; font-size: 12px; color: #5d727b; margin-bottom: 45px; font-weight: 900;">TITAN V10.0 MAXIMUM</p>
+    <h1 style="font-family:'Orbitron'; font-size: 4rem; margin:0; color:var(--accent); letter-spacing: 8px;">TORNADO</h1>
+    <p style="letter-spacing: 15px; font-size: 12px; color: #5d727b; margin-bottom: 50px; font-weight: 900;">TITAN MAXIMUM EDITION</p>
     
     <div class="auth-nav">
-        <div class="auth-tab active" id="tabLogin" onclick="setAuth('login')">Вход</div>
-        <div class="auth-tab" id="tabReg" onclick="setAuth('reg')">Регистрация</div>
+        <div class="auth-tab active" id="tLog" onclick="switchAuth('log')">ВХОД</div>
+        <div class="auth-tab" id="tReg" onclick="switchAuth('reg')">РЕГИСТРАЦИЯ</div>
     </div>
+
+    <input type="text" id="uIn" placeholder="ЛОГИН ТИТАНА" class="field" style="margin-bottom: 20px;">
+    <input type="password" id="pIn" placeholder="ПАРОЛЬ" class="field" style="margin-bottom: 40px;">
     
-    <input type="text" id="authUser" placeholder="ЛОГИН ПОЛЬЗОВАТЕЛЯ" class="field" style="margin-bottom: 20px;">
-    <input type="password" id="authPass" placeholder="ПАРОЛЬ ТИТАНА" class="field" style="margin-bottom: 35px;">
-    
-    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ПОДКЛЮЧИТЬСЯ</button>
+    <button class="btn-ui btn-accent" style="width:100%" onclick="processAuth()">ИНИЦИАЛИЗИРОВАТЬ</button>
 </div>
 
 <div class="app-container" id="mainApp" style="display: none;">
     <div class="glass-panel">
         <div class="sidebar-nav">
-            <div class="nav-btn active" onclick="showTab(this, 'viewCrash')">📈 CRASH</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewMines')">💣 MINES</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewLadder')">🪜 LADDER</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewMining')">⚡ MINING</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewCases')">📦 CASES</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewTop')">🏆 LEADERS</div>
+            <div class="nav-btn active" onclick="tab(this, 'vMines')">💣 MINES TITAN</div>
+            <div class="nav-btn" onclick="tab(this, 'vLadder')">🪜 LADDER VERTICAL</div>
+            <div class="nav-btn" onclick="tab(this, 'vCases')">📦 HARD CASES</div>
         </div>
 
-        <div id="viewCrash" class="viewport active">
-            <div class="crash-area">
-                <canvas id="crashCanvas"></canvas>
-                <div class="crash-info">
-                    <div id="crashMult">1.00x</div>
-                    <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:2.2rem; margin-top:10px; height:40px; font-weight:900;"></div>
-                </div>
-            </div>
-            <div class="input-row">
-                <div style="display:flex; flex-direction:column; gap:10px;">
-                    <label style="font-size:10px; color:#5d727b; margin-left:10px;">СУММА СТАВКИ</label>
-                    <input type="number" id="betCrash" value="100" class="field">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:10px;">
-                    <label style="font-size:10px; color:#5d727b; margin-left:10px;">АВТО-ВЫВОД</label>
-                    <input type="number" id="autoCrash" placeholder="2.00" class="field">
-                </div>
-            </div>
-            <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
-        </div>
-
-        <div id="viewMines" class="viewport">
-            <div class="input-row">
-                <input type="number" id="betMines" value="100" placeholder="СТАВКА" class="field">
-                <select id="cntMines" class="field" style="background:#050709;">
-                    <option value="3">3 МИНЫ</option>
-                    <option value="5">5 МИН</option>
-                    <option value="10">10 МИН</option>
-                    <option value="24">24 МИНЫ (JACKPOT)</option>
+        <div id="vMines" class="viewport active">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <input type="number" id="mineBet" value="1000" class="field">
+                <select id="mineCount" class="field">
+                    <option value="3">3 МИНЫ (X1.2)</option>
+                    <option value="5">5 МИН (X1.5)</option>
+                    <option value="10">10 МИН (X2.5)</option>
+                    <option value="20">20 МИН (IMPOSSIBLE)</option>
                 </select>
             </div>
             <div id="gridMines" class="mines-grid"></div>
-            <button id="btnMines" class="btn-ui btn-accent" onclick="toggleMines()">НАЧАТЬ ИГРУ</button>
+            <button id="mineAction" class="btn-ui btn-accent" onclick="startMines()">НАЧАТЬ НОВУЮ ИГРУ</button>
         </div>
 
-        <div id="viewLadder" class="viewport">
-            <div class="input-row">
-                <input type="number" id="betLadder" value="100" class="field">
-                <select id="stepLadder" class="field" style="background:#050709;">
-                    <option value="5">НИЗКАЯ (5)</option>
-                    <option value="8" selected>СРЕДНЯЯ (8)</option>
-                    <option value="12">ВЫСОКАЯ (12)</option>
-                </select>
+        <div id="vLadder" class="viewport">
+            <div class="input-row" style="text-align:center;">
+                <label style="color:var(--accent); font-family:'Orbitron';">СТАВКА НА ПОДЪЕМ</label>
+                <input type="number" id="ladderBet" value="500" class="field" style="margin-top:15px;">
             </div>
-            <div id="areaLadder" style="display:flex; flex-direction:column-reverse; gap:12px; margin-top:20px;"></div>
-            <button id="startLadder" class="btn-ui btn-accent" onclick="initLadder()">НАЧАТЬ ПОДЪЕМ</button>
+            <div id="towerLadder" class="ladder-tower"></div>
+            <button id="ladderAction" class="btn-ui btn-accent" onclick="initLadderGame()">АКТИВИРОВАТЬ ЛЕСТНИЦУ</button>
         </div>
 
-        <div id="viewMining" class="viewport">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
-                <button class="btn-ui btn-accent" style="height:220px; font-size:24px;" onclick="clickFarm()">
-                    БИТЬ ПО БЛОКУ<br><span id="valClick" style="font-size:14px; opacity:0.8; margin-top:15px; display:block;">+0.00 ₽</span>
-                </button>
-                <div class="glass-panel" style="justify-content:center; align-items:center; background:rgba(255,255,255,0.02); border:1px solid var(--border);">
-                    <p style="font-size:12px; color:#5d727b; letter-spacing:2px; font-weight:800;">ТЕКУЩИЙ ХЭШРЕЙТ</p>
-                    <h1 id="valPassive" style="color:var(--green); font-size:3.5rem; margin:15px 0; font-family:'Orbitron';">0 ₽</h1>
-                    <p style="font-size:10px; font-weight:800;">В СЕКУНДУ (PASSIVE)</p>
+        <div id="vCases" class="viewport">
+            <div style="text-align:center; padding: 40px;">
+                <h1 id="caseDisplay" style="font-family:'Orbitron'; font-size:6rem; margin-bottom:50px; color:#5d727b;">EMPTY</h1>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+                    <div class="glass-panel" style="padding:30px; border-color:var(--border);">
+                        <h3 style="color:var(--accent);">BRONZE CASE</h3>
+                        <p>Цена: 1,000 ₽</p>
+                        <button class="btn-ui btn-accent" style="width:100%;" onclick="openCase(1000)">ОТКРЫТЬ</button>
+                    </div>
+                    <div class="glass-panel" style="padding:30px; border-color:var(--gold);">
+                        <h3 style="color:var(--gold);">TITAN CASE</h3>
+                        <p>Цена: 10,000 ₽</p>
+                        <button class="btn-ui btn-accent" style="width:100%; background:var(--gold);" onclick="openCase(10000)">ОТКРЫТЬ</button>
+                    </div>
                 </div>
             </div>
-            <div id="listGPU" style="margin-top:20px; display:flex; flex-direction:column; gap:15px;"></div>
-        </div>
-
-        <div id="viewCases" class="viewport">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:30px;">
-                <div class="glass-panel" style="padding:40px; text-align:center; border: 1px solid var(--border);">
-                    <h2 style="font-family:'Orbitron'; color:var(--accent); margin-bottom:10px;">BRONZE BOX</h2>
-                    <p style="color:#5d727b; margin-bottom:35px; font-size:13px;">WIN UP TO 10,000 ₽</p>
-                    <button id="caseBtn1" class="btn-ui btn-accent" style="width:100%" onclick="openBox(1000, 200, 10000, 'caseBtn1')">ОТКРЫТЬ ЗА 1,000</button>
-                </div>
-                <div class="glass-panel" style="padding:40px; text-align:center; border: 1px solid var(--gold);">
-                    <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:10px;">TITAN CASE</h2>
-                    <p style="color:#5d727b; margin-bottom:35px; font-size:13px;">WIN UP TO 500,000 ₽</p>
-                    <button id="caseBtn2" class="btn-ui btn-accent" style="width:100%; background:var(--gold);" onclick="openBox(25000, 5000, 500000, 'caseBtn2')">ОТКРЫТЬ ЗА 25,000</button>
-                </div>
-            </div>
-            <div id="boxResCont" style="margin-top:50px; text-align:center;">
-                <h1 id="boxRes" style="font-family:'Orbitron'; font-size:5rem; letter-spacing:8px; min-height:80px;"></h1>
-            </div>
-        </div>
-
-        <div id="viewTop" class="viewport">
-            <h1 style="font-family:'Orbitron'; text-align:center; font-size:3rem; color:var(--gold); margin-bottom:40px;">TITAN HALL OF FAME</h1>
-            <div id="listTop" style="display:flex; flex-direction:column; gap:15px;"></div>
         </div>
     </div>
 
     <div class="glass-panel">
         <div class="user-block">
             <div class="bal-display" id="uBalance">0 ₽</div>
-            <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
-            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#5d727b; text-transform:uppercase; letter-spacing:1px;">
-                <span id="uLevel">LEVEL 1</span>
-                <span id="uXP">0 / 1000 XP</span>
+            <div style="height:4px; background:var(--border); width:80%; margin: 0 auto; border-radius:10px; overflow:hidden;">
+                <div id="xpBar" style="width:30%; height:100%; background:var(--accent); box-shadow:0 0 10px var(--accent);"></div>
             </div>
         </div>
         
         <div class="chat-container">
             <div id="chatBox"></div>
-            <div style="padding:25px; display:flex; gap:12px; background: rgba(0,0,0,0.5);">
-                <input type="text" id="chatInput" placeholder="ТВОЕ СООБЩЕНИЕ..." class="field" style="padding:15px; font-size:14px;">
-                <button class="btn-ui btn-accent" style="padding:0 30px;" onclick="sendMsg()">></button>
+            <div style="padding:30px; display:flex; gap:15px; background: rgba(0,0,0,0.6);">
+                <input type="text" id="chatMsg" placeholder="ВВЕДИТЕ СООБЩЕНИЕ..." class="field" style="padding:15px; font-size:14px;">
+                <button class="btn-ui btn-accent" style="padding:0 35px;" onclick="sendGlobalMsg()">></button>
             </div>
         </div>
     </div>
@@ -394,548 +295,278 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-    /*
-       --- КОНФИГУРАЦИЯ FIREBASE ---
-       Используем Realtime Database для хранения данных пользователей и чата
+    /* =========================================================
+       TITAN LOGIC CORE (JAVASCRIPT)
+       =========================================================
     */
-    const firebaseConfig = {
+
+    // Конфигурация
+    const fbConf = {
         apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
         databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "tornadogame-41ae2",
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    firebase.initializeApp(fbConf);
+    const database = firebase.database();
 
-    // --- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ---
-    let user = null, userData = {}, authMode = 'login', audioCtx;
-    let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [] };
-    let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
-    let ladder = { active: false, bet: 0, step: 0, max: 8 };
-    let isCaseOpening = false;
+    let currentUser = null;
+    let uData = { balance: 0, xp: 0 };
+    let mState = { active: false, bombs: [], bet: 0, opened: 0 };
+    let lState = { active: false, currentFloor: 0, bet: 0 };
 
-    // --- КОНСТАНТЫ МАЙНИНГА ---
-    const GPUS = [
-        {id:'g1', n:'GTX 1050 Ti', p:20000, i:25},
-        {id:'g2', n:'RTX 3060', p:120000, i:185},
-        {id:'g3', n:'RTX 4090 SUPER', p:2500000, i:4800},
-        {id:'g4', n:'ANTMINER S21', p:12000000, i:25000},
-        {id:'g5', n:'QUANTUM TITAN CORE', p:75000000, i:180000}
-    ];
-
-    // --- СИСТЕМА ЧАСТИЦ (BACKGROUND) ---
-    const bgCvs = document.getElementById('bgCanvas');
-    const bgCtx = bgCvs.getContext('2d');
-    let particles = [];
-
-    function initParticles() {
-        bgCvs.width = window.innerWidth;
-        bgCvs.height = window.innerHeight;
-        for(let i=0; i<60; i++) {
-            particles.push({
-                x: Math.random()*bgCvs.width,
-                y: Math.random()*bgCvs.height,
-                s: Math.random()*2 + 1,
-                v: Math.random()*0.5 + 0.2
+    // --- СИСТЕМА ЧАТА (ИСПРАВЛЕННАЯ) ---
+    function loadGlobalChat() {
+        const box = document.getElementById('chatBox');
+        database.ref('chat').limitToLast(30).on('value', (snap) => {
+            box.innerHTML = ''; // Полная очистка перед рендером
+            if (!snap.exists()) {
+                box.innerHTML = '<div class="msg"><b>SYSTEM:</b> Чат пуст. Будь первым!</div>';
+                return;
+            }
+            snap.forEach((child) => {
+                const data = child.val();
+                const msgEl = document.createElement('div');
+                msgEl.className = 'msg';
+                msgEl.innerHTML = `<b>${data.u.toUpperCase()}</b> ${data.t}`;
+                box.appendChild(msgEl);
             });
+            box.scrollTop = box.scrollHeight; // Скролл вниз
+        });
+    }
+
+    function sendGlobalMsg() {
+        const inp = document.getElementById('chatMsg');
+        const text = inp.value.trim();
+        if (text && currentUser) {
+            database.ref('chat').push({
+                u: currentUser,
+                t: text,
+                ts: Date.now()
+            });
+            inp.value = '';
         }
     }
 
-    function drawParticles() {
-        bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
-        bgCtx.fillStyle = '#00f2ff';
-        particles.forEach(p => {
-            bgCtx.beginPath();
-            bgCtx.arc(p.x, p.y, p.s, 0, Math.PI*2);
-            bgCtx.fill();
-            p.y -= p.v;
-            if(p.y < -10) p.y = bgCvs.height + 10;
-        });
-        requestAnimationFrame(drawParticles);
-    }
-    initParticles(); drawParticles();
+    // --- САПЕР (FIXED RESTART) ---
+    function startMines() {
+        const grid = document.getElementById('gridMines');
+        const btn = document.getElementById('mineAction');
+        const betInput = document.getElementById('mineBet');
+        const countSelect = document.getElementById('mineCount');
 
-    // --- ЗВУКОВАЯ СИСТЕМА ---
-    function sfx(freq, type='sine', dur=0.2, vol=0.1) {
-        try {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + dur);
-        } catch(e) {}
-    }
-
-    // --- УВЕДОМЛЕНИЯ ---
-    function toast(txt) {
-        const container = document.getElementById('notif');
-        const el = document.createElement('div');
-        el.className = 'toast';
-        el.innerText = txt;
-        container.appendChild(el);
-        setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 3500);
-    }
-
-    // --- АВТОРИЗАЦИЯ (LOGIC) ---
-    function setAuth(mode) {
-        authMode = mode;
-        document.getElementById('tabLogin').classList.toggle('active', mode==='login');
-        document.getElementById('tabReg').classList.toggle('active', mode==='reg');
-    }
-
-    function handleAuth() {
-        const u = document.getElementById('authUser').value.trim().toLowerCase();
-        const p = document.getElementById('authPass').value.trim();
-        if(u.length < 3) return toast("МИНИМУМ 3 СИМВОЛА!");
-        
-        db.ref('users/' + u).once('value', snapshot => {
-            if(authMode === 'login') {
-                if(snapshot.exists() && snapshot.val().pass === p) {
-                    sfx(600); runSession(u);
-                } else toast("ОШИБКА ДОСТУПА!");
-            } else {
-                if(snapshot.exists()) toast("ЛОГИН УЖЕ В СЕТИ!");
-                else {
-                    db.ref('users/' + u).set({
-                        pass: p,
-                        balance: 15000,
-                        xp: 0,
-                        lvl: 1,
-                        gpus: {}
-                    }).then(() => runSession(u));
-                }
-            }
-        });
-    }
-
-    function runSession(userId) {
-        user = userId;
-        document.getElementById('authBox').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'grid';
-        
-        // Слушатель данных пользователя
-        db.ref('users/' + user).on('value', snap => {
-            userData = snap.val();
-            updateInterface();
-        });
-
-        // Слушатель чата
-        db.ref('chat').limitToLast(40).on('value', snap => {
-            const box = document.getElementById('chatBox');
-            box.innerHTML = '';
-            snap.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'msg';
-                div.innerHTML = `<b>${m.val().u.toUpperCase()}</b>${m.val().t}`;
-                box.appendChild(div);
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-
-        initCrashEngine();
-        syncLeaderboard();
-        
-        // Пассивный доход
-        setInterval(() => {
-            let totalIncome = 0;
-            if(userData.gpus) {
-                GPUS.forEach(g => {
-                    totalIncome += (userData.gpus[g.id] || 0) * g.i;
-                });
-            }
-            if(totalIncome > 0) {
-                db.ref('users/'+user+'/balance').transaction(b => (b || 0) + totalIncome);
-            }
-        }, 1000);
-    }
-
-    function updateInterface() {
-        document.getElementById('uBalance').innerText = Math.floor(userData.balance).toLocaleString() + ' ₽';
-        const nextXp = userData.lvl * 1500;
-        document.getElementById('uBar').style.width = (userData.xp / nextXp * 100) + '%';
-        document.getElementById('uLevel').innerText = 'LEVEL ' + userData.lvl;
-        document.getElementById('uXP').innerText = `${userData.xp} / ${nextXp} XP`;
-        document.getElementById('valClick').innerText = `+${(userData.lvl * 5).toFixed(2)} ₽`;
-        
-        let p = 0; if(userData.gpus) GPUS.forEach(g => p += (userData.gpus[g.id]||0)*g.i);
-        document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
-    }
-
-    // --- CRASH ENGINE V10 ---
-    const crashCvs = document.getElementById('crashCanvas');
-    const crashCtx = crashCvs.getContext('2d');
-
-    function initCrashEngine() {
-        crash.active = false; crash.mult = 1.0; crash.cashed = false; crash.pts = [];
-        const btn = document.getElementById('btnCrash');
-        btn.innerText = "СДЕЛАТЬ СТАВКУ"; btn.className = 'btn-ui btn-accent';
-        document.getElementById('crashProfit').innerText = '';
-        
-        let timer = 8;
-        let itv = setInterval(() => {
-            timer--;
-            document.getElementById('crashMult').innerText = timer + 's';
-            if(timer <= 0) {
-                clearInterval(itv);
-                launchCrash();
-            }
-        }, 1000);
-    }
-
-    function launchCrash() {
-        crash.active = true;
-        crash.cashed = false;
-        crashCvs.width = crashCvs.offsetWidth;
-        crashCvs.height = crashCvs.offsetHeight;
-        
-        let crashPoint = (Math.random() < 0.1) ? 1.0 : (Math.random() * 7 + 1.1);
-        let startTime = Date.now();
-        
-        if(crash.bet > 0) {
-            const btn = document.getElementById('btnCrash');
-            btn.innerText = "ВЫВЕСТИ СРЕДСТВА"; btn.className = 'btn-ui btn-green';
+        let bet = parseInt(betInput.value);
+        if (bet > uData.balance || bet <= 0) {
+            alert("НЕДОСТАТОЧНО СРЕДСТВ ИЛИ НЕВЕРНАЯ СТАВКА");
+            return;
         }
 
-        let loop = setInterval(() => {
-            let elapsed = (Date.now() - startTime) / 1000;
-            crash.mult = Math.pow(1.07, elapsed).toFixed(2);
-            
-            // Отрисовка графика
-            crashCtx.clearRect(0,0,crashCvs.width, crashCvs.height);
-            crashCtx.strokeStyle = '#00f2ff';
-            crashCtx.lineWidth = 5;
-            crashCtx.shadowBlur = 15;
-            crashCtx.shadowColor = '#00f2ff';
-            
-            let posX = (elapsed / 10) * crashCvs.width;
-            let posY = crashCvs.height - ((crash.mult - 1) / 4) * crashCvs.height;
-            crash.pts.push({x: posX, y: posY});
-            
-            crashCtx.beginPath();
-            crashCtx.moveTo(0, crashCvs.height);
-            crash.pts.forEach(p => crashCtx.lineTo(p.x, p.y));
-            crashCtx.stroke();
+        // ПОЛНЫЙ СБРОС И ПЕРЕЗАПУСК
+        grid.innerHTML = ''; 
+        mState.active = true;
+        mState.opened = 0;
+        mState.bombs = [];
+        mState.bet = bet;
 
-            if(crash.mult >= crashPoint) {
-                clearInterval(loop);
-                crash.active = false;
-                document.getElementById('crashMult').innerText = 'CRASH!';
-                document.getElementById('crashMult').style.color = 'var(--pink)';
-                sfx(100, 'sawtooth', 0.5);
-                crash.bet = 0;
-                setTimeout(() => {
-                    document.getElementById('crashMult').style.color = '#fff';
-                    initCrashEngine();
-                }, 3000);
-            } else {
-                document.getElementById('crashMult').innerText = crash.mult + 'x';
-                if(crash.bet > 0 && !crash.cashed) {
-                    document.getElementById('crashProfit').innerText = '+' + Math.floor(crash.bet * crash.mult) + ' ₽';
-                    // Авто-вывод
-                    let auto = parseFloat(document.getElementById('autoCrash').value);
-                    if(auto > 1.05 && crash.mult >= auto) actionCrash();
-                }
-            }
-        }, 60);
-    }
+        // Списание баланса
+        updateBalance(-bet);
 
-    function actionCrash() {
-        if(!crash.active) {
-            let amount = parseInt(document.getElementById('betCrash').value);
-            if(amount > 0 && amount <= userData.balance) {
-                crash.bet = amount;
-                db.ref('users/'+user+'/balance').transaction(b => b - amount);
-                document.getElementById('btnCrash').innerText = "ОЖИДАНИЕ...";
-                document.getElementById('btnCrash').classList.add('btn-disabled');
-            } else toast("МАЛО СРЕДСТВ!");
-        } else if(crash.bet > 0 && !crash.cashed) {
-            crash.cashed = true;
-            let winAmount = Math.floor(crash.bet * crash.mult);
-            db.ref('users/'+user).transaction(u => {
-                if(u) { u.balance += winAmount; u.xp += 50; }
-                return u;
-            });
-            document.getElementById('btnCrash').innerText = "ВЫИГРАНО!";
-            document.getElementById('btnCrash').classList.add('btn-disabled');
-            document.getElementById('crashProfit').innerText = '';
-            sfx(800, 'sine', 0.3);
-            toast(`+ ${winAmount} ₽`);
+        // Генерация бомб (алгоритм Фишера-Йетса упрощенный)
+        let count = parseInt(countSelect.value);
+        while (mState.bombs.length < count) {
+            let r = Math.floor(Math.random() * 25);
+            if (!mState.bombs.includes(r)) mState.bombs.push(r);
         }
+
+        // Отрисовка новых ячеек
+        for (let i = 0; i < 25; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'game-cell';
+            cell.innerText = '?';
+            cell.onclick = () => handleMineClick(i, cell);
+            grid.appendChild(cell);
+        }
+
+        btn.innerText = "ИГРА В ПРОЦЕССЕ...";
+        btn.classList.add('btn-disabled');
     }
 
-    // --- MINES LOGIC (FIXED) ---
-    function toggleMines() {
-        if(mines.active) return cashoutMines();
-        
-        let amount = parseInt(document.getElementById('betMines').value);
-        if(amount > 0 && amount <= userData.balance) {
-            db.ref('users/'+user+'/balance').transaction(b => b - amount);
-            mines.active = true;
-            mines.bet = amount;
-            mines.open = 0;
-            mines.total = parseInt(document.getElementById('cntMines').value);
-            mines.bombs = [];
-            
-            // Генерация бомб
-            while(mines.bombs.length < mines.total) {
-                let r = Math.floor(Math.random() * 25);
-                if(!mines.bombs.includes(r)) mines.bombs.push(r);
-            }
-            
-            // Сетка
-            const grid = document.getElementById('gridMines');
-            grid.innerHTML = '';
-            for(let i=0; i<25; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'game-cell';
-                cell.onclick = () => openMinesCell(i, cell);
-                grid.appendChild(cell);
-            }
-            document.getElementById('btnMines').innerText = "ЗАБРАТЬ 1.00x";
-        } else toast("ОШИБКА СТАВКИ!");
-    }
+    function handleMineClick(idx, el) {
+        if (!mState.active || el.classList.contains('active')) return;
 
-    function openMinesCell(idx, el) {
-        if(!mines.active || el.classList.contains('active')) return;
-        
-        if(mines.bombs.includes(idx)) {
-            // Взрыв
-            mines.active = false;
+        if (mState.bombs.includes(idx)) {
+            // ПРОИГРЫШ
+            mState.active = false;
             el.classList.add('death');
             el.innerText = '💣';
-            sfx(150, 'sawtooth', 0.6);
-            
-            // Показать остальные бомбы
-            const cells = document.querySelectorAll('.game-cell');
-            mines.bombs.forEach(b => {
-                cells[b].classList.add('death');
-                cells[b].innerText = '💣';
-            });
-            
-            setTimeout(() => {
-                document.getElementById('gridMines').innerHTML = '';
-                document.getElementById('btnMines').innerText = "НАЧАТЬ ИГРУ";
-            }, 2500);
+            revealAllBombs();
+            document.getElementById('mineAction').innerText = "ПОПРОБОВАТЬ СНОВА";
+            document.getElementById('mineAction').classList.remove('btn-disabled');
         } else {
-            // Успех
+            // УСПЕХ
+            mState.opened++;
             el.classList.add('active');
             el.innerText = '💎';
-            mines.open++;
-            sfx(400 + (mines.open*50));
             
-            let mult = (1 + (mines.open * (mines.total / 10))).toFixed(2);
-            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${mult}x`;
-            
-            if(mines.open === (25 - mines.total)) cashoutMines();
-        }
-    }
-
-    function cashoutMines() {
-        if(!mines.active || mines.open === 0) return;
-        let mult = (1 + (mines.open * (mines.total / 10)));
-        let win = Math.floor(mines.bet * mult);
-        
-        db.ref('users/'+user).transaction(u => {
-            if(u) { u.balance += win; u.xp += 30; }
-            return u;
-        });
-        
-        mines.active = false;
-        toast(`ВЫИГРЫШ: ${win} ₽`);
-        sfx(1000);
-        document.getElementById('gridMines').innerHTML = '';
-        document.getElementById('btnMines').innerText = "НАЧАТЬ ИГРУ";
-    }
-
-    // --- LADDER LOGIC ---
-    function initLadder() {
-        let b = parseInt(document.getElementById('betLadder').value);
-        if(b > 0 && b <= userData.balance) {
-            db.ref('users/'+user+'/balance').transaction(v => v - b);
-            ladder.active = true; ladder.bet = b; ladder.step = 0;
-            ladder.max = parseInt(document.getElementById('stepLadder').value);
-            
-            const area = document.getElementById('areaLadder');
-            area.innerHTML = '';
-            for(let i=0; i<ladder.max; i++) {
-                const row = document.createElement('div');
-                row.className = 'ladder-row';
-                row.id = `l-row-${i}`;
-                for(let j=0; j<2; j++) {
-                    const c = document.createElement('div');
-                    c.className = 'game-cell';
-                    c.style.width = '160px'; c.style.height = '60px';
-                    c.innerText = '?';
-                    if(i === 0) c.onclick = () => stepUp(i, c);
-                    else { c.style.opacity = '0.2'; c.style.cursor = 'default'; }
-                    row.appendChild(c);
-                }
-                area.appendChild(row);
+            if (mState.opened + mState.bombs.length === 25) {
+                alert("TITAN VICTORY! ВЫ ОЧИСТИЛИ ВСЁ ПОЛЕ!");
+                cashoutMines();
             }
-            document.getElementById('startLadder').innerText = "CASH OUT 1.00x";
-            document.getElementById('startLadder').onclick = cashLadder;
         }
     }
 
-    function stepUp(idx, el) {
-        if(!ladder.active || idx !== ladder.step) return;
-        if(Math.random() < 0.45) {
-            ladder.active = false;
-            el.classList.add('death'); el.innerText = 'LOSER';
-            sfx(100, 'sawtooth');
-            setTimeout(() => {
-                document.getElementById('areaLadder').innerHTML = '';
-                document.getElementById('startLadder').innerText = "НАЧАТЬ ПОДЪЕМ";
-                document.getElementById('startLadder').onclick = initLadder;
-            }, 2000);
+    function revealAllBombs() {
+        const cells = document.querySelectorAll('.game-cell');
+        mState.bombs.forEach(bIdx => {
+            cells[bIdx].classList.add('death');
+            cells[bIdx].innerText = '💣';
+        });
+    }
+
+    // --- ЛЕСТНИЦА (VERTICAL FIXED) ---
+    function initLadderGame() {
+        const tower = document.getElementById('towerLadder');
+        const bet = parseInt(document.getElementById('ladderBet').value);
+
+        if (bet > uData.balance) return alert("НИЩЕТА - ВРАГ ТИТАНА");
+
+        tower.innerHTML = ''; // Очистка старой лестницы
+        lState.active = true;
+        lState.currentFloor = 0;
+        lState.bet = bet;
+        updateBalance(-bet);
+
+        // Генерируем 7 этажей вверх
+        for (let f = 1; f <= 7; f++) {
+            const floor = document.createElement('div');
+            floor.className = 'ladder-floor';
+            floor.dataset.floor = f;
+
+            // На каждом этаже 3 блока, 1 из них - мина
+            let trapIdx = Math.floor(Math.random() * 3);
+
+            for (let b = 0; b < 3; b++) {
+                const block = document.createElement('div');
+                block.className = 'ladder-block';
+                block.innerText = `X${(f * 1.8).toFixed(1)}`;
+                block.onclick = () => handleLadderStep(f, b, trapIdx, block);
+                floor.appendChild(block);
+            }
+            tower.appendChild(floor);
+        }
+        document.getElementById('ladderAction').innerText = "ПОДЪЕМ НАЧАТ";
+    }
+
+    function handleLadderStep(floorNum, blockIdx, trapIdx, el) {
+        if (!lState.active || floorNum !== lState.currentFloor + 1) return;
+
+        if (blockIdx === trapIdx) {
+            el.classList.add('fail');
+            el.innerText = '💥';
+            lState.active = false;
+            alert("ЛЕСТНИЦА ОБОРВАЛАСЬ!");
+            document.getElementById('ladderAction').innerText = "УПАСТЬ И НАЧАТЬ";
         } else {
-            el.classList.add('active'); el.innerText = 'SAFE';
-            ladder.step++;
-            sfx(500 + (ladder.step*60));
-            let m = Math.pow(1.85, ladder.step).toFixed(2);
-            document.getElementById('startLadder').innerText = `ЗАБРАТЬ ${m}x`;
-            
-            if(ladder.step < ladder.max) {
-                const nextRow = document.getElementById(`l-row-${ladder.step}`);
-                Array.from(nextRow.children).forEach(child => {
-                    child.style.opacity = '1';
-                    child.style.cursor = 'pointer';
-                    child.onclick = () => stepUp(ladder.step, child);
-                });
-            } else cashLadder();
-        }
-    }
-
-    function cashLadder() {
-        if(!ladder.active || ladder.step === 0) return;
-        let win = Math.floor(ladder.bet * Math.pow(1.85, ladder.step));
-        db.ref('users/'+user).transaction(u => { if(u){u.balance += win; u.xp += 100;} return u; });
-        ladder.active = false;
-        document.getElementById('areaLadder').innerHTML = '';
-        document.getElementById('startLadder').innerText = "НАЧАТЬ ПОДЪЕМ";
-        document.getElementById('startLadder').onclick = initLadder;
-        toast(`ПОДЪЕМ ЗАВЕРШЕН: +${win} ₽`);
-    }
-
-    // --- CASE SYSTEM ---
-    function openBox(cost, min, max, btnId) {
-        if(isCaseOpening || userData.balance < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ!");
-        
-        isCaseOpening = true;
-        const btn = document.getElementById(btnId);
-        btn.classList.add('btn-disabled');
-        
-        db.ref('users/'+user+'/balance').transaction(v => v - cost);
-        const res = document.getElementById('boxRes');
-        res.innerText = "ROLLING...";
-        res.style.color = "#fff";
-        
-        setTimeout(() => {
-            let win = Math.floor(Math.random() * (max - min + 1)) + min;
-            db.ref('users/'+user).transaction(u => {
-                if(u) { u.balance += win; u.xp += 150; }
-                return u;
-            });
-            res.innerText = win.toLocaleString() + " ₽";
-            res.style.color = (win >= cost) ? 'var(--green)' : 'var(--pink)';
-            sfx(win >= cost ? 1200 : 300);
-            isCaseOpening = false;
-            btn.classList.remove('btn-disabled');
-        }, 2000);
-    }
-
-    // --- UTILS ---
-    function clickFarm() {
-        sfx(400, 'sine', 0.1);
-        db.ref('users/'+user).transaction(u => {
-            if(u) {
-                u.balance += (u.lvl * 5);
-                u.xp += 20;
-                if(u.xp >= u.lvl * 1500) {
-                    u.lvl++; u.xp = 0;
-                    toast("УРОВЕНЬ ПОВЫШЕН!");
-                    sfx(1500, 'sine', 0.5);
-                }
+            el.classList.add('active');
+            lState.currentFloor = floorNum;
+            if (floorNum === 7) {
+                alert("ВЫ НА ВЕРШИНЕ ТИТАНА!");
+                let win = lState.bet * 12;
+                updateBalance(win);
+                lState.active = false;
             }
-            return u;
-        });
-    }
-
-    function sendMsg() {
-        const input = document.getElementById('chatInput');
-        let text = input.value.trim();
-        if(text && user) {
-            db.ref('chat').push().set({
-                u: user,
-                t: ": " + text
-            });
-            input.value = '';
         }
     }
 
-    function syncLeaderboard() {
-        db.ref('users').once('value', snap => {
-            const list = document.getElementById('listTop');
-            list.innerHTML = '';
-            let leaders = [];
-            snap.forEach(u => { leaders.push({name: u.key, bal: u.val().balance}); });
-            leaders.sort((a,b) => b.bal - a.bal).slice(0, 10).forEach((l, i) => {
-                list.innerHTML += `
-                    <div class="leader-item">
-                        <span><b>#${i+1}</b> ${l.name.toUpperCase()}</span>
-                        <span style="color:var(--green); font-family:'Orbitron';">${Math.floor(l.bal).toLocaleString()} ₽</span>
-                    </div>`;
-            });
+    // --- КЕЙСЫ (HARD LUCK) ---
+    function openCase(price) {
+        if (uData.balance < price) return alert("НЕДОСТАТОЧНО СРЕДСТВ");
+        
+        updateBalance(-price);
+        const display = document.getElementById('caseDisplay');
+        display.innerText = "ROLLING...";
+        display.style.color = "var(--accent)";
+
+        setTimeout(() => {
+            const chance = Math.random() * 100;
+            let win = 0;
+
+            // ШАНСЫ (90% проигрыш, 9% возврат, 1% джекпот)
+            if (chance < 1) {
+                win = price * 50;
+                display.innerText = win + " ₽";
+                display.style.color = "var(--gold)";
+                alert("!!! JACKPOT TITAN !!!");
+            } else if (chance < 10) {
+                win = price * 2;
+                display.innerText = win + " ₽";
+                display.style.color = "var(--green)";
+            } else {
+                win = Math.floor(Math.random() * (price * 0.1));
+                display.innerText = win + " ₽";
+                display.style.color = "var(--pink)";
+            }
+
+            updateBalance(win);
+        }, 1500);
+    }
+
+    // --- СИСТЕМА БАЛАНСА И АВТОР ---
+    function updateBalance(amt) {
+        uData.balance += amt;
+        database.ref('users/' + currentUser + '/balance').set(uData.balance);
+        document.getElementById('uBalance').innerText = Math.floor(uData.balance).toLocaleString() + ' ₽';
+    }
+
+    function processAuth() {
+        const u = document.getElementById('uIn').value.trim().toLowerCase();
+        if (u.length < 3) return alert("ЛОГИН СЛИШКОМ КОРОТКИЙ");
+        
+        currentUser = u;
+        database.ref('users/' + u).on('value', (snap) => {
+            if (!snap.exists()) {
+                database.ref('users/' + u).set({ balance: 10000, xp: 0 });
+            } else {
+                uData = snap.val();
+                document.getElementById('uBalance').innerText = Math.floor(uData.balance).toLocaleString() + ' ₽';
+            }
         });
-        setTimeout(syncLeaderboard, 30000);
+
+        document.getElementById('authBox').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'grid';
+        loadGlobalChat();
     }
 
-    function showTab(btn, tabId) {
-        document.querySelectorAll('.nav-btn, .viewport').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(tabId).classList.add('active');
-        if(tabId === 'viewMining') renderShop();
+    function switchAuth(m) {
+        document.getElementById('tLog').classList.toggle('active', m === 'log');
+        document.getElementById('tReg').classList.toggle('active', m === 'reg');
     }
 
-    function renderShop() {
-        const cont = document.getElementById('listGPU');
-        cont.innerHTML = '';
-        GPUS.forEach(g => {
-            let count = (userData.gpus && userData.gpus[g.id]) || 0;
-            cont.innerHTML += `
-                <div class="glass-panel" style="flex-direction:row; padding:25px; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.01);">
-                    <div>
-                        <b style="color:var(--accent); font-size:18px;">${g.n}</b><br>
-                        <small style="color:#5d727b;">ДОХОД: +${g.i} ₽/сек | В НАЛИЧИИ: ${count}</small>
-                    </div>
-                    <button class="btn-ui btn-accent" style="padding:15px 25px; font-size:12px;" onclick="buyGPU('${g.id}', ${g.p})">
-                        КУПИТЬ ЗА ${g.p.toLocaleString()} ₽
-                    </button>
-                </div>`;
-        });
+    function tab(el, id) {
+        document.querySelectorAll('.viewport').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
     }
 
-    function buyGPU(id, price) {
-        if(userData.balance >= price) {
-            db.ref('users/'+user).transaction(u => {
-                if(u) {
-                    u.balance -= price;
-                    if(!u.gpus) u.gpus = {};
-                    u.gpus[id] = (u.gpus[id] || 0) + 1;
-                }
-                return u;
-            });
-            toast("ОБОРУДОВАНИЕ КУПЛЕНО!");
-            sfx(1100);
-            renderShop();
-        } else toast("НЕДОСТАТОЧНО СРЕДСТВ!");
-    }
+    // Canvas Background
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    window.onresize = () => { bgCvs.width = window.innerWidth; bgCvs.height = window.innerHeight; };
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(0, 242, 255, 0.1)';
+        for(let i=0; i<50; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, 2, 0, Math.PI*2);
+            ctx.fill();
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+
 </script>
 </body>
 </html>
