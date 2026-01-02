@@ -1,1116 +1,1052 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>TORNADO PLATFORM V10.0 | FULL EDITION</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-<style>
-  /* ---------- THEME (Titan) ---------- */
-  :root{
-    --accent:#00f2ff; --pink:#ff007b; --gold:#ffcc00; --green:#00ff88;
-    --bg:#030507; --card:rgba(10,15,20,0.98); --border:rgba(0,242,255,0.18);
-    --neon:0 0 25px rgba(0,242,255,0.35); --tr:0.28s cubic-bezier(.4,0,.2,1);
-  }
-  *{box-sizing:border-box;transition:var(--tr);outline:none}
-  html,body{height:100%;margin:0;font-family:Inter, sans-serif;background:radial-gradient(circle at 50% 50%, #0a1018 0%, var(--bg) 100%);color:#fff}
-  /* Canvas background */
-  #bgCanvas{position:fixed;left:0;top:0;z-index:-1;opacity:0.45}
-  /* App layout */
-  .app-container{width:98vw;height:94vh;max-width:1900px;margin:12px auto;display:grid;grid-template-columns:1fr 420px;gap:22px}
-  .glass-panel{background:var(--card);border-radius:32px;border:1px solid var(--border);backdrop-filter:blur(40px);box-shadow:0 25px 80px rgba(0,0,0,0.85);display:flex;flex-direction:column;overflow:hidden}
-  /* Auth modal */
-  #authBox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;padding:60px;width:520px;border-radius:36px;text-align:center;border:1px solid var(--accent);box-shadow:var(--neon);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
-  .brand{font-family:Orbitron;font-size:3.6rem;color:var(--accent);letter-spacing:6px;margin-bottom:6px}
-  .sub{font-size:12px;color:#5d727b;letter-spacing:12px;font-weight:900;margin-bottom:22px}
-  .auth-nav{display:flex;gap:12px;margin-bottom:18px;background:rgba(255,255,255,0.02);padding:6px;border-radius:18px}
-  .auth-tab{flex:1;padding:12px;border-radius:14px;cursor:pointer;font-weight:900;text-transform:uppercase;color:#5d727b}
-  .auth-tab.active{background:var(--accent);color:#000;box-shadow:var(--neon)}
-  .field{background:rgba(0,0,0,0.65);border:1px solid var(--border);padding:14px;border-radius:14px;color:#fff;font-family:Orbitron}
-  .btn-ui{border:none;padding:14px;border-radius:14px;font-weight:900;cursor:pointer;font-family:Orbitron;text-transform:uppercase}
-  .btn-accent{background:linear-gradient(135deg,var(--accent),#0072ff);color:#000}
-  .btn-green{background:linear-gradient(135deg,var(--green),#00b35d);color:#000}
-  .btn-disabled{opacity:.45;cursor:not-allowed}
-  /* Top navigation inside app */
-  .sidebar-nav{display:flex;gap:10px;padding:14px;background:rgba(0,0,0,0.45);border-bottom:1px solid var(--border);overflow-x:auto}
-  .nav-btn{padding:10px 16px;border-radius:14px;cursor:pointer;font-weight:800;color:#5d727b;background:rgba(255,255,255,0.02);white-space:nowrap}
-  .nav-btn.active{background:rgba(0,242,255,0.08);color:var(--accent);border:1px solid var(--accent)}
-  /* Viewport */
-  .viewport{flex:1;overflow:auto;padding:28px;display:none;flex-direction:column;gap:22px}
-  .viewport.active{display:flex;animation:viewIn 0.45s cubic-bezier(.23,1,.32,1)}
-  @keyframes viewIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
-  /* Crash */
-  .crash-area{height:460px;border-radius:28px;background:#020305;border:1px solid var(--border);position:relative;overflow:hidden}
-  #crashCanvas{width:100%;height:100%}
-  .crash-info{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:20}
-  #crashMult{font-family:Orbitron;font-size:6rem;font-weight:900;text-shadow:0 0 40px var(--accent);margin:0}
-  #crashProfit{font-family:Orbitron;font-size:2rem;margin-top:8px;color:var(--green)}
-  .status-ind{margin-top:12px;padding:8px 12px;border-radius:16px;font-weight:900}
-  .status-wait{background:rgba(255,255,255,0.02);color:#5d727b;border:1px solid rgba(255,255,255,0.03)}
-  .status-active{background:rgba(0,242,255,0.06);color:var(--accent);border:1px solid rgba(0,242,255,0.08)}
-  .status-crash{background:rgba(255,0,123,0.06);color:var(--pink);border:1px solid rgba(255,0,123,0.08)}
-  /* Mines */
-  .mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;padding:20px;background:rgba(0,0,0,0.28);border-radius:28px;border:1px solid var(--border)}
-  .game-cell{aspect-ratio:1;background:rgba(255,255,255,0.03);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;border:1px solid var(--border);user-select:none}
-  .game-cell.active{background:var(--accent);color:#000;box-shadow:0 0 35px var(--accent)}
-  .game-cell.death{background:var(--pink);color:#fff;box-shadow:0 0 30px var(--pink)}
-  /* Ladder (simple list) */
-  .ladder-list{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto}
-  .ladder-step{display:flex;justify-content:space-between;padding:10px;border-radius:12px;background:rgba(255,255,255,0.02);align-items:center}
-  /* Cases */
-  .case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-  .case-card{padding:26px;border-radius:20px;border:1px solid var(--border);text-align:center}
-  .box-result{font-family:Orbitron;font-size:3rem;text-align:center;margin-top:18px;min-height:72px}
-  /* PVP */
-  .online-list{display:flex;flex-direction:column;gap:10px}
-  .online-row{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
-  .small{font-size:12px;color:#5d727b}
-  /* Right panel */
-  .user-block{padding:24px;border-bottom:1px solid var(--border);position:relative}
-  .logout-btn{position:absolute;right:16px;top:16px;padding:8px 12px;border-radius:12px;background:rgba(255,0,123,0.06);border:1px solid var(--pink);color:var(--pink);cursor:pointer;font-weight:800}
-  .bal-display{font-family:Orbitron;font-size:3rem;color:var(--accent);font-weight:900}
-  .xp-line{height:12px;background:rgba(255,255,255,0.05);border-radius:20px;overflow:hidden;margin-top:16px}
-  .xp-bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--green));box-shadow:0 0 15px var(--accent)}
-  #notif{position:fixed;right:24px;top:18px;z-index:100000;display:flex;flex-direction:column;gap:12px}
-  .toast{background:#0b0b0b;border:1px solid var(--accent);padding:14px 18px;border-radius:12px;font-weight:700}
-  ::-webkit-scrollbar{width:8px} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.04);border-radius:8px}
-  @media(max-width:1100px){
-    .app-container{grid-template-columns:1fr;grid-auto-rows:minmax(200px,auto);height:auto}
-    #authBox{width:92vw;padding:24px}
-    #crashMult{font-size:3rem}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORNADO PLATFORM V10.0 | FULL EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00f2ff; 
+            --pink: #ff007b; 
+            --gold: #ffcc00; 
+            --green: #00ff88;
+            --bg: #030507; 
+            --card: rgba(10, 15, 20, 0.98); 
+            --border: rgba(0, 242, 255, 0.2);
+            --neon-glow: 0 0 25px rgba(0, 242, 255, 0.35);
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            transition: var(--transition); 
+            outline: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: #fff;
+            height: 100vh; 
+            width: 100vw;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #0a1018 0%, #030507 100%);
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .app-container { 
+            display: grid; 
+            grid-template-columns: 1fr 380px; 
+            gap: 20px; 
+            width: 98vw; 
+            height: 94vh; 
+            max-width: 1800px; 
+            z-index: 10;
+        }
+
+        .glass-panel { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            backdrop-filter: blur(50px); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8); 
+        }
+
+        #authBox { 
+            width: 450px; 
+            padding: 60px; 
+            text-align: center; 
+            position: absolute; 
+            z-index: 9999; 
+            border: 1px solid var(--accent); 
+            box-shadow: var(--neon-glow); 
+            background: var(--card);
+            border-radius: 40px;
+            animation: authShow 0.8s ease-out;
+        }
+
+        @keyframes authShow {
+            from { opacity: 0; transform: scale(0.9) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .auth-nav { display: flex; gap: 10px; margin-bottom: 30px; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 18px; }
+        .auth-tab { flex: 1; padding: 12px; border-radius: 14px; cursor: pointer; font-size: 11px; font-weight: 800; color: #5d727b; text-transform: uppercase; letter-spacing: 1px; }
+        .auth-tab.active { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
+
+        .sidebar-nav { 
+            display: flex; 
+            background: rgba(0,0,0,0.4); 
+            padding: 15px 25px; 
+            gap: 10px; 
+            border-bottom: 1px solid var(--border); 
+            overflow-x: auto; 
+            scrollbar-width: none; 
+        }
+
+        .nav-btn { 
+            padding: 12px 22px; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #5d727b; 
+            white-space: nowrap; 
+            border: 1px solid transparent; 
+            background: rgba(255,255,255,0.02);
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .nav-btn.active { 
+            background: rgba(0, 242, 255, 0.1); 
+            color: var(--accent); 
+            border-color: var(--accent); 
+        }
+
+        .viewport { flex: 1; overflow-y: auto; padding: 30px; display: none; flex-direction: column; gap: 25px; }
+        .viewport.active { display: flex; animation: viewIn 0.4s ease-out; }
+
+        @keyframes viewIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .crash-area { 
+            height: 400px; 
+            background: #010203; 
+            border-radius: 25px; 
+            position: relative; 
+            overflow: hidden; 
+            border: 1px solid var(--border); 
+        }
+        #crashCanvas { width: 100%; height: 100%; }
+        .crash-info { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 100; }
+        #crashMult { font-family: 'Orbitron'; font-size: 6rem; font-weight: 900; text-shadow: 0 0 40px var(--accent); margin: 0; }
+
+        .mines-grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 550px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: rgba(0,0,0,0.2);
+            border-radius: 30px;
+        }
+
+        .game-cell { 
+            aspect-ratio: 1; 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid var(--border); 
+            border-radius: 18px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 32px; 
+            user-select: none;
+        }
+        .game-cell:hover:not(.active):not(.death) { background: rgba(0, 242, 255, 0.08); transform: scale(1.03); }
+        .game-cell.active { background: var(--accent); box-shadow: 0 0 25px var(--accent); color: #000; border: none; }
+        .game-cell.death { background: var(--pink); box-shadow: 0 0 25px var(--pink); color: #fff; border: none; }
+
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .field-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 10px; color: #5d727b; font-weight: 800; margin-left: 10px; text-transform: uppercase; }
+
+        .field { 
+            background: rgba(0,0,0,0.6); 
+            border: 1px solid var(--border); 
+            padding: 18px; 
+            border-radius: 18px; 
+            color: #fff; 
+            font-family: 'Orbitron'; 
+            font-size: 16px; 
+            width: 100%; 
+        }
+        .field:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 242, 255, 0.15); }
+
+        .btn-ui { 
+            border: none; 
+            padding: 20px; 
+            border-radius: 18px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-family: 'Orbitron'; 
+            font-size: 13px; 
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; }
+        .btn-accent:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; }
+        .btn-green:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); }
+        .btn-disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+
+        .user-block { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); position: relative; }
+        .logout-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 0, 123, 0.1);
+            border: 1px solid var(--pink);
+            color: var(--pink);
+            padding: 8px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .logout-btn:hover { background: var(--pink); color: #000; }
+        
+        .bal-display { font-family: 'Orbitron'; font-size: 2.8rem; font-weight: 900; color: var(--accent); margin-bottom: 10px; }
+        .xp-container { margin: 15px 0; }
+        .xp-line { height: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+        .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); transition: 1s ease; }
+
+        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #chatBox { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .msg { 
+            background: rgba(255,255,255,0.03); 
+            padding: 12px 16px; 
+            border-radius: 18px; 
+            font-size: 13px; 
+            max-width: 85%; 
+            border-left: 3px solid var(--accent); 
+            word-wrap: break-word;
+        }
+        .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 10px; display: block; margin-bottom: 4px; }
+
+        .leader-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .gpu-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .gpu-owned {
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 800;
+            margin-top: 5px;
+        }
+
+        #notif { position: fixed; top: 20px; right: 20px; z-index: 10000; }
+        .toast { 
+            background: #111; border: 1px solid var(--accent); padding: 15px 25px; 
+            border-radius: 15px; color: #fff; margin-bottom: 10px; font-weight: 600;
+            animation: slideIn 0.3s forwards;
+        }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        .status-indicator {
+            display: inline-block;
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+        .status-waiting { background: rgba(255, 204, 0, 0.1); color: var(--gold); border: 1px solid var(--gold); }
+        .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid var(--green); }
+        .status-crashed { background: rgba(255, 0, 123, 0.1); color: var(--pink); border: 1px solid var(--pink); }
+    </style>
 </head>
 <body>
-  <canvas id="bgCanvas" aria-hidden="true"></canvas>
-  <div id="notif" aria-live="polite"></div>
 
-  <!-- AUTH MODAL -->
-  <div id="authBox">
-    <div class="brand">TORNADO</div>
-    <div class="sub">PLATFORM VERSION 10.0</div>
+<canvas id="bgCanvas"></canvas>
+<div id="notif"></div>
 
-    <div class="auth-nav" role="tablist" aria-label="Auth">
-      <button class="auth-tab active" data-mode="login">Вход</button>
-      <button class="auth-tab" data-mode="reg">Регистрация</button>
+<div id="authBox">
+    <h1 style="font-family:'Orbitron'; font-size: 3rem; margin:0; color:var(--accent); letter-spacing: 4px;">TORNADO</h1>
+    <p style="letter-spacing: 8px; font-size: 10px; color: #5d727b; margin-bottom: 40px; font-weight: 800;">PLATFORM VERSION 10.0</p>
+    
+    <div class="auth-nav">
+        <div class="auth-tab active" id="tabLogin" onclick="setAuth('login')">Вход</div>
+        <div class="auth-tab" id="tabReg" onclick="setAuth('reg')">Регистрация</div>
     </div>
-
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <input id="authUser" class="field" placeholder="ЛОГИН" aria-label="логин">
-      <input id="authPass" class="field" placeholder="ПАРОЛЬ" type="password" aria-label="пароль">
-      <div style="display:flex;gap:10px">
-        <button id="authBtn" class="btn-ui btn-accent" style="flex:1">ПОДКЛЮЧИТЬСЯ</button>
-        <button id="demoBtn" class="btn-ui" style="width:120px">ДЕМО</button>
-      </div>
+    
+    <div class="field-group" style="margin-bottom: 15px;">
+        <input type="text" id="authUser" placeholder="ЛОГИН" class="field">
     </div>
-  </div>
+    <div class="field-group" style="margin-bottom: 30px;">
+        <input type="password" id="authPass" placeholder="ПАРОЛЬ" class="field">
+    </div>
+    
+    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ВОЙТИ В СИСТЕМУ</button>
+</div>
 
-  <!-- MAIN APP -->
-  <div class="app-container" id="mainApp" style="display:none">
-    <!-- left/main column -->
+<div class="app-container" id="mainApp" style="display: none;">
     <div class="glass-panel">
-      <div class="sidebar-nav" role="navigation" aria-label="Главная навигация">
-        <button class="nav-btn active" data-view="viewCrash">📈 CRASH</button>
-        <button class="nav-btn" data-view="viewMines">💣 MINES</button>
-        <button class="nav-btn" data-view="viewLadder">🪜 LADDER</button>
-        <button class="nav-btn" data-view="viewMining">⚡ MINING</button>
-        <button class="nav-btn" data-view="viewCases">📦 CASES</button>
-        <button class="nav-btn" data-view="viewPVP">⚔️ PVP</button>
-        <button class="nav-btn" data-view="viewTop">🏆 TOP</button>
-      </div>
-
-      <!-- CRASH VIEW -->
-      <div id="viewCrash" class="viewport active" role="region" aria-label="Crash game">
-        <div class="crash-area" aria-hidden="false">
-          <canvas id="crashCanvas"></canvas>
-          <div class="crash-info" aria-hidden="true">
-            <h2 id="crashMult">1.00x</h2>
-            <div id="crashProfit"></div>
-            <div id="crashStatus" class="status-ind status-wait">ОЖИДАНИЕ</div>
-          </div>
+        <div class="sidebar-nav">
+            <div class="nav-btn active" onclick="showTab(this, 'viewCrash')">📈 CRASH</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewMines')">💣 MINES</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewMining')">⚡ MINING</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewCases')">📦 CASES</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewTop')">🏆 TOP</div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label style="font-size:12px;color:#5d727b">СУММА СТАВКИ</label>
-            <input id="betCrash" class="field" type="number" value="100" min="10">
-          </div>
-          <div>
-            <label style="font-size:12px;color:#5d727b">АВТО-ВЫВОД (x)</label>
-            <input id="autoCrash" class="field" type="number" placeholder="2.00" step="0.1" min="1.1">
-          </div>
-        </div>
-        <div style="display:flex;gap:12px">
-          <button id="btnCrash" class="btn-ui btn-accent" style="flex:1">СДЕЛАТЬ СТАВКУ</button>
-          <button id="btnCrashInfo" class="btn-ui" style="width:160px">ИНФО РАУНДА</button>
-        </div>
-
-        <div style="display:flex;gap:12px;align-items:center">
-          <div style="font-size:12px;color:#5d727b">Последние краши:</div>
-          <div id="crashHistory" style="display:flex;gap:8px;overflow:auto"></div>
-        </div>
-      </div>
-
-      <!-- MINES VIEW -->
-      <div id="viewMines" class="viewport" role="region" aria-label="Mines game">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label class="small">СТАВКА</label>
-            <input id="betMines" class="field" type="number" value="100" min="10">
-          </div>
-          <div>
-            <label class="small">КОЛ-ВО МИН</label>
-            <select id="cntMines" class="field">
-              <option value="3">3 МИНЫ</option>
-              <option value="5">5 МИН</option>
-              <option value="10">10 МИН</option>
-              <option value="24">24 МИНЫ</option>
-            </select>
-          </div>
+        <div id="viewCrash" class="viewport active">
+            <div class="crash-area">
+                <canvas id="crashCanvas"></canvas>
+                <div class="crash-info">
+                    <div id="crashMult">1.00x</div>
+                    <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:1.8rem; height:30px; font-weight:800;"></div>
+                    <div id="crashStatus" class="status-indicator status-waiting">ОЖИДАНИЕ</div>
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="field-group">
+                    <label>Сумма ставки</label>
+                    <input type="number" id="betCrash" value="100" class="field" min="10">
+                </div>
+                <div class="field-group">
+                    <label>Авто-вывод</label>
+                    <input type="number" id="autoCrash" placeholder="2.00" class="field" step="0.1" min="1.1">
+                </div>
+            </div>
+            <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
 
-        <div style="text-align:center;margin-top:6px;font-family:Orbitron;color:var(--accent)">
-          ОТКРЫТО: <span id="minesOpened">0</span> &nbsp; | &nbsp; МНОЖИТЕЛЬ: <span id="minesMulti">1.00x</span>
+        <div id="viewMines" class="viewport">
+            <div class="input-row" style="margin-bottom: 20px;">
+                <div class="field-group">
+                    <label>Ставка</label>
+                    <input type="number" id="betMines" value="100" class="field" min="10">
+                </div>
+                <div class="field-group">
+                    <label>Кол-во ловушек</label>
+                    <select id="cntMines" class="field">
+                        <option value="3">3 МИНЫ</option>
+                        <option value="5">5 МИН</option>
+                        <option value="10">10 МИН</option>
+                        <option value="24">24 МИНЫ</option>
+                    </select>
+                </div>
+            </div>
+            <div id="minesStats" style="text-align:center; margin-bottom:15px; font-family:'Orbitron'; color:var(--accent);">
+                <span>ОТКРЫТО: <span id="minesOpened">0</span></span> | 
+                <span>МНОЖИТЕЛЬ: <span id="minesMulti">1.00x</span></span>
+            </div>
+            <div id="gridMines" class="mines-grid"></div>
+            <button id="btnMines" class="btn-ui btn-accent" onclick="toggleMines()" style="margin-top:20px;">НАЧАТЬ ИГРУ</button>
         </div>
 
-        <div id="gridMines" class="mines-grid" style="margin-top:14px"></div>
-        <div style="display:flex;gap:12px;margin-top:12px">
-          <button id="btnMines" class="btn-ui btn-accent" style="flex:1">НАЧАТЬ ИГРУ</button>
-          <button id="btnMinesCollect" class="btn-ui" style="width:160px">ЗАБРАТЬ</button>
-        </div>
-      </div>
-
-      <!-- LADDER VIEW -->
-      <div id="viewLadder" class="viewport" role="region" aria-label="Ladder">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div>
-            <label class="small">СТАВКА</label>
-            <input id="betLadder" class="field" type="number" value="100" min="10">
-          </div>
-          <div>
-            <label class="small">СЛОЖНОСТЬ</label>
-            <select id="stepLadder" class="field">
-              <option value="5">НИЗКАЯ (5)</option>
-              <option value="8" selected>СРЕДНЯЯ (8)</option>
-              <option value="12">ВЫСОКАЯ (12)</option>
-            </select>
-          </div>
+        <div id="viewMining" class="viewport">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <button class="btn-ui btn-accent" style="height:180px; flex-direction:column;" onclick="clickFarm()">
+                    <span style="font-size:30px;">⚡</span>
+                    БИТЬ ПО БЛОКУ
+                    <span id="valClick" style="font-size:12px; opacity:0.6;">+1.00 ₽</span>
+                </button>
+                <div class="glass-panel" style="justify-content:center; align-items:center; background:rgba(0,242,255,0.03);">
+                    <p style="font-size:10px; letter-spacing:2px; color:#5d727b;">ТЕКУЩИЙ ДОХОД</p>
+                    <h2 id="valPassive" style="color:var(--green); font-family:'Orbitron'; font-size:2.5rem; margin:10px 0;">0 ₽</h2>
+                    <p style="font-size:9px; font-weight:800;">В СЕКУНДУ ПАССИВНО</p>
+                </div>
+            </div>
+            <div id="listGPU" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;"></div>
         </div>
 
-        <div id="areaLadder" style="display:flex;flex-direction:column-reverse;gap:12px;margin-top:18px" aria-live="polite"></div>
-        <div style="display:flex;gap:12px;margin-top:12px">
-          <button id="startLadder" class="btn-ui btn-accent" style="flex:1">НАЧАТЬ ПОДЪЁМ</button>
-          <button id="stopLadder" class="btn-ui" style="width:160px">ОТМЕНИТЬ</button>
-        </div>
-      </div>
-
-      <!-- MINING VIEW -->
-      <div id="viewMining" class="viewport" role="region" aria-label="Mining">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <button id="clickFarm" class="btn-ui btn-accent" style="height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div style="font-size:28px">БИТЬ ПО БЛОКУ</div>
-            <div id="valClick" style="font-family:Orbitron;margin-top:8px">+0.00 ₽</div>
-          </button>
-          <div class="glass-panel" style="padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div style="font-size:12px;color:#5d727b">ТЕКУЩИЙ ХЭШРЕЙТ</div>
-            <div id="valPassive" class="bal-display" style="margin:8px 0">0 ₽</div>
-            <div style="font-size:11px;font-weight:800">В СЕКУНДУ</div>
-          </div>
+        <div id="viewCases" class="viewport">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="glass-panel" style="padding:30px; text-align:center;">
+                    <h3 style="font-family:'Orbitron'; color:var(--accent);">BASIC BOX</h3>
+                    <p style="font-size:11px; color:#5d727b; margin:15px 0;">WIN UP TO 5,000 ₽</p>
+                    <button class="btn-ui btn-accent" style="width:100%" onclick="openBox(500, 100, 5000)">OPEN ЗА 500</button>
+                </div>
+                <div class="glass-panel" style="padding:30px; text-align:center; border-color:var(--pink);">
+                    <h3 style="font-family:'Orbitron'; color:var(--pink);">ELITE CASE</h3>
+                    <p style="font-size:11px; color:#5d727b; margin:15px 0;">WIN UP TO 100,000 ₽</p>
+                    <button class="btn-ui btn-accent" style="width:100%; background:var(--pink);" onclick="openBox(10000, 2000, 100000)">OPEN ЗА 10,000</button>
+                </div>
+            </div>
+            <div id="boxResCont" style="margin-top:40px; text-align:center;">
+                <h1 id="boxRes" style="font-family:'Orbitron'; font-size:4rem; letter-spacing:5px;"></h1>
+            </div>
         </div>
 
-        <div id="listGPU" style="margin-top:16px;display:flex;flex-direction:column;gap:12px"></div>
-      </div>
-
-      <!-- CASES VIEW -->
-      <div id="viewCases" class="viewport" role="region" aria-label="Cases">
-        <div class="case-grid">
-          <div class="case-card">
-            <h3 style="font-family:Orbitron;color:var(--accent)">BASIC BOX</h3>
-            <div class="small" style="margin:10px 0">COST 500 ₽ — WIN UP TO 5,000 ₽</div>
-            <button class="btn-ui btn-accent" data-cost="500" data-min="100" data-max="5000">OPEN 500</button>
-          </div>
-
-          <div class="case-card" style="border-color:var(--pink)">
-            <h3 style="font-family:Orbitron;color:var(--pink)">ELITE CASE</h3>
-            <div class="small" style="margin:10px 0">COST 10,000 ₽ — WIN UP TO 100,000 ₽</div>
-            <button class="btn-ui" data-cost="10000" data-min="2000" data-max="100000" style="background:linear-gradient(135deg,var(--pink),#ff4da6);color:#000">OPEN 10,000</button>
-          </div>
-
-          <div class="case-card">
-            <h3 style="font-family:Orbitron;color:var(--gold)">TITAN CASE</h3>
-            <div class="small" style="margin:10px 0">COST 25,000 ₽ — WIN UP TO 500,000 ₽</div>
-            <button class="btn-ui btn-accent" data-cost="25000" data-min="5000" data-max="500000">OPEN 25,000</button>
-          </div>
-
-          <div class="case-card">
-            <h3 style="font-family:Orbitron;color:var(--green)">GOLDEN BOX</h3>
-            <div class="small" style="margin:10px 0">COST 100,000 ₽ — WIN UP TO 2,000,000 ₽</div>
-            <button class="btn-ui" data-cost="100000" data-min="20000" data-max="2000000" style="background:linear-gradient(135deg,var(--gold),#ffd84d);color:#000">OPEN 100,000</button>
-          </div>
+        <div id="viewTop" class="viewport">
+            <h2 style="font-family:'Orbitron'; text-align:center; margin-bottom:25px;">РЕЙТИНГ МАГНАТОВ</h2>
+            <div id="listTop"></div>
         </div>
-
-        <div class="box-result" id="boxRes"></div>
-        <div style="text-align:center;margin-top:10px;color:#5d727b;font-size:13px">Шанс больших выигрышей уменьшен — большинство выпадений ≤ стоимости кейса.</div>
-      </div>
-
-      <!-- PVP VIEW -->
-      <div id="viewPVP" class="viewport" role="region" aria-label="PvP">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <h3 style="font-family:Orbitron">PVP ARENA</h3>
-            <div class="small">Вызывай онлайн-игрока. Ставка удерживается в эскроу до завершения матча.</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input id="pvpStake" class="field" type="number" value="500" style="width:140px">
-            <button id="btnRefreshPlayers" class="btn-ui">Обновить</button>
-          </div>
-        </div>
-
-        <div style="margin-top:12px">
-          <div class="small">Онлайн игроки</div>
-          <div id="onlineList" class="online-list" style="margin-top:8px"></div>
-        </div>
-
-        <div style="margin-top:14px">
-          <h4 style="font-family:Orbitron">Запросы PvP</h4>
-          <div id="pvpRequests" style="margin-top:8px"></div>
-        </div>
-
-        <div style="margin-top:18px">
-          <h4 style="font-family:Orbitron">История PvP</h4>
-          <div id="pvpHistory" style="margin-top:8px"></div>
-        </div>
-      </div>
-
-      <!-- TOP VIEW -->
-      <div id="viewTop" class="viewport" role="region" aria-label="Top">
-        <h3 style="font-family:Orbitron;text-align:center">TITAN HALL OF FAME</h3>
-        <div id="listTop" style="margin-top:12px"></div>
-      </div>
     </div>
 
-    <!-- right column -->
-    <div class="glass-panel" style="width:420px">
-      <div class="user-block">
-        <button id="btnLogout" class="logout-btn">ВЫХОД</button>
-        <div id="uName" style="font-size:12px;color:#5d727b;font-weight:800">Гость</div>
-        <div id="uBalance" class="bal-display">0 ₽</div>
-        <div class="xp-line"><div id="uBar" class="xp-bar"></div></div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px;color:#5d727b;font-weight:800">
-          <span id="uLevel">LEVEL 1</span>
-          <span id="uXP">0 / 1000 XP</span>
+    <div class="glass-panel" style="width: 380px;">
+        <div class="user-block">
+            <button class="logout-btn" onclick="logout()">ВЫХОД</button>
+            <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
+            <div class="bal-display" id="uBalance">0 ₽</div>
+            <div class="xp-container">
+                <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
+                    <span id="uLevel">УРОВЕНЬ 1</span>
+                    <span id="uXP">0 / 1000 XP</span>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div class="chat-container" style="flex:1;display:flex;flex-direction:column;">
-        <div id="chatBox" style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
-        <div style="padding:14px;display:flex;gap:8px;background:rgba(0,0,0,0.3)">
-          <input id="chatInput" class="field" placeholder="Сообщение..." maxlength="200" style="flex:1" />
-          <button id="chatSend" class="btn-ui btn-accent">→</button>
+        
+        <div class="chat-container">
+            <div id="chatBox"></div>
+            <div style="padding:20px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
+                <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200" onkeypress="if(event.key==='Enter')sendMsg()">
+                <button class="btn-ui btn-accent" style="padding:0 20px;" onclick="sendMsg()">></button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Firebase compat (как у тебя) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-  <script>
-  /** =======================
-   * CONFIG & STATE
-   * ======================= */
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
+        databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tornadogame-41ae2",
+        appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
-    databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "tornadogame-41ae2",
-    appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    let user = null, userData = {}, authMode = 'login', audioCtx;
+    let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
+    let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
+    let crashInterval = null, passiveInterval = null;
+    
+    const GPUS = [
+        {id:'g1', n:'GTX 1660', p:5000, i:10},
+        {id:'g2', n:'RTX 3070', p:50000, i:120},
+        {id:'g3', n:'RTX 4090', p:500000, i:1500},
+        {id:'g4', n:'SERVER ASIC', p:2000000, i:8000}
+    ];
 
-  // global state
-  let user = null;                 // current username
-  let userData = {};               // current user's DB snapshot
-  let audioCtx = null;
-  let crash = { active:false, bet:0, cashed:false, mult:1, startTime:0, pts:[], intervalId:null, target:null };
-  let mines = { active:false, bet:0, bombs:[], open:0, total:3 };
-  let ladder = { active:false, bet:0, step:8, progress:0 };
-  let gpuDefs = [
-    {id:'g1', n:'GTX 1660', p:5000, i:10},
-    {id:'g2', n:'RTX 3070', p:50000, i:120},
-    {id:'g3', n:'RTX 4090', p:500000, i:1500},
-    {id:'g4', n:'SERVER ASIC', p:2000000, i:8000}
-  ];
-
-  // presence & pvp
-  let presenceRef = null;
-  const pvpTimers = {}; // pending timers to auto-expire
-  const localCache = {}; // small cache for UI
-
-  /** =======================
-   * UTILITIES
-   * ======================= */
-
-  function log(...a){ console.log('[Tornado]',...a); }
-  function sfx(freq=440, type='sine', dur=0.12, vol=0.06){
-    try{
-      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      g.gain.setValueAtTime(vol, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-      o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
-    } catch(e){}
-  }
-
-  function toast(txt, type='info'){
-    const n = document.getElementById('notif'); const el = document.createElement('div'); el.className='toast'; el.textContent = txt;
-    if(type==='error') el.style.borderColor = 'var(--pink)';
-    if(type==='success') el.style.borderColor = 'var(--green)';
-    n.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),400); }, 3200);
-  }
-
-  function escapeHtml(s){
-    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
-  function formatMoney(v){ return Math.floor(v)||0; } // returns integer
-
-  /** =======================
-   * BACKGROUND PARTICLES
-   * ======================= */
-  const bgCvs = document.getElementById('bgCanvas'); const bgCtx = bgCvs.getContext('2d');
-  let particles = [];
-  function resizeBg(){ const dpr = window.devicePixelRatio || 1; bgCvs.width = innerWidth * dpr; bgCvs.height = innerHeight * dpr; bgCvs.style.width = innerWidth + 'px'; bgCvs.style.height = innerHeight + 'px'; bgCtx.setTransform(dpr,0,0,dpr,0,0); }
-  function initParticles(){
-    resizeBg(); particles = []; const count = Math.max(50, Math.floor(innerWidth/12));
-    for(let i=0;i<count;i++) particles.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, s:Math.random()*2+0.6, v:Math.random()*0.6+0.1});
-  }
-  function drawParticles(){
-    bgCtx.clearRect(0,0,bgCvs.width,bgCvs.height); bgCtx.fillStyle = '#00f2ff'; bgCtx.shadowBlur = 6; bgCtx.shadowColor = '#00f2ff';
-    particles.forEach(p => { bgCtx.beginPath(); bgCtx.arc(p.x,p.y,p.s,0,Math.PI*2); bgCtx.fill(); p.y -= p.v; if(p.y < -10){ p.y = innerHeight + 10; p.x = Math.random()*innerWidth; } });
-    requestAnimationFrame(drawParticles);
-  }
-  window.addEventListener('resize', ()=> { initParticles(); });
-
-  /** =======================
-   * SAFE CHAT RENDERING
-   * ======================= */
-  function renderChat(snapshot){
-    const box = document.getElementById('chatBox'); box.innerHTML = '';
-    snapshot.forEach(s => {
-      const d = s.val();
-      const el = document.createElement('div'); el.className = 'msg';
-      const b = document.createElement('b'); b.textContent = (d.u || 'anon').toUpperCase();
-      el.appendChild(b); el.appendChild(document.createTextNode(' ' + String(d.t || '')));
-      box.appendChild(el);
-    });
-    box.scrollTop = box.scrollHeight;
-  }
-
-  /** =======================
-   * AUTH & SESSION
-   * ======================= */
-  document.querySelectorAll('.auth-tab').forEach(btn => btn.addEventListener('click', () => {
-    document.querySelectorAll('.auth-tab').forEach(x => x.classList.remove('active'));
-    btn.classList.add('active');
-  }));
-  document.getElementById('authBtn').addEventListener('click', handleAuth);
-  document.getElementById('demoBtn').addEventListener('click', ()=> {
-    document.getElementById('authUser').value = 'demo' + Math.floor(Math.random()*9000); document.getElementById('authPass').value = 'demo';
-  });
-
-  function handleAuth(){
-    const username = (document.getElementById('authUser').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('authPass').value || '').trim();
-    if(username.length < 3){ toast('Логин должен быть минимум 3 символа','error'); return; }
-    if(pass.length < 3){ toast('Пароль минимум 3 символа','error'); return; }
-    const mode = document.querySelector('.auth-tab.active').dataset.mode || 'login';
-    const ref = db.ref('users/' + username);
-    ref.once('value').then(snap => {
-      if(mode === 'login'){
-        if(snap.exists() && snap.val().pass === pass){
-          toast('Вход выполнен','success'); sfx(700); startSession(username);
-        } else toast('Неверный логин/пароль','error');
-      } else {
-        if(snap.exists()) toast('Логин уже занят','error');
-        else {
-          const initial = { pass: pass, balance: 15000, xp: 0, lvl: 1, gpus: { g1:0,g2:0,g3:0,g4:0 } };
-          ref.set(initial).then(()=> { toast('Регистрация прошла успешно','success'); sfx(900); startSession(username); });
-        }
-      }
-    }).catch(e => { console.error(e); toast('Ошибка сервера','error'); });
-  }
-
-  function startSession(username){
-    user = username;
-    document.getElementById('authBox').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'grid';
-    document.getElementById('uName').textContent = user.toUpperCase();
-
-    // presence (simple)
-    presenceRef = db.ref('presence/' + user);
-    presenceRef.set({online:true, ts: Date.now()});
-    presenceRef.onDisconnect().set({online:false, ts: Date.now()});
-
-    // listen to own data
-    db.ref('users/' + user).on('value', snap => { userData = snap.val() || {}; if(!userData.gpus) userData.gpus = {g1:0,g2:0,g3:0,g4:0}; updateInterface(); });
-
-    // chat
-    db.ref('chat').limitToLast(60).on('value', snap => renderChat(snap));
-
-    // presence list -> for PvP
-    db.ref('presence').on('value', snap => renderOnlinePlayers(snap));
-
-    // pvp requests & results
-    db.ref('pvpRequests').on('value', snap => renderPvpRequests(snap));
-    db.ref('pvpResults').limitToLast(30).on('value', snap => renderPvpHistory(snap));
-
-    // leaderboard
-    db.ref('users').orderByChild('balance').limitToLast(12).on('value', snap => renderTop(snap));
-
-    // init game engines
-    initParticles(); drawParticles();
-    initCrashEngine();
-    renderGPUs();
-
-    // passive income loop
-    setInterval(()=> {
-      let inc = 0;
-      gpuDefs.forEach(g => inc += (userData.gpus?.[g.id] || 0) * g.i);
-      if(inc > 0) db.ref('users/' + user + '/balance').transaction(b => (b || 0) + inc);
-    }, 1000);
-  }
-
-  document.getElementById('btnLogout').addEventListener('click', ()=> {
-    if(!user) return;
-    if(confirm('Выйти?')){
-      if(presenceRef) presenceRef.set({online:false, ts: Date.now()});
-      db.ref('users/' + user).off();
-      db.ref('chat').off();
-      db.ref('presence').off();
-      db.ref('pvpRequests').off();
-      db.ref('pvpResults').off();
-      user = null; userData = {};
-      document.getElementById('mainApp').style.display = 'none';
-      document.getElementById('authBox').style.display = 'block';
-      toast('Выход выполнен','info'); sfx(400);
+    function toast(txt, type = 'info') {
+        const container = document.getElementById('notif');
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.innerText = txt;
+        if(type === 'error') el.style.borderColor = 'var(--pink)';
+        if(type === 'success') el.style.borderColor = 'var(--green)';
+        container.appendChild(el);
+        setTimeout(() => { 
+            el.style.opacity = '0'; 
+            el.style.transform = 'translateX(120%)';
+            setTimeout(() => el.remove(), 400); 
+        }, 3000);
     }
-  });
 
-  /** =======================
-   * INTERFACE UPDATE
-   * ======================= */
-  function updateInterface(){
-    // balance & xp
-    document.getElementById('uBalance').textContent = (Math.floor(userData.balance || 0)).toLocaleString() + ' ₽';
-    const nextXp = (userData.lvl || 1) * 1500;
-    const xp = userData.xp || 0;
-    document.getElementById('uBar').style.width = Math.min(100, (xp / nextXp * 100)) + '%';
-    document.getElementById('uLevel').textContent = 'LEVEL ' + (userData.lvl || 1);
-    document.getElementById('uXP').textContent = `${xp} / ${nextXp} XP`;
-    document.getElementById('valClick').textContent = `+${((userData.lvl || 1) * 2).toFixed(2)} ₽`;
-    const passive = gpuDefs.reduce((s,g) => s + ((userData.gpus?.[g.id]||0) * g.i), 0);
-    document.getElementById('valPassive').textContent = passive.toLocaleString() + ' ₽';
-    renderGPUs();
-  }
-
-  /** =======================
-   * CRASH ENGINE
-   * ======================= */
-
-  const crashCanvas = document.getElementById('crashCanvas');
-  const crashCtx = crashCanvas.getContext('2d');
-
-  function resizeCrashCanvas(){
-    const dpr = window.devicePixelRatio || 1;
-    crashCanvas.width = Math.max(300, crashCanvas.clientWidth) * dpr;
-    crashCanvas.height = Math.max(200, crashCanvas.clientHeight) * dpr;
-    crashCanvas.style.width = crashCanvas.clientWidth + 'px';
-    crashCanvas.style.height = crashCanvas.clientHeight + 'px';
-    crashCtx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  window.addEventListener('resize', debounce(resizeCrashCanvas, 140));
-
-  function initCrashEngine(){
-    // reset
-    clearInterval(crash.intervalId);
-    crash.active = false; crash.bet = 0; crash.cashed = false; crash.mult = 1; crash.pts = []; crash.target = null;
-    document.getElementById('crashProfit').innerText = '';
-    document.getElementById('crashStatus').className = 'status-ind status-wait'; document.getElementById('crashStatus').innerText = 'ОЖИДАНИЕ';
-    document.getElementById('btnCrash').innerText = 'СДЕЛАТЬ СТАВКУ'; document.getElementById('btnCrash').classList.remove('btn-disabled');
-    resizeCrashCanvas();
-
-    // countdown to round start
-    let timer = 6.0;
-    const cd = setInterval(()=> {
-      timer -= 0.2;
-      if(timer <= 0){ clearInterval(cd); startCrashRound(); }
-      else document.getElementById('crashMult').innerText = timer.toFixed(1) + 's';
-    },200);
-  }
-
-  function startCrashRound(){
-    crash.active = true; crash.startTime = performance.now(); crash.pts = []; crash.cashed=false;
-    // determine target: weighted distribution (fast crashes common, big rare)
-    const r = Math.random();
-    if(r < 0.09) crash.target = 1.0 + Math.random() * 0.6;            // quick crash ~9%
-    else if(r < 0.95) crash.target = Math.random() * 6 + 1.1;          // normal ~86%
-    else if(r < 0.995) crash.target = Math.random() * 40 + 6;         // big ~4.5%
-    else crash.target = Math.random() * 200 + 46;                     // huge ~0.5%
-
-    document.getElementById('crashStatus').className = 'status-ind status-active'; document.getElementById('crashStatus').innerText = 'АКТИВНО';
-    if(crash.bet > 0){ document.getElementById('btnCrash').innerText = 'ЗАБРАТЬ ВЫИГРЫШ'; document.getElementById('btnCrash').classList.add('btn-green'); }
-
-    // run RAF loop for smoothness
-    let last = performance.now();
-    function frame(now){
-      const elapsed = (now - crash.startTime) / 1000;
-      crash.mult = Math.pow(1.07, elapsed);
-      // draw graph path
-      drawCrash(elapsed);
-      // UI updates
-      document.getElementById('crashMult').innerText = crash.mult.toFixed(2) + 'x';
-      if(crash.bet > 0 && !crash.cashed){
-        const profit = Math.floor(crash.bet * crash.mult);
-        document.getElementById('crashProfit').innerText = '+' + profit.toLocaleString() + ' ₽';
-        // check auto
-        const auto = parseFloat(document.getElementById('autoCrash').value);
-        if(!isNaN(auto) && auto > 1 && crash.mult >= auto) {
-          cashoutCrash();
-        }
-      }
-      // check crash
-      if(crash.mult >= crash.target){
-        // crash happens
-        crash.active = false;
-        document.getElementById('crashMult').innerText = 'CRASH!';
-        document.getElementById('crashMult').style.color = 'var(--pink)';
-        document.getElementById('crashProfit').innerText = '';
-        document.getElementById('crashStatus').className = 'status-ind status-crash'; document.getElementById('crashStatus').innerText = 'КРАШ!';
-        if(crash.bet > 0 && !crash.cashed){
-          toast('CRASH! Ваша ставка потеряна', 'error'); sfx(150, 'sawtooth', 0.5);
-        } else {
-          sfx(120, 'sawtooth', 0.35);
-        }
-        // push to history
-        pushCrashHistory(crash.target);
-        setTimeout(()=>{ document.getElementById('crashMult').style.color=''; initCrashEngine(); }, 2800);
-        return;
-      }
-      crash.intervalId = requestAnimationFrame(frame);
+    function sfx(f, type='sine', d=0.2, v=0.1) {
+        try {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(v, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + d);
+        } catch(e) {}
     }
-    crash.intervalId = requestAnimationFrame(frame);
-  }
 
-  function drawCrash(elapsed){
-    resizeCrashCanvas();
-    const w = crashCanvas.clientWidth, h = crashCanvas.clientHeight;
-    crash.pts.push({ x: (elapsed/14) * w, y: h - ((crash.mult - 1) / 6) * h });
-    if(crash.pts.length > 1200) crash.pts.shift();
-    crashCtx.clearRect(0,0,crashCanvas.width, crashCanvas.height);
-    crashCtx.save();
-    crashCtx.strokeStyle = '#00f2ff'; crashCtx.lineWidth = 4; crashCtx.shadowBlur = 18; crashCtx.shadowColor = '#00f2ff';
-    crashCtx.beginPath(); crashCtx.moveTo(0, h);
-    crash.pts.forEach(p => crashCtx.lineTo(p.x, p.y));
-    crashCtx.stroke();
-    crashCtx.restore();
-  }
-
-  function actionCrash(){
-    if(!crash.active && crash.bet === 0){
-      // place bet for upcoming round
-      const amt = parseInt(document.getElementById('betCrash').value);
-      if(isNaN(amt) || amt <= 0){ toast('Укажите корректную ставку','error'); return; }
-      if(amt > (userData.balance || 0)){ toast('Недостаточно средств','error'); return; }
-      crash.bet = amt;
-      crash.cashed = false;
-      // immediately deduct
-      db.ref('users/' + user + '/balance').transaction(b => (b || 0) - amt);
-      document.getElementById('btnCrash').innerText = 'СТАВКА ПРИНЯТА';
-      document.getElementById('btnCrash').classList.add('btn-disabled');
-      toast('Ставка успешно зарезервирована', 'success'); sfx(400);
-    } else if(crash.active && crash.bet > 0 && !crash.cashed){
-      // cash out
-      cashoutCrash();
+    function setAuth(m) {
+        authMode = m;
+        document.getElementById('tabLogin').classList.toggle('active', m==='login');
+        document.getElementById('tabReg').classList.toggle('active', m==='reg');
     }
-  }
 
-  function cashoutCrash(){
-    if(crash.cashed || crash.bet === 0) return;
-    crash.cashed = true;
-    const win = Math.floor(crash.bet * crash.mult);
-    db.ref('users/' + user).transaction(u => { if(u){ u.balance = (u.balance || 0) + win; u.xp = (u.xp || 0) + 50; } return u; });
-    document.getElementById('btnCrash').innerText = 'ВЫИГРАНО ' + win.toLocaleString() + ' ₽';
-    document.getElementById('btnCrash').classList.add('btn-disabled');
-    document.getElementById('crashProfit').innerText = '';
-    toast('Вы забрали ' + win.toLocaleString() + ' ₽', 'success'); sfx(1000);
-    crash.bet = 0;
-  }
+    function handleAuth() {
+        const u = document.getElementById('authUser').value.trim().toLowerCase();
+        const p = document.getElementById('authPass').value.trim();
+        if(u.length < 3) return toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
+        if(p.length < 4) return toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
 
-  // crash history helper (keeps small array in DB)
-  function pushCrashHistory(val){
-    const node = db.ref('crashHistory').push();
-    node.set({mult:val, ts:Date.now()});
-    // keep last 50 in DB (server cleanup recommended)
-  }
-
-  /** =======================
-   * MINES
-   * ======================= */
-
-  document.getElementById('btnMines').addEventListener('click', toggleMines);
-  document.getElementById('btnMinesCollect').addEventListener('click', collectMines);
-
-  function toggleMines(){
-    if(mines.active) { collectMines(); return; }
-    const amount = parseInt(document.getElementById('betMines').value);
-    if(isNaN(amount) || amount <= 0){ toast('Введите сумму', 'error'); return; }
-    if(amount > (userData.balance || 0)){ toast('Недостаточно средств', 'error'); return; }
-    // deduct
-    db.ref('users/' + user + '/balance').transaction(b => (b || 0) - amount);
-    mines.bet = amount; mines.total = parseInt(document.getElementById('cntMines').value); mines.open = 0; mines.active = true; mines.bombs = [];
-    // generate bombs
-    while(mines.bombs.length < mines.total){
-      const r = Math.floor(Math.random() * 25);
-      if(!mines.bombs.includes(r)) mines.bombs.push(r);
-    }
-    renderMinesGrid();
-    document.getElementById('btnMines').classList.remove('btn-accent'); document.getElementById('btnMines').classList.add('btn-green');
-    document.getElementById('btnMines').textContent = 'ЗАБРАТЬ 1.00x';
-    document.getElementById('minesOpened').textContent = '0';
-    document.getElementById('minesMulti').textContent = '1.00x';
-    toast('Игра Mines начата', 'info'); sfx(400);
-  }
-
-  function renderMinesGrid(){
-    const grid = document.getElementById('gridMines'); grid.innerHTML = '';
-    for(let i=0;i<25;i++){
-      const cell = document.createElement('div'); cell.className = 'game-cell'; cell.dataset.i = i;
-      cell.addEventListener('click', ()=> openMineCell(i, cell));
-      grid.appendChild(cell);
-    }
-  }
-
-  function openMineCell(idx, el){
-    if(!mines.active) return;
-    if(el.classList.contains('active') || el.classList.contains('death')) return;
-    if(mines.bombs.includes(idx)){
-      // explosion
-      mines.active = false;
-      el.classList.add('death'); el.textContent = '💣';
-      // reveal other bombs
-      document.querySelectorAll('.game-cell').forEach((c, i) => {
-        if(mines.bombs.includes(i) && !c.classList.contains('death')){
-          setTimeout(()=>{ c.classList.add('death'); c.textContent = '💣'; }, Math.random()*700);
-        }
-        c.onclick = null;
-      });
-      toast('Взрыв! Вы потеряли ставку', 'error'); sfx(120,'sawtooth',0.6);
-      setTimeout(()=>{ document.getElementById('gridMines').innerHTML = ''; document.getElementById('btnMines').textContent = 'НАЧАТЬ ИГРУ'; document.getElementById('btnMines').classList.remove('btn-green'); document.getElementById('btnMines').classList.add('btn-accent'); }, 1800);
-    } else {
-      // success
-      mines.open++; el.classList.add('active'); el.textContent = '💎'; el.onclick = null; sfx(600);
-      const multiplier = 1 + (mines.open * 0.18 * (mines.total / 3));
-      document.getElementById('btnMines').textContent = `ЗАБРАТЬ ${multiplier.toFixed(2)}x`;
-      document.getElementById('minesOpened').textContent = mines.open;
-      document.getElementById('minesMulti').textContent = multiplier.toFixed(2) + 'x';
-    }
-  }
-
-  function collectMines(){
-    if(!mines.active || mines.open === 0){ toast('Откройте хотя бы одну клетку','error'); return; }
-    const multiplier = 1 + (mines.open * 0.18 * (mines.total / 3));
-    const win = Math.floor(mines.bet * multiplier);
-    db.ref('users/' + user).transaction(u => { if(u){ u.balance = (u.balance || 0) + win; u.xp = (u.xp || 0) + 50; } return u; });
-    toast('Вы выиграли ' + win.toLocaleString() + ' ₽', 'success'); sfx(900);
-    mines.active = false; mines.open = 0; mines.bombs = [];
-    document.getElementById('gridMines').innerHTML = ''; document.getElementById('btnMines').textContent = 'НАЧАТЬ ИГРУ'; document.getElementById('btnMines').classList.remove('btn-green'); document.getElementById('btnMines').classList.add('btn-accent');
-    document.getElementById('minesOpened').textContent = '0'; document.getElementById('minesMulti').textContent = '1.00x';
-  }
-
-  /** =======================
-   * LADDER (simple implementation)
-   * ======================= */
-  document.getElementById('startLadder').addEventListener('click', startLadder);
-  document.getElementById('stopLadder').addEventListener('click', stopLadder);
-
-  function startLadder(){
-    if(ladder.active) return;
-    const bet = parseInt(document.getElementById('betLadder').value);
-    const step = parseInt(document.getElementById('stepLadder').value);
-    if(isNaN(bet) || bet <= 0){ toast('Укажите ставку', 'error'); return; }
-    if(bet > (userData.balance || 0)){ toast('Недостаточно средств', 'error'); return; }
-    // lock funds
-    db.ref('users/' + user + '/balance').transaction(b => (b || 0) - bet);
-    ladder.active = true; ladder.bet = bet; ladder.step = step; ladder.progress = 0;
-    document.getElementById('areaLadder').innerHTML = '';
-    // create steps UI
-    for(let i=0;i<step;i++){
-      const node = document.createElement('div'); node.className = 'ladder-step'; node.textContent = 'Step ' + (i+1) + ' — x' + (1 + (i*0.2)).toFixed(2);
-      document.getElementById('areaLadder').appendChild(node);
-    }
-    toast('Лестница начата', 'info'); sfx(700);
-    // start auto progression
-    ladder.timer = setInterval(()=> {
-      ladder.progress++;
-      const steps = document.querySelectorAll('.ladder-step');
-      const idx = steps.length - ladder.progress;
-      if(steps[idx]) steps[idx].style.background = 'linear-gradient(90deg,var(--accent),rgba(0,242,255,0.05))';
-      // small chance to fail
-      if(Math.random() < 0.12){ // fail
-        clearInterval(ladder.timer); ladder.active = false;
-        toast('Провал на шаге ' + ladder.progress, 'error'); sfx(200,'sawtooth',0.5);
-        // lose bet (already deducted)
-        return;
-      }
-      if(ladder.progress >= ladder.step){
-        clearInterval(ladder.timer); ladder.active = false;
-        // win: multiplier proportional to steps
-        const mult = 1 + ladder.step * 0.25;
-        const win = Math.floor(ladder.bet * mult);
-        db.ref('users/' + user).transaction(u => { if(u){ u.balance = (u.balance || 0) + win; u.xp = (u.xp || 0) + 120; } return u; });
-        toast('Успешно! Вы выиграли ' + win.toLocaleString() + ' ₽', 'success'); sfx(1100,'square',0.6);
-      }
-    }, 1000);
-  }
-
-  function stopLadder(){
-    if(!ladder.active) return;
-    clearInterval(ladder.timer); ladder.active = false;
-    // partial cashout: reward proportional to progress
-    const mult = 1 + ladder.progress * 0.15;
-    const win = Math.floor(ladder.bet * mult);
-    db.ref('users/' + user).transaction(u => { if(u){ u.balance = (u.balance || 0) + win; u.xp = (u.xp || 0) + 30; } return u; });
-    document.getElementById('areaLadder').innerHTML = '';
-    toast('Вы забрали ' + win.toLocaleString() + ' ₽', 'success'); sfx(900);
-  }
-
-  /** =======================
-   * MINING / SHOP
-   * ======================= */
-  document.getElementById('clickFarm').addEventListener('click', ()=> {
-    clickFarm();
-  });
-
-  function clickFarm(){
-    const gain = (userData.lvl || 1) * 2;
-    db.ref('users/' + user).transaction(u => { if(u){ u.balance = (u.balance || 0) + gain; u.xp = (u.xp || 0) + 2; } return u; });
-    sfx(450,'sine',0.08);
-    // small click animation
-    const btn = document.getElementById('clickFarm'); btn.style.transform = 'scale(0.98)'; setTimeout(()=> btn.style.transform = '', 90);
-  }
-
-  function renderGPUs(){
-    const cont = document.getElementById('listGPU'); cont.innerHTML = '';
-    gpuDefs.forEach(g => {
-      const owned = userData.gpus?.[g.id] || 0;
-      const card = document.createElement('div'); card.className = 'gpu-card'; card.style.display='flex'; card.style.justifyContent='space-between'; card.style.alignItems='center'; card.style.padding='12px'; card.style.borderRadius='12px'; card.style.background='rgba(255,255,255,0.02)';
-      const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:800">${g.n}</div><div class="small">+${g.i} ₽/с</div>${owned?'<div style="color:var(--green);font-weight:800">Куплено: '+owned+'</div>':''}`;
-      const buy = document.createElement('button'); buy.className='btn-ui btn-accent'; buy.style.padding='8px 12px'; buy.textContent = g.p.toLocaleString() + ' ₽';
-      buy.addEventListener('click', ()=> buyGPU(g.id));
-      card.appendChild(left); card.appendChild(buy);
-      cont.appendChild(card);
-    });
-  }
-
-  function buyGPU(id){
-    const g = gpuDefs.find(x=>x.id === id); if(!g) return;
-    if((userData.balance || 0) < g.p){ toast('Недостаточно средств', 'error'); return; }
-    db.ref('users/' + user).transaction(u => { if(u){ if(!u.gpus) u.gpus = {}; u.gpus[id] = (u.gpus[id]||0) + 1; u.balance = (u.balance || 0) - g.p; } return u; });
-    toast('Видеокарта куплена', 'success'); sfx(900);
-  }
-
-  /** =======================
-   * CASES (weighted distribution)
-   * ======================= */
-  // All case buttons already present in DOM with data attributes
-  document.querySelectorAll('[data-cost][data-min][data-max]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const cost = parseInt(btn.dataset.cost);
-      const min = parseInt(btn.dataset.min);
-      const max = parseInt(btn.dataset.max);
-      openCase(cost, min, max);
-    });
-  });
-
-  function openCase(cost, minWin, maxWin){
-    if((userData.balance || 0) < cost){ toast('Недостаточно средств', 'error'); return; }
-    // immediate debit
-    db.ref('users/' + user + '/balance').transaction(b => (b || 0) - cost);
-    const res = document.getElementById('boxRes'); res.textContent = 'ROLLING...'; res.style.color = 'var(--accent)';
-    let ticks = 0;
-    const roll = setInterval(()=> {
-      ticks++; res.textContent = Math.floor(Math.random() * (maxWin - minWin) + minWin).toLocaleString() + ' ₽';
-      sfx(750 + Math.random()*300, 'sine', 0.04, 0.04);
-      if(ticks > 20){
-        clearInterval(roll);
-        // Weighted distribution:
-        // 70% small (<= cost), 22% medium (cost..cost*2), 7% big (cost*2..max), 1% ultra (max..max*2)
-        const r = Math.random();
-        let final;
-        const safeTop = Math.max(minWin, cost);
-        if(r < 0.70){
-          // small: uniform between minWin and safeTop
-          final = Math.floor(minWin + Math.random() * (safeTop - minWin + 1));
-        } else if(r < 0.92){
-          // medium: cost..cost*2
-          const low = Math.min(cost, maxWin);
-          const high = Math.min(cost*2, maxWin);
-          final = Math.floor(low + Math.random() * Math.max(0, high - low + 1));
-        } else if(r < 0.99){
-          // big: cost*2..max
-          const low = Math.min(cost*2, maxWin);
-          final = Math.floor(low + Math.random() * Math.max(0, maxWin - low + 1));
-        } else {
-          // ultra rare
-          final = Math.floor(maxWin + Math.random() * Math.max(1, maxWin));
-        }
-        // credit final
-        db.ref('users/' + user).transaction(u => { if(u) u.balance = (u.balance || 0) + final; return u; });
-        res.textContent = final.toLocaleString() + ' ₽';
-        res.style.color = final >= cost ? 'var(--green)' : 'var(--pink)';
-        const profit = final - cost;
-        if(profit > 0){ toast('Вы выиграли +' + profit.toLocaleString() + ' ₽', 'success'); sfx(1200, 'square', 0.3); }
-        else { toast('Вы проиграли ' + Math.abs(profit).toLocaleString() + ' ₽', 'error'); sfx(220, 'sawtooth', 0.3); }
-      }
-    }, 80);
-  }
-
-  /** =======================
-   * PvP (player vs player)
-   * - pvpRequests: { id, from, to, stake, status:pending|accepted|declined|cancelled|finished, ts, acceptTs, winner }
-   * - pvpResults: push logs of matches
-   * Flow:
-   * 1) A sends request -> DB pvpRequests push (after debiting A)
-   * 2) B accepts -> we transactionally debit B, set status accepted, then resolve match
-   * 3) resolve -> pick winner deterministically-ish (seed), credit winner stake*2, log result
-   * 4) expiration -> if not accepted in 30s, refund A
-   * ======================= */
-
-  document.getElementById('btnRefreshPlayers').addEventListener('click', ()=> {
-    db.ref('presence').once('value').then(snapshot => renderOnlinePlayers(snapshot));
-  });
-
-  function renderOnlinePlayers(snapshot){
-    const val = snapshot.val() || {};
-    const list = document.getElementById('onlineList'); list.innerHTML = '';
-    Object.keys(val).forEach(key => {
-      const v = val[key];
-      if(!v || !v.online) return;
-      if(key === user) return;
-      const row = document.createElement('div'); row.className = 'online-row';
-      row.innerHTML = `<div><div style="font-weight:800">${escapeHtml(key.toUpperCase())}</div><div class="small">online</div></div>`;
-      const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
-      const stake = document.createElement('input'); stake.type='number'; stake.value = document.getElementById('pvpStake').value || 500; stake.style.width = '96px'; stake.className = 'field';
-      const btn = document.createElement('button'); btn.className = 'btn-ui btn-accent'; btn.textContent = 'Challenge';
-      btn.addEventListener('click', ()=> sendPvpRequest(key, parseInt(stake.value||0)));
-      right.appendChild(stake); right.appendChild(btn); row.appendChild(right);
-      list.appendChild(row);
-    });
-  }
-
-  function sendPvpRequest(opponent, stake){
-    if(!user) return;
-    if(opponent === user) return;
-    if(isNaN(stake) || stake <= 0){ toast('Укажите корректную ставку', 'error'); return; }
-    if(stake > (userData.balance || 0)){ toast('Недостаточно средств', 'error'); return; }
-    // reserve funds: transactionally subtract from sender
-    db.ref('users/' + user + '/balance').transaction(b => {
-      if((b || 0) >= stake) return (b || 0) - stake;
-      return; // abort
-    }).then(result => {
-      if(!result.committed) { toast('Не удалось зарезервировать сумму', 'error'); return; }
-      // create request
-      const id = db.ref('pvpRequests').push().key;
-      const req = { id, from: user, to: opponent, stake: stake, status: 'pending', ts: Date.now() };
-      db.ref('pvpRequests/' + id).set(req).then(()=> {
-        toast('Запрос отправлен. Ожидаем ответа (30s)', 'info'); sfx(700);
-        // set expiry timer: refund if not accepted
-        const timer = setTimeout(()=> {
-          db.ref('pvpRequests/' + id).once('value').then(snap => {
-            const r = snap.val();
-            if(!r) return;
-            if(r.status === 'pending'){
-              db.ref('pvpRequests/' + id).update({ status: 'expired' });
-              // refund sender
-              db.ref('users/' + user + '/balance').transaction(b => (b || 0) + stake);
-              toast('Запрос истек — ставка возвращена', 'info');
+        db.ref('users/' + u).once('value', snap => {
+            if(authMode === 'login') {
+                if(snap.exists() && snap.val().pass === p) {
+                    sfx(600);
+                    toast("ВХОД ВЫПОЛНЕН", 'success');
+                    runSession(u);
+                } else toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
+            } else {
+                if(snap.exists()) toast("ЛОГИН ЗАНЯТ", 'error');
+                else {
+                    db.ref('users/' + u).set({
+                        pass: p, balance: 10000, xp: 0, lvl: 1, gpus: { g1: 0, g2:0, g3:0, g4:0 }
+                    }).then(() => {
+                        toast("РЕГИСТРАЦИЯ УСПЕШНА", 'success');
+                        runSession(u);
+                    });
+                }
             }
-          });
-        }, 30000);
-        pvpTimers[id] = timer;
-      });
-    });
-  }
+        });
+    }
 
-  // Render incoming/outgoing requests
-  function renderPvpRequests(snapshot){
-    const data = snapshot.val() || {};
-    const cont = document.getElementById('pvpRequests'); cont.innerHTML = '';
-    Object.keys(data).forEach(k => {
-      const r = data[k];
-      if(r.from !== user && r.to !== user) return;
-      const el = document.createElement('div'); el.className = 'online-row';
-      const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:800">${escapeHtml(r.from)} → ${escapeHtml(r.to)}</div><div class="small">ставка: ${r.stake} ₽</div><div class="small">статус: ${r.status}</div>`;
-      const right = document.createElement('div');
-      if(r.status === 'pending' && r.to === user){
-        const accept = document.createElement('button'); accept.className='btn-ui btn-accent'; accept.textContent='Принять'; accept.addEventListener('click', ()=> acceptPvpRequest(r.id));
-        const decline = document.createElement('button'); decline.className='btn-ui'; decline.textContent='Отклонить'; decline.style.marginLeft='8px'; decline.addEventListener('click', ()=> declinePvpRequest(r.id));
-        right.appendChild(accept); right.appendChild(decline);
-      } else if(r.status === 'pending' && r.from === user){
-        const cancel = document.createElement('button'); cancel.className='btn-ui'; cancel.textContent='Отменить'; cancel.addEventListener('click', ()=> cancelPvpRequest(r.id));
-        right.appendChild(cancel);
-      } else {
-        right.textContent = r.status;
-      }
-      el.appendChild(left); el.appendChild(right); cont.appendChild(el);
-    });
-  }
+    function logout() {
+        if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
+        
+        if(crashInterval) clearInterval(crashInterval);
+        if(passiveInterval) clearInterval(passiveInterval);
+        
+        db.ref('users/' + user).off();
+        db.ref('chat').off();
+        
+        user = null;
+        userData = {};
+        crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
+        mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
+        
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('authBox').style.display = 'block';
+        document.getElementById('authUser').value = '';
+        document.getElementById('authPass').value = '';
+        
+        toast("ВЫХОД ВЫПОЛНЕН", 'success');
+        sfx(400);
+    }
 
-  function declinePvpRequest(id){
-    db.ref('pvpRequests/' + id).once('value').then(snap => {
-      const r = snap.val(); if(!r) return;
-      if(r.status !== 'pending') return;
-      db.ref('pvpRequests/' + id).update({ status: 'declined' });
-      // refund sender
-      db.ref('users/' + r.from + '/balance').transaction(b => (b || 0) + r.stake);
-      toast('Запрос отклонён — ставка возвращена отправителю', 'info');
-      if(pvpTimers[id]) clearTimeout(pvpTimers[id]);
-    });
-  }
+    function runSession(userId) {
+        user = userId;
+        document.getElementById('authBox').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'grid';
+        document.getElementById('uName').innerText = user.toUpperCase();
+        
+        db.ref('users/' + user).on('value', snap => {
+            userData = snap.val() || {};
+            if(!userData.gpus) userData.gpus = {g1:0, g2:0, g3:0, g4:0};
+            updateUI();
+        });
 
-  function cancelPvpRequest(id){
-    db.ref('pvpRequests/' + id).once('value').then(snap => {
-      const r = snap.val(); if(!r) return;
-      if(r.status !== 'pending') return;
-      db.ref('pvpRequests/' + id).update({ status: 'cancelled' });
-      db.ref('users/' + r.from + '/balance').transaction(b => (b || 0) + r.stake);
-      toast('Запрос отменён', 'info');
-      if(pvpTimers[id]) clearTimeout(pvpTimers[id]);
-    });
-  }
+        db.ref('chat').limitToLast(30).on('value', snap => {
+            const box = document.getElementById('chatBox');
+            box.innerHTML = '';
+            snap.forEach(m => {
+                const d = document.createElement('div');
+                d.className = 'msg';
+                d.innerHTML = `<b>${m.val().u.toUpperCase()}</b>${m.val().t}`;
+                box.appendChild(d);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
 
-  async function acceptPvpRequest(id){
-    const snap = await db.ref('pvpRequests/' + id).once('value'); const r = snap.val();
-    if(!r || r.status !== 'pending') { toast('Запрос неактуален', 'error'); return; }
-    const stake = r.stake;
-    // attempt to debit acceptor (this)
-    const debit = await db.ref('users/' + user + '/balance').transaction(b => { if((b || 0) >= stake) return (b || 0) - stake; return; });
-    if(!debit.committed){ toast('Недостаточно средств для принятия', 'error'); return; }
-    // mark accepted
-    await db.ref('pvpRequests/' + id).update({ status:'accepted', acceptTs: Date.now() });
-    if(pvpTimers[id]) { clearTimeout(pvpTimers[id]); delete pvpTimers[id]; }
-    toast('Матч принят. Определяем победителя...', 'info'); sfx(900);
-    // resolve match
-    resolvePvpMatch(id);
-  }
+        initCrash();
+        syncLeaders();
+        renderGPUs();
 
-  // match resolution
-  async function resolvePvpMatch(id){
-    const snap = await db.ref('pvpRequests/' + id).once('value'); const r = snap.val();
-    if(!r || r.status !== 'accepted') return;
-    // deterministic-ish seed: id + ts + acceptTs + random
-    const seed = (r.id || '') + (r.ts || '') + (r.acceptTs || '') + Math.random();
-    let h = 0; for(let i=0;i<seed.length;i++) h = (h*131 + seed.charCodeAt(i)) % 1000000007;
-    const winner = (h % 2 === 0) ? r.from : r.to;
-    const loser = (winner === r.from) ? r.to : r.from;
-    const total = r.stake * 2;
-    // credit winner
-    db.ref('users/' + winner).transaction(u => { if(u){ u.balance = (u.balance || 0) + total; if(!u.pvp) u.pvp = { wins:0, losses:0 }; u.pvp.wins = (u.pvp.wins||0) + 1; } return u; });
-    // mark loser stats
-    db.ref('users/' + loser).transaction(u => { if(u){ if(!u.pvp) u.pvp = { wins:0, losses:0 }; u.pvp.losses = (u.pvp.losses||0) + 1; } return u; });
-    // set request status and push result
-    await db.ref('pvpRequests/' + id).update({ status:'finished', winner: winner, resolvedAt: Date.now() });
-    const resNode = db.ref('pvpResults').push();
-    resNode.set({ matchId: id, winner: winner, loser: loser, stake: r.stake, ts: Date.now() });
-    toast('Матч завершён. Победитель: ' + winner.toUpperCase(), 'success');
-    sfx(1200, 'square', 0.6);
-  }
+        passiveInterval = setInterval(() => {
+            let inc = 0;
+            GPUS.forEach(g => inc += (userData.gpus?.[g.id] || 0) * g.i);
+            if(inc > 0) {
+                db.ref('users/'+user+'/balance').transaction(b => (b || 0) + inc);
+            }
+        }, 1000);
+    }
 
-  function renderPvpHistory(snapshot){
-    const val = snapshot.val() || {};
-    const node = document.getElementById('pvpHistory'); node.innerHTML = '';
-    const arr = [];
-    Object.keys(val).forEach(k => arr.push(val[k]));
-    arr.sort((a,b)=> b.ts - a.ts);
-    arr.forEach(item => {
-      const el = document.createElement('div'); el.className = 'online-row';
-      el.innerHTML = `<div>${escapeHtml(item.winner)} beat ${escapeHtml(item.loser)}</div><div style="font-weight:800">${item.stake} ₽</div>`;
-      node.appendChild(el);
-    });
-  }
+    function updateUI() {
+        document.getElementById('uBalance').innerText = Math.floor(userData.balance || 0).toLocaleString() + ' ₽';
+        const nextXp = (userData.lvl || 1) * 2000;
+        const currentXp = userData.xp || 0;
+        document.getElementById('uBar').style.width = Math.min(100, (currentXp / nextXp * 100)) + '%';
+        document.getElementById('uLevel').innerText = `УРОВЕНЬ ${userData.lvl || 1}`;
+        document.getElementById('uXP').innerText = `${currentXp} / ${nextXp} XP`;
+        
+        if(currentXp >= nextXp) {
+            db.ref('users/'+user).transaction(u => {
+                if(u) { u.lvl++; u.xp = 0; u.balance += 5000; }
+                return u;
+            });
+            toast("УРОВЕНЬ ПОВЫШЕН! +5,000 ₽", 'success');
+            sfx(1000, 'square', 0.5);
+        }
 
-  /** =======================
-   * RENDER TOP
-   * ======================= */
-  function renderTop(snapshot){
-    const val = snapshot.val() || {}; const list = document.getElementById('listTop'); list.innerHTML = '';
-    const arr = [];
-    snapshot.forEach(s => arr.push({name: s.key, data: s.val()}));
-    arr.sort((a,b) => (b.data.balance || 0) - (a.data.balance || 0));
-    arr.forEach((u, idx) => {
-      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
-      const el = document.createElement('div'); el.className = 'online-row';
-      el.innerHTML = `<div>${medal} #${idx+1} ${escapeHtml(u.name.toUpperCase())} <div class="small">(LV ${u.data.lvl || 1})</div></div><div style="font-weight:900">${(Math.floor(u.data.balance || 0)).toLocaleString()} ₽</div>`;
-      list.appendChild(el);
-    });
-  }
+        let p = 0; 
+        GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);
+        document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
+        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 2).toFixed(2)} ₽`;
+    }
 
-  /** =======================
-   * CHAT
-   * ======================= */
-  document.getElementById('chatSend').addEventListener('click', sendMsg);
-  document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key === 'Enter') sendMsg(); });
+    const cvs = document.getElementById('crashCanvas');
+    const ctx = cvs.getContext('2d');
 
-  function sendMsg(){
-    const t = (document.getElementById('chatInput').value || '').trim();
-    if(!t) return;
-    db.ref('chat').push({ u: user, t: t, ts: Date.now() });
-    document.getElementById('chatInput').value = '';
-    sfx(700, 'sine', 0.08);
-  }
+    function initCrash() {
+        crash.active = false; 
+        crash.mult = 1.0; 
+        crash.cashed = false; 
+        crash.pts = [];
+        crash.waitingForRound = false;
+        
+        const hadBet = crash.bet > 0;
+        crash.bet = 0;
+        
+        document.getElementById('crashMult').style.color = '#fff';
+        document.getElementById('crashProfit').innerText = '';
+        
+        const btn = document.getElementById('btnCrash');
+        btn.innerText = "СДЕЛАТЬ СТАВКУ";
+        btn.classList.remove('btn-disabled', 'btn-green');
+        btn.classList.add('btn-accent');
+        
+        const status = document.getElementById('crashStatus');
+        status.className = 'status-indicator status-waiting';
+        status.innerText = 'ОЖИДАНИЕ';
+        
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        
+        let timer = 5;
+        const countdown = setInterval(() => {
+            document.getElementById('crashMult').innerText = timer.toFixed(1) + 's';
+            timer -= 0.1;
+            if(timer <= 0) { 
+                clearInterval(countdown); 
+                startCrash(); 
+            }
+        }, 100);
+    }
 
-  /** =======================
-   * HELPERS
-   * ======================= */
-  function debounce(fn, t){ let tm; return (...a)=>{ clearTimeout(tm); tm = setTimeout(()=> fn(...a), t); }; }
+    function startCrash() {
+        crash.active = true;
+        crash.startTime = Date.now();
+        crash.pts = [];
+        cvs.width = cvs.offsetWidth; 
+        cvs.height = cvs.offsetHeight;
+        
+        const btn = document.getElementById('btnCrash');
+        const status = document.getElementById('crashStatus');
+        status.className = 'status-indicator status-active';
+        status.innerText = 'АКТИВНО';
+        
+        if(crash.bet > 0) {
+            btn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+            btn.classList.remove('btn-disabled', 'btn-accent');
+            btn.classList.add('btn-green');
+        } else {
+            btn.innerText = "СТАВОК НЕТ";
+            btn.classList.add('btn-disabled');
+        }
+        
+        let target = (Math.random() < 0.08) ? (1.0 + Math.random() * 0.5) : (Math.random() * 5 + 1.1);
+        if(Math.random() < 0.02) target = 20 + Math.random() * 50;
 
-  /** =======================
-   * INIT
-   * ======================= */
-  initParticles(); drawParticles();
-  resizeCrashCanvas(); initCrashEngine();
+        crashInterval = setInterval(() => {
+            let elapsed = (Date.now() - crash.startTime) / 1000;
+            crash.mult = Math.pow(1.08, elapsed);
+            
+            ctx.clearRect(0,0,cvs.width, cvs.height);
+            ctx.strokeStyle = '#00f2ff'; 
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10; 
+            ctx.shadowColor = '#00f2ff';
+            
+            let x = (elapsed / 12) * cvs.width;
+            let y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
+            crash.pts.push({x, y});
+            
+            ctx.beginPath();
+            ctx.moveTo(0, cvs.height);
+            crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.stroke();
 
-  // quick start helper: if user opens page and wants to test quickly
-  // attach click handlers for nav buttons
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', ()=> {
-    document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active');
-    document.querySelectorAll('.viewport').forEach(v=>v.classList.remove('active'));
-    const id = btn.dataset.view; if(document.getElementById(id)) document.getElementById(id).classList.add('active');
-  }));
+            if(crash.mult >= target) {
+                clearInterval(crashInterval);
+                crash.active = false;
+                document.getElementById('crashMult').innerText = 'CRASH!';
+                document.getElementById('crashMult').style.color = 'var(--pink)';
+                document.getElementById('crashProfit').innerText = '';
+                
+                status.className = 'status-indicator status-crashed';
+                status.innerText = 'КРАШ!';
+                
+                if(crash.bet > 0 && !crash.cashed) {
+                    toast("КРАШ! СТАВКА ПОТЕРЯНА", 'error');
+                }
+                
+                sfx(100, 'sawtooth', 0.4);
+                setTimeout(initCrash, 3000);
+            } else {
+                document.getElementById('crashMult').innerText = crash.mult.toFixed(2) + 'x';
+                if(crash.bet > 0 && !crash.cashed) {
+                    let profit = Math.floor(crash.bet * crash.mult);
+                    document.getElementById('crashProfit').innerText = '+' + profit.toLocaleString() + ' ₽';
+                    
+                    let auto = parseFloat(document.getElementById('autoCrash').value);
+                    if(!isNaN(auto) && auto > 1 && crash.mult >= auto) {
+                        actionCrash();
+                    }
+                }
+            }
+        }, 50);
+    }
 
-  // crash history small viewer (load last 10)
-  db.ref('crashHistory').limitToLast(12).on('value', snap => {
-    const arr = []; snap.forEach(s => arr.push(s.val())); const h = document.getElementById('crashHistory'); h.innerHTML = '';
-    arr.reverse().slice(0,10).forEach(v => { const chip = document.createElement('div'); chip.style.padding='6px 10px'; chip.style.borderRadius='10px'; chip.style.background='rgba(255,255,255,0.02)'; chip.textContent = v.mult.toFixed(2) + 'x'; h.appendChild(chip); });
-  });
+    function actionCrash() {
+        const btn = document.getElementById('btnCrash');
+        
+        if(!crash.active && !crash.waitingForRound && crash.bet === 0) {
+            let amt = parseInt(document.getElementById('betCrash').value);
+            if(isNaN(amt) || amt <= 0) return toast("УКАЖИТЕ КОРРЕКТНУЮ СТАВКУ", 'error');
+            if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+            
+            crash.bet = amt;
+            crash.waitingForRound = true;
+            db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+            
+            btn.innerText = "ОЖИДАНИЕ РАУНДА...";
+            btn.classList.add('btn-disabled');
+            toast("СТАВКА ПРИНЯТА", 'success');
+            sfx(400);
+        } 
+        else if(crash.active && crash.bet > 0 && !crash.cashed) {
+            crash.cashed = true;
+            let win = Math.floor(crash.bet * crash.mult);
+            
+            db.ref('users/'+user).transaction(u => {
+                if(u) { 
+                    u.balance = (u.balance || 0) + win; 
+                    u.xp = (u.xp || 0) + 100; 
+                }
+                return u;
+            });
+            
+            btn.innerText = "ВЫПЛАТА: " + win.toLocaleString() + " ₽";
+            btn.classList.remove('btn-green');
+            btn.classList.add('btn-accent', 'btn-disabled');
+            document.getElementById('crashProfit').innerText = '';
+            
+            toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽`, 'success');
+            sfx(800);
+        }
+    }
 
-  // pvp requests init listener (for UI)
-  db.ref('pvpRequests').on('value', snap => renderPvpRequests(snap));
+    function clickFarm() {
+        let val = (userData.lvl || 1) * 2;
+        db.ref('users/'+user).transaction(u => {
+            if(u) { 
+                u.balance = (u.balance || 0) + val; 
+                u.xp = (u.xp || 0) + 2; 
+            }
+            return u;
+        });
+        sfx(400, 'sine', 0.1);
+        
+        const btn = event.target.closest('.btn-ui');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 100);
+    }
 
-  // small utility to render pvp requests once on load
-  function renderPvpRequestsOnce(){
-    db.ref('pvpRequests').once('value').then(snap => renderPvpRequests(snap));
-  }
+    function renderGPUs() {
+        const cont = document.getElementById('listGPU');
+        cont.innerHTML = '';
+        GPUS.forEach(g => {
+            const owned = userData.gpus?.[g.id] || 0;
+            const d = document.createElement('div');
+            d.className = 'gpu-card';
+            d.innerHTML = `
+                <div>
+                    <div style="font-weight:800; font-size:14px;">${g.n}</div>
+                    <div style="font-size:10px; color:var(--green);">+${g.i} ₽/сек</div>
+                    ${owned > 0 ? `<div class="gpu-owned">КУПЛЕНО: ${owned}</div>` : ''}
+                </div>
+                <button class="btn-ui btn-accent" style="padding:10px 15px; font-size:10px;" onclick="buyGPU('${g.id}')">
+                    ${g.p.toLocaleString()} ₽
+                </button>
+            `;
+            cont.appendChild(d);
+        });
+    }
 
-  // provide initial top list if DB already had data
-  db.ref('users').orderByChild('balance').limitToLast(12).once('value').then(snap => renderTop(snap));
+    function buyGPU(id) {
+        const g = GPUS.find(x => x.id === id);
+        if((userData.balance || 0) >= g.p) {
+            db.ref('users/'+user).transaction(u => {
+                if(u) {
+                    if(!u.gpus) u.gpus = {};
+                    u.gpus[id] = (u.gpus[id] || 0) + 1;
+                    u.balance = (u.balance || 0) - g.p;
+                }
+                return u;
+            });
+            toast("ВИДЕОКАРТА КУПЛЕНА", 'success');
+            sfx(900);
+            setTimeout(renderGPUs, 100);
+        } else toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+    }
 
-  // expose some debug helpers (optional)
-  window._tornado = { db, user, userData };
+    function showTab(btn, id) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.viewport').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
 
-  </script>
+    function sendMsg() {
+        const inp = document.getElementById('chatInput');
+        const msg = inp.value.trim();
+        if(msg && msg.length > 0) {
+            db.ref('chat').push({ 
+                u: user, 
+                t: msg,
+                time: Date.now()
+            });
+            inp.value = '';
+            sfx(500, 'sine', 0.1);
+        }
+    }
+
+    function syncLeaders() {
+        db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
+            const cont = document.getElementById('listTop');
+            cont.innerHTML = '';
+            let arr = [];
+            snap.forEach(u => arr.push({n: u.key, b: u.val().balance || 0, l: u.val().lvl || 1}));
+            arr.reverse().forEach((u, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                cont.innerHTML += `
+                    <div class="leader-card">
+                        <span>${medal} #${i+1} ${u.n.toUpperCase()} <span style="font-size:10px; color:#5d727b;">(LVL ${u.l})</span></span>
+                        <b style="color:var(--accent)">${Math.floor(u.b).toLocaleString()} ₽</b>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    const bgCvs = document.getElementById('bgCanvas');
+    const bgCtx = bgCvs.getContext('2d');
+    let parts = [];
+    
+    function initBg() {
+        bgCvs.width = window.innerWidth; 
+        bgCvs.height = window.innerHeight;
+        parts = [];
+        for(let i=0; i<70; i++) {
+            parts.push({
+                x: Math.random()*bgCvs.width, 
+                y: Math.random()*bgCvs.height, 
+                s: Math.random()*2 + 0.5, 
+                v: Math.random()*0.5 + 0.2
+            });
+        }
+    }
+    
+    function drawBg() {
+        bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
+        bgCtx.fillStyle = '#00f2ff';
+        bgCtx.shadowBlur = 5;
+        bgCtx.shadowColor = '#00f2ff';
+        
+        parts.forEach(p => {
+            bgCtx.beginPath(); 
+            bgCtx.arc(p.x, p.y, p.s, 0, Math.PI*2); 
+            bgCtx.fill();
+            p.y -= p.v; 
+            if(p.y < -10) {
+                p.y = bgCvs.height + 10;
+                p.x = Math.random() * bgCvs.width;
+            }
+        });
+        requestAnimationFrame(drawBg);
+    }
+    
+    window.addEventListener('resize', initBg);
+    initBg(); 
+    drawBg();
+
+    function toggleMines() {
+        if(mines.active) return collectMines();
+        
+        let amt = parseInt(document.getElementById('betMines').value);
+        if(isNaN(amt) || amt <= 0) return toast("УКАЖИТЕ КОРРЕКТНУЮ СТАВКУ", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        mines = { 
+            active: true, 
+            bet: amt, 
+            bombs: [], 
+            open: 0, 
+            total: parseInt(document.getElementById('cntMines').value) 
+        };
+        
+        while(mines.bombs.length < mines.total) {
+            let r = Math.floor(Math.random()*25);
+            if(!mines.bombs.includes(r)) mines.bombs.push(r);
+        }
+        
+        const g = document.getElementById('gridMines'); 
+        g.innerHTML = '';
+        for(let i=0; i<25; i++) {
+            const c = document.createElement('div');
+            c.className = 'game-cell';
+            c.dataset.index = i;
+            c.onclick = () => openMine(i, c);
+            g.appendChild(c);
+        }
+        
+        document.getElementById('btnMines').innerText = "ЗАБРАТЬ 1.00x";
+        document.getElementById('btnMines').classList.remove('btn-accent');
+        document.getElementById('btnMines').classList.add('btn-green');
+        document.getElementById('minesOpened').innerText = '0';
+        document.getElementById('minesMulti').innerText = '1.00x';
+        
+        toast("ИГРА НАЧАЛАСЬ", 'success');
+        sfx(400);
+    }
+
+    function openMine(idx, el) {
+        if(!mines.active || el.classList.contains('active') || el.classList.contains('death')) return;
+        
+        if(mines.bombs.includes(idx)) {
+            mines.active = false; 
+            el.classList.add('death'); 
+            el.innerText = '💣';
+            
+            document.querySelectorAll('.game-cell').forEach((cell, i) => {
+                cell.onclick = null;
+                if(mines.bombs.includes(i) && i !== idx) {
+                    setTimeout(() => {
+                        cell.classList.add('death');
+                        cell.innerText = '💣';
+                    }, Math.random() * 500);
+                }
+            });
+            
+            sfx(100, 'sawtooth', 0.5);
+            toast("ВЗРЫВ! СТАВКА ПОТЕРЯНА", 'error');
+            
+            setTimeout(() => { 
+                document.getElementById('gridMines').innerHTML = '';
+                const btn = document.getElementById('btnMines');
+                btn.innerText = "НАЧАТЬ ИГРУ";
+                btn.classList.remove('btn-green');
+                btn.classList.add('btn-accent');
+                document.getElementById('minesOpened').innerText = '0';
+                document.getElementById('minesMulti').innerText = '1.00x';
+            }, 2000);
+        } else {
+            mines.open++; 
+            el.classList.add('active'); 
+            el.innerText = '💎'; 
+            el.onclick = null;
+            sfx(600);
+            
+            let curMult = 1 + (mines.open * 0.2 * (mines.total/3));
+            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            document.getElementById('minesOpened').innerText = mines.open;
+            document.getElementById('minesMulti').innerText = curMult.toFixed(2) + 'x';
+        }
+    }
+
+    function collectMines() {
+        if(!mines.active || mines.open === 0) return toast("ОТКРОЙТЕ ХОТЯ БЫ ОДНУ КЛЕТКУ", 'error');
+        
+        let curMult = 1 + (mines.open * 0.2 * (mines.total/3));
+        let win = Math.floor(mines.bet * curMult);
+        
+        db.ref('users/'+user).transaction(u => { 
+            if(u) { 
+                u.balance = (u.balance || 0) + win; 
+                u.xp = (u.xp || 0) + 150; 
+            } 
+            return u; 
+        });
+        
+        mines.active = false;
+        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽`, 'success');
+        sfx(900);
+        
+        document.getElementById('gridMines').innerHTML = '';
+        const btn = document.getElementById('btnMines');
+        btn.innerText = "НАЧАТЬ ИГРУ";
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+        document.getElementById('minesOpened').innerText = '0';
+        document.getElementById('minesMulti').innerText = '1.00x';
+    }
+
+    function openBox(cost, min, max) {
+        if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - cost);
+        
+        const res = document.getElementById('boxRes');
+        res.style.color = 'var(--accent)';
+        res.innerText = "ROLLING...";
+        
+        let count = 0;
+        const rolling = setInterval(() => {
+            res.innerText = Math.floor(Math.random()*(max-min)+min).toLocaleString() + " ₽";
+            sfx(800 + Math.random()*200, 'sine', 0.05, 0.05);
+            count++;
+            
+            if(count > 20) {
+                clearInterval(rolling);
+                let final = Math.floor(Math.random()*(max-min)+min);
+                res.style.color = final > cost ? 'var(--green)' : 'var(--pink)';
+                res.innerText = final.toLocaleString() + " ₽";
+                
+                db.ref('users/'+user).transaction(u => { 
+                    if(u) u.balance = (u.balance || 0) + final; 
+                    return u; 
+                });
+                
+                const profit = final - cost;
+                if(profit > 0) {
+                    toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
+                    sfx(1200, 'square', 0.3);
+                } else {
+                    toast(`ПРОИГРЫШ: ${profit.toLocaleString()} ₽`, 'error');
+                    sfx(200, 'sawtooth', 0.3);
+                }
+            }
+        }, 80);
+    }
+</script>
 </body>
 </html>
