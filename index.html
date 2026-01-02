@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V6.3 | GOD MODE</title>
+    <title>TORNADO V6.3.1 | FIXED</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #00e5ff; --pink: #ff0055; --gold: #ffd700; --bg: #06080c; --card: rgba(15, 20, 28, 0.95); --border: rgba(255, 255, 255, 0.08); }
@@ -16,21 +16,16 @@
         .tab.active { color: var(--accent); background: rgba(0, 229, 255, 0.1); }
         .section { display: none; padding: 20px; flex-direction: column; gap: 15px; flex: 1; overflow-y: auto; }
         .section.active { display: flex; }
-        
-        /* Crash & Ladder UI */
         #crash-area { background: radial-gradient(circle at center, rgba(0,229,255,0.05) 0%, transparent 70%); border-radius: 20px; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); position: relative; }
         .ladder-grid { display: flex; flex-direction: column-reverse; gap: 5px; }
         .ladder-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 5px; border-radius: 10px; background: rgba(255,255,255,0.02); }
         .ladder-step { padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; text-align: center; cursor: pointer; font-size: 10px; font-weight: 800; }
-        .ladder-step.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.1); }
         .ladder-step.win { background: #afff00; color: #000; }
         .ladder-step.lose { background: var(--pink); color: #fff; }
-
         .btn { border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-family: 'Inter'; font-size: 11px; }
         .btn-main { background: var(--accent); color: #000; }
         .btn-cashout { background: #afff00; color: #000; }
         input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 12px; border-radius: 12px; color: #fff; width: 100%; font-family: 'Orbitron'; font-size: 13px; }
-        
         .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
         .msg { background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); }
         .tag { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-right: 5px; font-weight: 900; }
@@ -41,10 +36,10 @@
 
 <div class="glass" id="auth-box" style="width: 350px; padding: 30px; text-align: center;">
     <h1 style="font-family: 'Orbitron'; color: var(--accent);">TORNADO</h1>
-    <p style="color:#64748b; font-size:10px; letter-spacing:2px;">V6.3 GOD EDITION</p>
+    <p style="color:#64748b; font-size:10px; letter-spacing:2px;">V6.3.1 STABLE</p>
     <input type="text" id="auth-user" placeholder="ЛОГИН" style="margin-bottom:10px;">
     <input type="password" id="auth-pass" placeholder="ПАРОЛЬ" style="margin-bottom:20px;">
-    <button class="btn btn-main" style="width:100%;" onclick="handleAuth()">ВОЙТИ</button>
+    <button class="btn btn-main" style="width:100%;" id="login-btn">ВОЙТИ / РЕГИСТРАЦИЯ</button>
 </div>
 
 <div class="app" id="main-app" style="display: none;">
@@ -56,11 +51,10 @@
             <div class="tab" data-target="tab-top" onclick="switchTab(this)">ТОП</div>
             <div class="tab" data-target="tab-bonus" onclick="switchTab(this)">ПРОМО</div>
         </div>
-
         <div id="tab-crash" class="section active">
             <div id="crash-area">
                 <div id="crash-history" style="position:absolute; top:10px; display:flex; gap:5px;"></div>
-                <div class="mult-display" id="crash-mult">1.00x</div>
+                <div class="mult-display" id="crash-mult" style="font-family:'Orbitron'; font-size:4rem;">1.00x</div>
                 <div id="crash-timer" style="font-size:11px; color:#64748b;">ОЖИДАНИЕ...</div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -69,7 +63,6 @@
             </div>
             <button id="crash-btn" class="btn btn-main" onclick="crashAction()">СТАВКА</button>
         </div>
-
         <div id="tab-ladder" class="section">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <input type="number" id="ladder-bet" placeholder="СТАВКА" style="width:120px;">
@@ -78,34 +71,30 @@
             </div>
             <div class="ladder-grid" id="ladder-grid"></div>
         </div>
-
         <div id="tab-mine" class="section">
             <button class="btn btn-main" style="height:60px; font-size:1.2rem;" onclick="mineClick()">КЛИК (+1₽ / +1XP)</button>
-            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; border:1px solid var(--border);">
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; border:1px solid var(--border); margin-top:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span><b>RTX 4090</b><br><small style="color:var(--accent)">+50₽/сек пассивно</small></span>
                     <button class="btn btn-main" onclick="buyGPU()">100,000₽</button>
                 </div>
             </div>
         </div>
-
         <div id="tab-top" class="section"><div id="leaderboard"></div></div>
-
         <div id="tab-bonus" class="section">
             <input type="text" id="promo-input" placeholder="ПРОМОКОД">
             <button class="btn btn-main" style="margin-top:10px;" onclick="usePromo()">АКТИВИРОВАТЬ</button>
         </div>
     </div>
-
     <div class="glass">
         <div style="padding: 20px; text-align: center; border-bottom: 1px solid var(--border);">
             <div id="user-balance" style="font-family: 'Orbitron'; font-size: 2rem; color: var(--accent);">0</div>
-            <div id="user-status-tag" style="margin-top:5px;">ЗАГРУЗКА...</div>
-            <div id="user-xp" style="font-size:9px; color:#64748b; margin-top:5px;">LVL 1</div>
+            <div id="user-status-tag" style="margin-top:5px;"></div>
+            <div id="user-xp" style="font-size:9px; color:#64748b; margin-top:5px;">ЗАГРУЗКА...</div>
         </div>
         <div class="chat-area" id="chat-box"></div>
         <div style="padding: 15px; display: flex; gap: 8px;">
-            <input type="text" id="chat-input" placeholder="Сообщение..." style="font-size:12px;">
+            <input type="text" id="chat-input" placeholder="Сообщение...">
             <button class="btn btn-main" onclick="sendChat()">></button>
         </div>
     </div>
@@ -125,13 +114,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let user = null, userData = {}, currentTab = 'tab-crash';
+    let user = null, userData = {}, currentTab = 'tab-crash', audioCtx = null;
     let crash = { state: 'waiting', mult: 1.0, myBet: 0, history: [] };
     let ladder = { active: false, step: 0, bet: 0, multipliers: [1.2, 1.8, 2.5, 4.0, 7.0, 15.0, 35.0] };
 
-    // Умный звук
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(freq, type='sine', dur=0.1) {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = type; osc.frequency.value = freq;
@@ -142,55 +131,49 @@
 
     function getStatus(bal) {
         if(bal >= 50000000) return {n: 'БОГ', c: 'tag-god'};
-        if(bal >= 500000) return {n: 'МАГНАТ', c: ''};
+        if(bal >= 5000000) return {n: 'МАГНАТ', c: ''};
         if(bal >= 50000) return {n: 'ИГРОК', c: ''};
         return {n: 'БОМЖ', c: ''};
     }
 
-    function handleAuth() {
+    document.getElementById('login-btn').onclick = function() {
         const u = document.getElementById('auth-user').value.trim().toLowerCase();
         const p = document.getElementById('auth-pass').value.trim();
-        if(u.length < 3) return;
+        if(u.length < 3) return alert("Логин слишком короткий!");
         db.ref('users/'+u).once('value', s => {
             if(s.exists()) {
-                if(s.val().pass === p) startApp(u, s.val()); else alert("Пароль!");
+                if(s.val().pass === p) startApp(u, s.val()); else alert("Неверный пароль!");
             } else {
-                const d = {pass:p, balance:1000, xp:0, lvl:1, gpus:0, usedPromos:{}};
+                const d = {pass:p, balance:1000, xp:0, lvl:1, gpus:0, usedPromos:{none:true}};
                 db.ref('users/'+u).set(d).then(() => startApp(u, d));
             }
         });
-    }
+    };
 
     function startApp(u, data) {
         user = u;
         document.getElementById('auth-box').style.display = 'none';
         document.getElementById('main-app').style.display = 'grid';
-        
         db.ref('users/'+user).on('value', s => {
             userData = s.val();
-            const status = getStatus(userData.balance);
+            const st = getStatus(userData.balance);
             document.getElementById('user-balance').innerText = Math.floor(userData.balance).toLocaleString() + "₽";
-            document.getElementById('user-status-tag').innerHTML = `<span class="tag ${status.c}">${status.n}</span>`;
-            document.getElementById('user-xp').innerText = `LVL ${userData.lvl} | XP ${userData.xp}/${userData.lvl*200} | GPU x${userData.gpus || 0}`;
+            document.getElementById('user-status-tag').innerHTML = `<span class="tag ${st.c}">${st.n}</span>`;
+            document.getElementById('user-xp').innerText = `LVL ${userData.lvl} | XP ${userData.xp}/${userData.lvl*200}`;
         });
-
         setInterval(() => { if(userData.gpus > 0) db.ref('users/'+user+'/balance').transaction(b => (b||0) + (userData.gpus*50)); }, 1000);
-
         db.ref('chat').limitToLast(15).on('child_added', s => {
             const m = s.val();
             const b = document.getElementById('chat-box');
-            const d = document.createElement('div');
-            d.className = 'msg';
+            const d = document.createElement('div'); d.className = 'msg';
             const st = getStatus(m.bal || 0);
             d.innerHTML = `<span class="tag ${st.c}">${st.n}</span><b>${m.user}:</b> ${m.text}`;
             b.appendChild(d); b.scrollTop = b.scrollHeight;
         });
-
         initCrash();
         initLadderUI();
     }
 
-    // --- CRASH ---
     function initCrash() {
         crash.state = 'waiting'; crash.mult = 1.0; crash.myBet = 0; crash.cashed = false;
         const btn = document.getElementById('crash-btn');
@@ -209,17 +192,15 @@
         const btn = document.getElementById('crash-btn');
         const auto = parseFloat(document.getElementById('crash-auto').value);
         if(crash.myBet > 0) { btn.disabled = false; btn.innerText = "ЗАБРАТЬ"; btn.className = "btn btn-cashout"; }
-        else { btn.disabled = true; btn.innerText = "В ПОЛЕТЕ"; }
-
+        else btn.disabled = true;
         let limit = Math.random() < 0.15 ? 1.00 : (Math.random() < 0.6 ? Math.random()*1.5+1.1 : Math.random()*10+2.5);
         let flight = setInterval(() => {
             if(crash.mult >= limit) {
                 clearInterval(flight); crash.state = 'crashed';
-                updateCrashHistory(limit.toFixed(2));
                 if(currentTab === 'tab-crash') {
                     playSound(100, 'sawtooth', 0.3);
                     document.getElementById('crash-mult').innerText = "BOOM!";
-                    document.getElementById('crash-mult').style.color = var(--pink);
+                    document.getElementById('crash-mult').style.color = '#ff0055';
                 }
                 setTimeout(initCrash, 3000);
             } else {
@@ -248,22 +229,11 @@
         }
     }
 
-    function updateCrashHistory(v) {
-        crash.history.unshift(v); if(crash.history.length > 5) crash.history.pop();
-        const h = document.getElementById('crash-history');
-        h.innerHTML = ''; crash.history.forEach(i => h.innerHTML += `<span style="font-size:10px; color:var(--accent); background:rgba(0,0,0,0.3); padding:2px 5px; border-radius:4px;">${i}x</span>`);
-    }
-
-    // --- LADDER ---
     function initLadderUI() {
-        const grid = document.getElementById('ladder-grid');
-        grid.innerHTML = '';
+        const grid = document.getElementById('ladder-grid'); grid.innerHTML = '';
         for(let i=0; i<7; i++) {
-            let row = document.createElement('div'); row.className = 'ladder-row';
-            row.id = `ladder-row-${i}`;
-            for(let j=0; j<3; j++) {
-                row.innerHTML += `<div class="ladder-step" onclick="clickStep(${i}, ${j})">?</div>`;
-            }
+            let row = document.createElement('div'); row.className = 'ladder-row'; row.id = `l-row-${i}`;
+            for(let j=0; j<3; j++) row.innerHTML += `<div class="ladder-step" onclick="clickStep(${i}, ${j})">?</div>`;
             grid.appendChild(row);
         }
     }
@@ -274,17 +244,14 @@
             db.ref('users/'+user+'/balance').transaction(b => b - amt);
             ladder.active = true; ladder.step = 0; ladder.bet = amt;
             document.getElementById('ladder-start-btn').innerText = "ЗАБРАТЬ";
-            document.getElementById('ladder-start-btn').className = "btn btn-cashout";
             document.getElementById('ladder-start-btn').onclick = cashoutLadder;
-            document.getElementById('ladder-mult-info').innerText = "x1.00";
-            initLadderUI();
-            updateLadderVisual();
+            initLadderUI(); updateLadderVisual();
         }
     }
 
     function updateLadderVisual() {
         for(let i=0; i<7; i++) {
-            const r = document.getElementById(`ladder-row-${i}`);
+            const r = document.getElementById(`l-row-${i}`);
             r.style.opacity = (i === ladder.step) ? "1" : "0.3";
             r.style.pointerEvents = (i === ladder.step) ? "auto" : "none";
         }
@@ -293,20 +260,12 @@
     function clickStep(r, c) {
         if(!ladder.active || r !== ladder.step) return;
         const bomb = Math.floor(Math.random() * 3);
-        const steps = document.getElementById(`ladder-row-${r}`).children;
-        
+        const steps = document.getElementById(`l-row-${r}`).children;
         if(c === bomb) {
-            steps[c].classList.add('lose'); steps[c].innerText = "BOM!";
-            ladder.active = false;
-            playSound(100, 'sawtooth');
-            setTimeout(() => {
-                alert("ВЗРЫВ! Вы всё потеряли.");
-                resetLadder();
-            }, 500);
+            steps[c].classList.add('lose'); ladder.active = false; playSound(100, 'sawtooth');
+            setTimeout(() => { alert("BOOM!"); resetLadder(); }, 500);
         } else {
-            steps[c].classList.add('win'); steps[c].innerText = "SAFE";
-            playSound(600);
-            ladder.step++;
+            steps[c].classList.add('win'); playSound(600); ladder.step++;
             if(ladder.step > 6) cashoutLadder();
             else {
                 document.getElementById('ladder-mult-info').innerText = "x" + ladder.multipliers[ladder.step-1];
@@ -317,42 +276,33 @@
 
     function cashoutLadder() {
         if(!ladder.active) return;
-        let mult = ladder.step === 0 ? 0 : ladder.multipliers[ladder.step-1];
-        let win = Math.floor(ladder.bet * mult);
-        if(win > 0) db.ref('users/'+user+'/balance').transaction(b => b + win);
-        alert(`Забрали ${win}₽!`);
+        let win = Math.floor(ladder.bet * (ladder.step === 0 ? 1 : ladder.multipliers[ladder.step-1]));
+        db.ref('users/'+user+'/balance').transaction(b => b + win);
         resetLadder();
     }
 
     function resetLadder() {
         ladder.active = false;
         document.getElementById('ladder-start-btn').innerText = "ИГРАТЬ";
-        document.getElementById('ladder-start-btn').className = "btn btn-main";
         document.getElementById('ladder-start-btn').onclick = startLadder;
         document.getElementById('ladder-mult-info').innerText = "x0.00";
         initLadderUI();
     }
 
-    // --- MAIN ---
     function mineClick() {
-        db.ref('users/'+user).transaction(u => {
-            if(u) { u.balance++; u.xp++; if(u.xp >= u.lvl*200){u.lvl++; u.xp=0;} }
-            return u;
-        });
+        db.ref('users/'+user).transaction(u => { if(u){ u.balance++; u.xp++; if(u.xp>=u.lvl*200){u.lvl++; u.xp=0;} } return u; });
         playSound(1000, 'sine', 0.05);
     }
 
     function buyGPU() {
-        if(userData.balance >= 100000) {
-            db.ref('users/'+user).transaction(u => { if(u){u.balance -= 100000; u.gpus = (u.gpus||0)+1;} return u; });
-        }
+        if(userData.balance >= 100000) db.ref('users/'+user).transaction(u => { if(u){u.balance-=100000; u.gpus=(u.gpus||0)+1;} return u; });
     }
 
     function usePromo() {
         const c = document.getElementById('promo-input').value.trim().toUpperCase();
         if(c === 'START' && !userData.usedPromos?.START) {
             db.ref('users/'+user).transaction(u => { if(u){u.balance+=5000; if(!u.usedPromos)u.usedPromos={}; u.usedPromos.START=true;} return u; });
-            alert("+5000₽!");
+            alert("OK!");
         }
     }
 
@@ -370,17 +320,14 @@
             let us = []; s.forEach(c => us.push({n: c.key, b: c.val().balance}));
             us.sort((a,b) => b.b - a.b).slice(0,10).forEach((u,i) => {
                 const st = getStatus(u.b);
-                list.innerHTML += `<div class="leader-item"><span>#${i+1} <span class="tag ${st.c}">${st.n}</span> ${u.n}</span><b>${Math.floor(u.b).toLocaleString()}₽</b></div>`;
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.03); margin-bottom:5px; border-radius:10px;"><span>#${i+1} ${st.n} ${u.n}</span><b>${Math.floor(u.b).toLocaleString()}₽</b></div>`;
             });
         });
     }
 
     function sendChat() {
         const t = document.getElementById('chat-input').value.trim();
-        if(t) { 
-            db.ref('chat').push({user: user, text: t, bal: userData.balance}); 
-            document.getElementById('chat-input').value = ''; 
-        }
+        if(t && user) { db.ref('chat').push({user: user, text: t, bal: userData.balance}); document.getElementById('chat-input').value = ''; }
     }
 </script>
 </body>
