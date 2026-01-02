@@ -3,21 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V10.0 | TITAN EDITION</title>
+    <title>TORNADO V10.0 | TITAN MAXIMUM EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* --- ЦВЕТОВАЯ ПАЛИТРА TITAN ---
+           Используем глубокие темные тона с неоновыми акцентами
+        */
         :root {
-            --accent: #00f2ff; --pink: #ff007b; --gold: #ffcc00; --green: #00ff88;
-            --bg: #030507; --card: rgba(10, 15, 20, 0.98); --border: rgba(0, 242, 255, 0.2);
-            --neon-glow: 0 0 15px rgba(0, 242, 255, 0.5);
+            --accent: #00f2ff; 
+            --pink: #ff007b; 
+            --gold: #ffcc00; 
+            --green: #00ff88;
+            --bg: #030507; 
+            --card: rgba(10, 15, 20, 0.98); 
+            --border: rgba(0, 242, 255, 0.2);
+            --neon-glow: 0 0 20px rgba(0, 242, 255, 0.4);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); outline: none; }
+        * { box-sizing: border-box; transition: var(--transition); outline: none; }
+
         body {
-            font-family: 'Inter', sans-serif; background: var(--bg); color: #fff;
-            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center;
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: #fff;
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
             overflow: hidden;
             background-image: radial-gradient(circle at 50% 50%, #0a1018 0%, #030507 100%);
+        }
+
+        /* Фоновый холст для частиц */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.4;
         }
 
         .app-container { 
@@ -28,6 +53,7 @@
             height: 96vh; 
             max-width: 1900px; 
             padding: 15px; 
+            z-index: 10;
         }
 
         .glass-panel { 
@@ -37,17 +63,31 @@
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
-            backdrop-filter: blur(30px); 
+            backdrop-filter: blur(40px); 
             box-shadow: 0 25px 80px rgba(0,0,0,0.9); 
         }
 
-        /* --- AUTH SYSTEM --- */
-        #authBox { width: 500px; padding: 70px; text-align: center; position: absolute; z-index: 999999; border: 1px solid var(--accent); box-shadow: var(--neon-glow); }
+        /* --- АВТОРИЗАЦИЯ ---
+           Блок входа с неоновой рамкой
+        */
+        #authBox { 
+            width: 500px; 
+            padding: 70px; 
+            text-align: center; 
+            position: absolute; 
+            z-index: 999999; 
+            border: 1px solid var(--accent); 
+            box-shadow: var(--neon-glow); 
+            background: var(--card);
+            border-radius: 40px;
+        }
+
         .auth-nav { display: flex; gap: 15px; margin-bottom: 35px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 20px; }
         .auth-tab { flex: 1; padding: 15px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: 900; color: #5d727b; text-transform: uppercase; letter-spacing: 1px; }
         .auth-tab.active { background: var(--accent); color: #000; box-shadow: var(--neon-glow); }
 
-        /* --- NAVIGATION --- */
+        /* --- НАВИГАЦИЯ ---
+        */
         .sidebar-nav { 
             display: flex; 
             background: rgba(0,0,0,0.6); 
@@ -69,6 +109,7 @@
             border: 1px solid transparent; 
             background: rgba(255,255,255,0.02);
         }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { 
             background: rgba(0, 242, 255, 0.1); 
             color: var(--accent); 
@@ -77,10 +118,11 @@
         }
 
         .viewport { flex: 1; overflow-y: auto; padding: 40px; display: none; flex-direction: column; gap: 30px; }
-        .viewport.active { display: flex; animation: viewIn 0.4s ease-out; }
-        @keyframes viewIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .viewport.active { display: flex; animation: viewIn 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+        @keyframes viewIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- CRASH FIX --- */
+        /* --- ГРАФИК КРАША ---
+        */
         .crash-area { 
             height: 420px; 
             background: #020305; 
@@ -92,18 +134,20 @@
         #crashCanvas { width: 100%; height: 100%; }
         .crash-info { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 100; }
         #crashMult { font-family: 'Orbitron'; font-size: 6.5rem; font-weight: 900; text-shadow: 0 0 50px var(--accent); margin: 0; color: #fff; }
-        
-        /* --- MINES --- */
+
+        /* --- МИНЫ (MINES) ---
+        */
         .mines-grid { 
             display: grid; 
             grid-template-columns: repeat(5, 1fr); 
             gap: 18px; 
             width: 100%; 
-            max-width: 650px; 
+            max-width: 600px; 
             margin: 0 auto; 
             padding: 25px; 
-            background: rgba(0,0,0,0.2);
-            border-radius: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 35px;
+            border: 1px solid var(--border);
         }
         .game-cell { 
             aspect-ratio: 1; 
@@ -115,12 +159,17 @@
             align-items: center; 
             justify-content: center; 
             font-size: 36px; 
+            position: relative;
         }
-        .game-cell:hover { background: rgba(0, 242, 255, 0.1); border-color: var(--accent); transform: translateY(-3px); }
-        .game-cell.active { background: var(--accent); box-shadow: 0 0 35px var(--accent); color: #000; border: none; }
-        .game-cell.death { background: var(--pink); box-shadow: 0 0 35px var(--pink); color: #fff; border: none; }
+        .game-cell:hover { background: rgba(0, 242, 255, 0.1); border-color: var(--accent); transform: scale(1.05); }
+        .game-cell.active { background: var(--accent); box-shadow: 0 0 35px var(--accent); color: #000; border: none; animation: pop 0.3s; }
+        .game-cell.death { background: var(--pink); box-shadow: 0 0 35px var(--pink); color: #fff; border: none; animation: shake 0.4s; }
+        
+        @keyframes pop { 0% {transform:scale(0.8);} 100% {transform:scale(1);} }
+        @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
 
-        /* --- UI ELEMENTS --- */
+        /* --- ИНТЕРФЕЙС УПРАВЛЕНИЯ ---
+        */
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .field { 
             background: rgba(0,0,0,0.7); 
@@ -147,12 +196,12 @@
             letter-spacing: 2px; 
         }
         .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
-        .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.5); }
-        .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: #fff; }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-accent:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.5); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; }
+        .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
-        /* --- CHAT FIX --- */
+        /* --- ЧАТ TITAN ---
+        */
         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); }
         #chatBox { 
             flex: 1; 
@@ -174,45 +223,54 @@
             max-width: 92%; 
             animation: msgIn 0.3s ease;
         }
-        @keyframes msgIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes msgIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 11px; display: block; margin-bottom: 6px; letter-spacing: 1px; }
 
-        /* --- STATS PANEL --- */
+        /* --- ПРОГРЕСС И БАЛАНС ---
+        */
         .user-block { padding: 40px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(0,242,255,0.08) 0%, transparent 100%); }
-        .bal-display { font-family: 'Orbitron'; font-size: 3rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px rgba(0, 242, 255, 0.4); margin-bottom: 15px; }
+        .bal-display { font-family: 'Orbitron'; font-size: 3.2rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px rgba(0, 242, 255, 0.4); margin-bottom: 15px; }
         .xp-line { height: 12px; background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
         .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); box-shadow: 0 0 15px var(--accent); transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
 
-        /* --- NOTIFICATIONS --- */
         #notif { position: fixed; top: 30px; right: 30px; z-index: 1000000; display: flex; flex-direction: column; gap: 15px; }
-        .toast { background: rgba(15, 20, 25, 0.95); border: 1px solid var(--accent); padding: 20px 35px; border-radius: 20px; font-weight: 700; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: slideIn 0.4s forwards; }
+        .toast { background: rgba(15, 20, 25, 0.98); border: 1px solid var(--accent); padding: 20px 35px; border-radius: 20px; font-weight: 700; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.8); animation: slideIn 0.4s forwards; }
         @keyframes slideIn { from { transform: translateX(150%); } to { transform: translateX(0); } }
 
-        /* --- LADDER FIX --- */
-        .ladder-row { display: flex; gap: 18px; justify-content: center; }
-        .ladder-cell { width: 140px; height: 55px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 900; font-family: 'Orbitron'; font-size: 16px; }
-        .ladder-cell.active { background: var(--accent); color: #000; border-color: #fff; box-shadow: var(--neon-glow); }
-        .ladder-cell.death { background: var(--pink); border-color: #fff; box-shadow: 0 0 20px var(--pink); }
-        .ladder-cell.disabled { opacity: 0.15; cursor: default; }
+        /* Стили для Списка лидеров */
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
 <body>
 
+<canvas id="bgCanvas"></canvas>
 <div id="notif"></div>
 
 <div id="authBox" class="glass-panel">
-    <h1 style="font-family:'Orbitron'; font-size: 3rem; margin:0; color:var(--accent); letter-spacing: 5px;">TORNADO</h1>
-    <p style="letter-spacing: 12px; font-size: 12px; color: #5d727b; margin-bottom: 40px; font-weight: 900;">TITAN V10.0</p>
+    <h1 style="font-family:'Orbitron'; font-size: 3.5rem; margin:0; color:var(--accent); letter-spacing: 5px;">TORNADO</h1>
+    <p style="letter-spacing: 12px; font-size: 12px; color: #5d727b; margin-bottom: 45px; font-weight: 900;">TITAN V10.0 MAXIMUM</p>
+    
     <div class="auth-nav">
         <div class="auth-tab active" id="tabLogin" onclick="setAuth('login')">Вход</div>
         <div class="auth-tab" id="tabReg" onclick="setAuth('reg')">Регистрация</div>
     </div>
-    <input type="text" id="authUser" placeholder="ЛОГИН" class="field" style="margin-bottom: 20px;">
-    <input type="password" id="authPass" placeholder="ПАРОЛЬ" class="field" style="margin-bottom: 35px;">
-    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ВОЙТИ В СИСТЕМУ</button>
+    
+    <input type="text" id="authUser" placeholder="ЛОГИН ПОЛЬЗОВАТЕЛЯ" class="field" style="margin-bottom: 20px;">
+    <input type="password" id="authPass" placeholder="ПАРОЛЬ ТИТАНА" class="field" style="margin-bottom: 35px;">
+    
+    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ПОДКЛЮЧИТЬСЯ</button>
 </div>
 
 <div class="app-container" id="mainApp" style="display: none;">
@@ -231,37 +289,43 @@
                 <canvas id="crashCanvas"></canvas>
                 <div class="crash-info">
                     <div id="crashMult">1.00x</div>
-                    <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:2rem; margin-top:10px; height:40px; font-weight:900;"></div>
+                    <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:2.2rem; margin-top:10px; height:40px; font-weight:900;"></div>
                 </div>
             </div>
             <div class="input-row">
-                <input type="number" id="betCrash" placeholder="СТАВКА (₽)" class="field">
-                <input type="number" id="autoCrash" placeholder="АВТО-ВЫВОД" class="field">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <label style="font-size:10px; color:#5d727b; margin-left:10px;">СУММА СТАВКИ</label>
+                    <input type="number" id="betCrash" value="100" class="field">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <label style="font-size:10px; color:#5d727b; margin-left:10px;">АВТО-ВЫВОД</label>
+                    <input type="number" id="autoCrash" placeholder="2.00" class="field">
+                </div>
             </div>
             <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
 
         <div id="viewMines" class="viewport">
             <div class="input-row">
-                <input type="number" id="betMines" placeholder="СТАВКА" class="field">
+                <input type="number" id="betMines" value="100" placeholder="СТАВКА" class="field">
                 <select id="cntMines" class="field" style="background:#050709;">
                     <option value="3">3 МИНЫ</option>
                     <option value="5">5 МИН</option>
                     <option value="10">10 МИН</option>
-                    <option value="24">24 МИНЫ</option>
+                    <option value="24">24 МИНЫ (JACKPOT)</option>
                 </select>
             </div>
             <div id="gridMines" class="mines-grid"></div>
-            <button id="btnMines" class="btn-ui btn-accent" onclick="startMines()">ИГРАТЬ</button>
+            <button id="btnMines" class="btn-ui btn-accent" onclick="toggleMines()">НАЧАТЬ ИГРУ</button>
         </div>
 
         <div id="viewLadder" class="viewport">
             <div class="input-row">
-                <input type="number" id="betLadder" placeholder="СТАВКА" class="field">
+                <input type="number" id="betLadder" value="100" class="field">
                 <select id="stepLadder" class="field" style="background:#050709;">
-                    <option value="5">5 РЯДОВ</option>
-                    <option value="8" selected>8 РЯДОВ</option>
-                    <option value="12">12 РЯДОВ</option>
+                    <option value="5">НИЗКАЯ (5)</option>
+                    <option value="8" selected>СРЕДНЯЯ (8)</option>
+                    <option value="12">ВЫСОКАЯ (12)</option>
                 </select>
             </div>
             <div id="areaLadder" style="display:flex; flex-direction:column-reverse; gap:12px; margin-top:20px;"></div>
@@ -270,36 +334,38 @@
 
         <div id="viewMining" class="viewport">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
-                <button class="btn-ui btn-accent" style="height:200px; font-size:22px;" onclick="clickFarm()">
-                    БИТЬ ПО БЛОКУ<br><span id="valClick" style="font-size:12px; opacity:0.7;">+0.00 ₽</span>
+                <button class="btn-ui btn-accent" style="height:220px; font-size:24px;" onclick="clickFarm()">
+                    БИТЬ ПО БЛОКУ<br><span id="valClick" style="font-size:14px; opacity:0.8; margin-top:15px; display:block;">+0.00 ₽</span>
                 </button>
-                <div class="glass-panel" style="justify-content:center; align-items:center; background:rgba(255,255,255,0.02);">
-                    <p style="font-size:12px; color:#5d727b; letter-spacing:2px;">ТЕКУЩИЙ ХЭШРЕЙТ</p>
-                    <h1 id="valPassive" style="color:var(--green); font-size:3rem; margin:10px 0;">0 ₽</h1>
-                    <p style="font-size:10px;">В СЕКУНДУ</p>
+                <div class="glass-panel" style="justify-content:center; align-items:center; background:rgba(255,255,255,0.02); border:1px solid var(--border);">
+                    <p style="font-size:12px; color:#5d727b; letter-spacing:2px; font-weight:800;">ТЕКУЩИЙ ХЭШРЕЙТ</p>
+                    <h1 id="valPassive" style="color:var(--green); font-size:3.5rem; margin:15px 0; font-family:'Orbitron';">0 ₽</h1>
+                    <p style="font-size:10px; font-weight:800;">В СЕКУНДУ (PASSIVE)</p>
                 </div>
             </div>
             <div id="listGPU" style="margin-top:20px; display:flex; flex-direction:column; gap:15px;"></div>
         </div>
 
         <div id="viewCases" class="viewport">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
-                <div class="glass-panel" style="padding:40px; text-align:center; border-color:var(--border);">
-                    <h2 style="font-family:'Orbitron'; color:var(--accent);">START</h2>
-                    <p style="color:#5d727b; margin-bottom:30px;">Шанс на 10,000 ₽</p>
-                    <button id="caseBtn1" class="btn-ui btn-outline" style="width:100%" onclick="openBox(2000, 500, 10000, 'caseBtn1')">2,000 ₽</button>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:30px;">
+                <div class="glass-panel" style="padding:40px; text-align:center; border: 1px solid var(--border);">
+                    <h2 style="font-family:'Orbitron'; color:var(--accent); margin-bottom:10px;">BRONZE BOX</h2>
+                    <p style="color:#5d727b; margin-bottom:35px; font-size:13px;">WIN UP TO 10,000 ₽</p>
+                    <button id="caseBtn1" class="btn-ui btn-accent" style="width:100%" onclick="openBox(1000, 200, 10000, 'caseBtn1')">ОТКРЫТЬ ЗА 1,000</button>
                 </div>
-                <div class="glass-panel" style="padding:40px; text-align:center; border-color:var(--gold);">
-                    <h2 style="font-family:'Orbitron'; color:var(--gold);">ROYAL</h2>
-                    <p style="color:#5d727b; margin-bottom:30px;">Шанс на 250,000 ₽</p>
-                    <button id="caseBtn2" class="btn-ui btn-accent" style="width:100%" onclick="openBox(50000, 15000, 250000, 'caseBtn2')">50,000 ₽</button>
+                <div class="glass-panel" style="padding:40px; text-align:center; border: 1px solid var(--gold);">
+                    <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:10px;">TITAN CASE</h2>
+                    <p style="color:#5d727b; margin-bottom:35px; font-size:13px;">WIN UP TO 500,000 ₽</p>
+                    <button id="caseBtn2" class="btn-ui btn-accent" style="width:100%; background:var(--gold);" onclick="openBox(25000, 5000, 500000, 'caseBtn2')">ОТКРЫТЬ ЗА 25,000</button>
                 </div>
             </div>
-            <h1 id="boxRes" style="text-align:center; font-family:'Orbitron'; margin-top:60px; font-size:4rem; letter-spacing:5px;"></h1>
+            <div id="boxResCont" style="margin-top:50px; text-align:center;">
+                <h1 id="boxRes" style="font-family:'Orbitron'; font-size:5rem; letter-spacing:8px; min-height:80px;"></h1>
+            </div>
         </div>
 
         <div id="viewTop" class="viewport">
-            <h1 style="font-family:'Orbitron'; text-align:center; font-size:2.5rem; color:var(--gold);">HALL OF FAME</h1>
+            <h1 style="font-family:'Orbitron'; text-align:center; font-size:3rem; color:var(--gold); margin-bottom:40px;">TITAN HALL OF FAME</h1>
             <div id="listTop" style="display:flex; flex-direction:column; gap:15px;"></div>
         </div>
     </div>
@@ -308,16 +374,17 @@
         <div class="user-block">
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
-            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#5d727b;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#5d727b; text-transform:uppercase; letter-spacing:1px;">
                 <span id="uLevel">LEVEL 1</span>
                 <span id="uXP">0 / 1000 XP</span>
             </div>
         </div>
+        
         <div class="chat-container">
             <div id="chatBox"></div>
             <div style="padding:25px; display:flex; gap:12px; background: rgba(0,0,0,0.5);">
-                <input type="text" id="chatInput" placeholder="Введите сообщение..." class="field" style="padding:15px;">
-                <button class="btn-ui btn-accent" style="padding:0 25px;" onclick="sendMsg()">></button>
+                <input type="text" id="chatInput" placeholder="ТВОЕ СООБЩЕНИЕ..." class="field" style="padding:15px; font-size:14px;">
+                <button class="btn-ui btn-accent" style="padding:0 30px;" onclick="sendMsg()">></button>
             </div>
         </div>
     </div>
@@ -327,10 +394,12 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-    // --- DATABASE ---
+    /*
+       --- КОНФИГУРАЦИЯ FIREBASE ---
+       Используем Realtime Database для хранения данных пользователей и чата
+    */
     const firebaseConfig = {
         apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
-        authDomain: "tornadogame-41ae2.firebaseapp.com",
         databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "tornadogame-41ae2",
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
@@ -338,230 +407,404 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- STATE ---
-    let user = null, userData = {}, authMode = 'login', audio;
+    // --- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ---
+    let user = null, userData = {}, authMode = 'login', audioCtx;
     let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [] };
     let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
     let ladder = { active: false, bet: 0, step: 0, max: 8 };
     let isCaseOpening = false;
 
+    // --- КОНСТАНТЫ МАЙНИНГА ---
     const GPUS = [
         {id:'g1', n:'GTX 1050 Ti', p:20000, i:25},
-        {id:'g2', n:'RTX 3060', p:120000, i:180},
-        {id:'g3', n:'RTX 4090 SUPER', p:2500000, i:4500},
-        {id:'g4', n:'ANTMINER S19', p:10000000, i:22000},
-        {id:'g5', n:'QUANTUM CORE', p:50000000, i:135000}
+        {id:'g2', n:'RTX 3060', p:120000, i:185},
+        {id:'g3', n:'RTX 4090 SUPER', p:2500000, i:4800},
+        {id:'g4', n:'ANTMINER S21', p:12000000, i:25000},
+        {id:'g5', n:'QUANTUM TITAN CORE', p:75000000, i:180000}
     ];
 
-    function sfx(f, t='sine', d=0.15, v=0.08) {
+    // --- СИСТЕМА ЧАСТИЦ (BACKGROUND) ---
+    const bgCvs = document.getElementById('bgCanvas');
+    const bgCtx = bgCvs.getContext('2d');
+    let particles = [];
+
+    function initParticles() {
+        bgCvs.width = window.innerWidth;
+        bgCvs.height = window.innerHeight;
+        for(let i=0; i<60; i++) {
+            particles.push({
+                x: Math.random()*bgCvs.width,
+                y: Math.random()*bgCvs.height,
+                s: Math.random()*2 + 1,
+                v: Math.random()*0.5 + 0.2
+            });
+        }
+    }
+
+    function drawParticles() {
+        bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
+        bgCtx.fillStyle = '#00f2ff';
+        particles.forEach(p => {
+            bgCtx.beginPath();
+            bgCtx.arc(p.x, p.y, p.s, 0, Math.PI*2);
+            bgCtx.fill();
+            p.y -= p.v;
+            if(p.y < -10) p.y = bgCvs.height + 10;
+        });
+        requestAnimationFrame(drawParticles);
+    }
+    initParticles(); drawParticles();
+
+    // --- ЗВУКОВАЯ СИСТЕМА ---
+    function sfx(freq, type='sine', dur=0.2, vol=0.1) {
         try {
-            if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
-            const o = audio.createOscillator(); const g = audio.createGain();
-            o.type = t; o.frequency.setValueAtTime(f, audio.currentTime);
-            g.gain.setValueAtTime(v, audio.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + d);
-            o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + d);
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
         } catch(e) {}
     }
 
-    function toast(t) {
-        const b = document.getElementById('notif');
-        const e = document.createElement('div'); e.className = 'toast'; e.innerText = t;
-        b.appendChild(e); setTimeout(() => e.remove(), 4000);
+    // --- УВЕДОМЛЕНИЯ ---
+    function toast(txt) {
+        const container = document.getElementById('notif');
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.innerText = txt;
+        container.appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 3500);
     }
 
-    // --- AUTH ---
-    function setAuth(m) {
-        authMode = m;
-        document.getElementById('tabLogin').classList.toggle('active', m==='login');
-        document.getElementById('tabReg').classList.toggle('active', m==='reg');
+    // --- АВТОРИЗАЦИЯ (LOGIC) ---
+    function setAuth(mode) {
+        authMode = mode;
+        document.getElementById('tabLogin').classList.toggle('active', mode==='login');
+        document.getElementById('tabReg').classList.toggle('active', mode==='reg');
     }
 
     function handleAuth() {
         const u = document.getElementById('authUser').value.trim().toLowerCase();
         const p = document.getElementById('authPass').value.trim();
-        if(u.length < 3) return toast("Логин от 3 символов!");
+        if(u.length < 3) return toast("МИНИМУМ 3 СИМВОЛА!");
         
-        db.ref('users/' + u).once('value', s => {
+        db.ref('users/' + u).once('value', snapshot => {
             if(authMode === 'login') {
-                if(s.exists() && s.val().pass === p) run(u);
-                else toast("Неверные данные!");
+                if(snapshot.exists() && snapshot.val().pass === p) {
+                    sfx(600); runSession(u);
+                } else toast("ОШИБКА ДОСТУПА!");
             } else {
-                if(s.exists()) toast("Логин занят!");
-                else db.ref('users/'+u).set({pass:p, balance:15000, xp:0, lvl:1, gpus:{}}).then(()=>run(u));
+                if(snapshot.exists()) toast("ЛОГИН УЖЕ В СЕТИ!");
+                else {
+                    db.ref('users/' + u).set({
+                        pass: p,
+                        balance: 15000,
+                        xp: 0,
+                        lvl: 1,
+                        gpus: {}
+                    }).then(() => runSession(u));
+                }
             }
         });
     }
 
-    function run(id) {
-        user = id;
+    function runSession(userId) {
+        user = userId;
         document.getElementById('authBox').style.display = 'none';
         document.getElementById('mainApp').style.display = 'grid';
         
-        // CLEAN CHAT ON START
-        document.getElementById('chatBox').innerHTML = '';
-
-        db.ref('users/' + user).on('value', s => {
-            userData = s.val();
-            updateUI();
+        // Слушатель данных пользователя
+        db.ref('users/' + user).on('value', snap => {
+            userData = snap.val();
+            updateInterface();
         });
 
-        // CHAT ENGINE 10.0
-        db.ref('chat').limitToLast(30).on('value', s => {
-            const b = document.getElementById('chatBox');
-            b.innerHTML = ''; // Чистим перед каждой отрисовкой
-            s.forEach(m => {
-                const msg = document.createElement('div');
-                msg.className = 'msg';
-                msg.innerHTML = `<b>${m.val().u}</b>${m.val().t}`;
-                b.appendChild(msg);
+        // Слушатель чата
+        db.ref('chat').limitToLast(40).on('value', snap => {
+            const box = document.getElementById('chatBox');
+            box.innerHTML = '';
+            snap.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'msg';
+                div.innerHTML = `<b>${m.val().u.toUpperCase()}</b>${m.val().t}`;
+                box.appendChild(div);
             });
-            b.scrollTop = b.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         });
 
-        initCrash();
-        syncTop();
-
+        initCrashEngine();
+        syncLeaderboard();
+        
+        // Пассивный доход
         setInterval(() => {
-            let inc = 0; if(userData.gpus) GPUS.forEach(g => inc += (userData.gpus[g.id]||0)*g.i);
-            if(inc > 0) db.ref('users/'+user+'/balance').transaction(b => (b||0) + inc);
+            let totalIncome = 0;
+            if(userData.gpus) {
+                GPUS.forEach(g => {
+                    totalIncome += (userData.gpus[g.id] || 0) * g.i;
+                });
+            }
+            if(totalIncome > 0) {
+                db.ref('users/'+user+'/balance').transaction(b => (b || 0) + totalIncome);
+            }
         }, 1000);
     }
 
-    function updateUI() {
+    function updateInterface() {
         document.getElementById('uBalance').innerText = Math.floor(userData.balance).toLocaleString() + ' ₽';
-        const nx = userData.lvl * 1000;
-        document.getElementById('uBar').style.width = (userData.xp / nx * 100) + '%';
+        const nextXp = userData.lvl * 1500;
+        document.getElementById('uBar').style.width = (userData.xp / nextXp * 100) + '%';
         document.getElementById('uLevel').innerText = 'LEVEL ' + userData.lvl;
-        document.getElementById('uXP').innerText = `${userData.xp} / ${nx} XP`;
-        document.getElementById('valClick').innerText = `+${(userData.lvl * 3).toFixed(2)} ₽`;
+        document.getElementById('uXP').innerText = `${userData.xp} / ${nextXp} XP`;
+        document.getElementById('valClick').innerText = `+${(userData.lvl * 5).toFixed(2)} ₽`;
         
         let p = 0; if(userData.gpus) GPUS.forEach(g => p += (userData.gpus[g.id]||0)*g.i);
         document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
     }
 
-    // --- CRASH FIX V10 ---
-    const cvs = document.getElementById('crashCanvas');
-    const ctx = cvs.getContext('2d');
-    function initCrash() {
+    // --- CRASH ENGINE V10 ---
+    const crashCvs = document.getElementById('crashCanvas');
+    const crashCtx = crashCvs.getContext('2d');
+
+    function initCrashEngine() {
         crash.active = false; crash.mult = 1.0; crash.cashed = false; crash.pts = [];
         const btn = document.getElementById('btnCrash');
-        btn.innerText = "СДЕЛАТЬ СТАВКУ"; btn.className = 'btn-ui btn-accent'; btn.disabled = false;
+        btn.innerText = "СДЕЛАТЬ СТАВКУ"; btn.className = 'btn-ui btn-accent';
         document.getElementById('crashProfit').innerText = '';
         
-        let t = 10;
+        let timer = 8;
         let itv = setInterval(() => {
-            t--; document.getElementById('crashMult').innerText = t + 's';
-            if(t <= 0) { clearInterval(itv); startCrash(); }
+            timer--;
+            document.getElementById('crashMult').innerText = timer + 's';
+            if(timer <= 0) {
+                clearInterval(itv);
+                launchCrash();
+            }
         }, 1000);
     }
 
-    function startCrash() {
+    function launchCrash() {
         crash.active = true;
-        crash.cashed = false; // Reset cash state
-        cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
-        let boom = Math.random() < 0.08 ? 1.0 : (Math.random() * 8 + 1.1);
-        let start = Date.now();
+        crash.cashed = false;
+        crashCvs.width = crashCvs.offsetWidth;
+        crashCvs.height = crashCvs.offsetHeight;
+        
+        let crashPoint = (Math.random() < 0.1) ? 1.0 : (Math.random() * 7 + 1.1);
+        let startTime = Date.now();
         
         if(crash.bet > 0) {
             const btn = document.getElementById('btnCrash');
-            btn.innerText = "ВЫВЕСТИ"; btn.className = 'btn-ui btn-green'; btn.disabled = false;
+            btn.innerText = "ВЫВЕСТИ СРЕДСТВА"; btn.className = 'btn-ui btn-green';
         }
 
         let loop = setInterval(() => {
-            let now = (Date.now() - start) / 1000;
-            crash.mult = Math.pow(1.08, now).toFixed(2);
+            let elapsed = (Date.now() - startTime) / 1000;
+            crash.mult = Math.pow(1.07, elapsed).toFixed(2);
             
-            ctx.clearRect(0,0,cvs.width, cvs.height);
-            ctx.strokeStyle = '#00f2ff'; ctx.lineWidth = 6;
-            let x = (now / 12) * cvs.width;
-            let y = cvs.height - ((crash.mult - 1) / 5) * cvs.height;
-            crash.pts.push({x, y});
-            ctx.beginPath(); ctx.moveTo(0, cvs.height);
-            crash.pts.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+            // Отрисовка графика
+            crashCtx.clearRect(0,0,crashCvs.width, crashCvs.height);
+            crashCtx.strokeStyle = '#00f2ff';
+            crashCtx.lineWidth = 5;
+            crashCtx.shadowBlur = 15;
+            crashCtx.shadowColor = '#00f2ff';
+            
+            let posX = (elapsed / 10) * crashCvs.width;
+            let posY = crashCvs.height - ((crash.mult - 1) / 4) * crashCvs.height;
+            crash.pts.push({x: posX, y: posY});
+            
+            crashCtx.beginPath();
+            crashCtx.moveTo(0, crashCvs.height);
+            crash.pts.forEach(p => crashCtx.lineTo(p.x, p.y));
+            crashCtx.stroke();
 
-            if(crash.mult >= boom) {
-                clearInterval(loop); crash.active = false;
-                document.getElementById('crashMult').innerText = 'CRASHED';
+            if(crash.mult >= crashPoint) {
+                clearInterval(loop);
+                crash.active = false;
+                document.getElementById('crashMult').innerText = 'CRASH!';
                 document.getElementById('crashMult').style.color = 'var(--pink)';
-                sfx(80, 'sawtooth', 0.4); 
-                crash.bet = 0; 
-                setTimeout(() => { document.getElementById('crashMult').style.color = '#fff'; initCrash(); }, 3000);
+                sfx(100, 'sawtooth', 0.5);
+                crash.bet = 0;
+                setTimeout(() => {
+                    document.getElementById('crashMult').style.color = '#fff';
+                    initCrashEngine();
+                }, 3000);
             } else {
                 document.getElementById('crashMult').innerText = crash.mult + 'x';
                 if(crash.bet > 0 && !crash.cashed) {
                     document.getElementById('crashProfit').innerText = '+' + Math.floor(crash.bet * crash.mult) + ' ₽';
+                    // Авто-вывод
                     let auto = parseFloat(document.getElementById('autoCrash').value);
-                    if(auto > 1 && crash.mult >= auto) actionCrash();
+                    if(auto > 1.05 && crash.mult >= auto) actionCrash();
                 }
             }
-        }, 50);
+        }, 60);
     }
 
     function actionCrash() {
         if(!crash.active) {
-            let b = parseInt(document.getElementById('betCrash').value);
-            if(b > 0 && b <= userData.balance) {
-                crash.bet = b; 
-                db.ref('users/'+user+'/balance').transaction(v => v - b);
-                document.getElementById('btnCrash').innerText = "ОЖИДАНИЕ..."; 
-                document.getElementById('btnCrash').disabled = true;
-            } else toast("Недостаточно средств!");
+            let amount = parseInt(document.getElementById('betCrash').value);
+            if(amount > 0 && amount <= userData.balance) {
+                crash.bet = amount;
+                db.ref('users/'+user+'/balance').transaction(b => b - amount);
+                document.getElementById('btnCrash').innerText = "ОЖИДАНИЕ...";
+                document.getElementById('btnCrash').classList.add('btn-disabled');
+            } else toast("МАЛО СРЕДСТВ!");
         } else if(crash.bet > 0 && !crash.cashed) {
             crash.cashed = true;
-            let win = Math.floor(crash.bet * crash.mult);
-            db.ref('users/'+user).transaction(u => { 
-                if(u) { u.balance += win; u.xp += 40; }
-                return u; 
+            let winAmount = Math.floor(crash.bet * crash.mult);
+            db.ref('users/'+user).transaction(u => {
+                if(u) { u.balance += winAmount; u.xp += 50; }
+                return u;
             });
-            document.getElementById('btnCrash').innerText = "ВЫИГРЫШ!";
-            document.getElementById('btnCrash').disabled = true;
+            document.getElementById('btnCrash').innerText = "ВЫИГРАНО!";
+            document.getElementById('btnCrash').classList.add('btn-disabled');
             document.getElementById('crashProfit').innerText = '';
-            sfx(900, 'sine', 0.2);
+            sfx(800, 'sine', 0.3);
+            toast(`+ ${winAmount} ₽`);
         }
     }
 
-    // --- LADDER FIXED ---
+    // --- MINES LOGIC (FIXED) ---
+    function toggleMines() {
+        if(mines.active) return cashoutMines();
+        
+        let amount = parseInt(document.getElementById('betMines').value);
+        if(amount > 0 && amount <= userData.balance) {
+            db.ref('users/'+user+'/balance').transaction(b => b - amount);
+            mines.active = true;
+            mines.bet = amount;
+            mines.open = 0;
+            mines.total = parseInt(document.getElementById('cntMines').value);
+            mines.bombs = [];
+            
+            // Генерация бомб
+            while(mines.bombs.length < mines.total) {
+                let r = Math.floor(Math.random() * 25);
+                if(!mines.bombs.includes(r)) mines.bombs.push(r);
+            }
+            
+            // Сетка
+            const grid = document.getElementById('gridMines');
+            grid.innerHTML = '';
+            for(let i=0; i<25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'game-cell';
+                cell.onclick = () => openMinesCell(i, cell);
+                grid.appendChild(cell);
+            }
+            document.getElementById('btnMines').innerText = "ЗАБРАТЬ 1.00x";
+        } else toast("ОШИБКА СТАВКИ!");
+    }
+
+    function openMinesCell(idx, el) {
+        if(!mines.active || el.classList.contains('active')) return;
+        
+        if(mines.bombs.includes(idx)) {
+            // Взрыв
+            mines.active = false;
+            el.classList.add('death');
+            el.innerText = '💣';
+            sfx(150, 'sawtooth', 0.6);
+            
+            // Показать остальные бомбы
+            const cells = document.querySelectorAll('.game-cell');
+            mines.bombs.forEach(b => {
+                cells[b].classList.add('death');
+                cells[b].innerText = '💣';
+            });
+            
+            setTimeout(() => {
+                document.getElementById('gridMines').innerHTML = '';
+                document.getElementById('btnMines').innerText = "НАЧАТЬ ИГРУ";
+            }, 2500);
+        } else {
+            // Успех
+            el.classList.add('active');
+            el.innerText = '💎';
+            mines.open++;
+            sfx(400 + (mines.open*50));
+            
+            let mult = (1 + (mines.open * (mines.total / 10))).toFixed(2);
+            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${mult}x`;
+            
+            if(mines.open === (25 - mines.total)) cashoutMines();
+        }
+    }
+
+    function cashoutMines() {
+        if(!mines.active || mines.open === 0) return;
+        let mult = (1 + (mines.open * (mines.total / 10)));
+        let win = Math.floor(mines.bet * mult);
+        
+        db.ref('users/'+user).transaction(u => {
+            if(u) { u.balance += win; u.xp += 30; }
+            return u;
+        });
+        
+        mines.active = false;
+        toast(`ВЫИГРЫШ: ${win} ₽`);
+        sfx(1000);
+        document.getElementById('gridMines').innerHTML = '';
+        document.getElementById('btnMines').innerText = "НАЧАТЬ ИГРУ";
+    }
+
+    // --- LADDER LOGIC ---
     function initLadder() {
         let b = parseInt(document.getElementById('betLadder').value);
         if(b > 0 && b <= userData.balance) {
             db.ref('users/'+user+'/balance').transaction(v => v - b);
             ladder.active = true; ladder.bet = b; ladder.step = 0;
             ladder.max = parseInt(document.getElementById('stepLadder').value);
-            const area = document.getElementById('areaLadder'); area.innerHTML = '';
             
+            const area = document.getElementById('areaLadder');
+            area.innerHTML = '';
             for(let i=0; i<ladder.max; i++) {
-                const row = document.createElement('div'); row.className = 'ladder-row';
+                const row = document.createElement('div');
+                row.className = 'ladder-row';
                 row.id = `l-row-${i}`;
                 for(let j=0; j<2; j++) {
-                    const c = document.createElement('div'); c.className = 'ladder-cell';
+                    const c = document.createElement('div');
+                    c.className = 'game-cell';
+                    c.style.width = '160px'; c.style.height = '60px';
                     c.innerText = '?';
-                    if(i === 0) c.onclick = () => stepLadder(i, c);
-                    else c.classList.add('disabled');
+                    if(i === 0) c.onclick = () => stepUp(i, c);
+                    else { c.style.opacity = '0.2'; c.style.cursor = 'default'; }
                     row.appendChild(c);
                 }
                 area.appendChild(row);
             }
-            document.getElementById('startLadder').innerText = "ЗАБРАТЬ 1.00x";
+            document.getElementById('startLadder').innerText = "CASH OUT 1.00x";
             document.getElementById('startLadder').onclick = cashLadder;
         }
     }
 
-    function stepLadder(idx, el) {
+    function stepUp(idx, el) {
         if(!ladder.active || idx !== ladder.step) return;
         if(Math.random() < 0.45) {
-            ladder.active = false; el.classList.add('death'); el.innerText = 'BRK';
-            sfx(120, 'sawtooth'); setTimeout(resetLadder, 1000);
+            ladder.active = false;
+            el.classList.add('death'); el.innerText = 'LOSER';
+            sfx(100, 'sawtooth');
+            setTimeout(() => {
+                document.getElementById('areaLadder').innerHTML = '';
+                document.getElementById('startLadder').innerText = "НАЧАТЬ ПОДЪЕМ";
+                document.getElementById('startLadder').onclick = initLadder;
+            }, 2000);
         } else {
-            el.classList.add('active'); el.innerText = 'UP';
-            ladder.step++; sfx(600 + (ladder.step*50));
-            let m = Math.pow(1.9, ladder.step).toFixed(2);
+            el.classList.add('active'); el.innerText = 'SAFE';
+            ladder.step++;
+            sfx(500 + (ladder.step*60));
+            let m = Math.pow(1.85, ladder.step).toFixed(2);
             document.getElementById('startLadder').innerText = `ЗАБРАТЬ ${m}x`;
+            
             if(ladder.step < ladder.max) {
-                const next = document.getElementById(`l-row-${ladder.step}`);
-                Array.from(next.children).forEach(c => {
-                    c.classList.remove('disabled');
-                    c.onclick = () => stepLadder(ladder.step, c);
+                const nextRow = document.getElementById(`l-row-${ladder.step}`);
+                Array.from(nextRow.children).forEach(child => {
+                    child.style.opacity = '1';
+                    child.style.cursor = 'pointer';
+                    child.onclick = () => stepUp(ladder.step, child);
                 });
             } else cashLadder();
         }
@@ -569,88 +812,130 @@
 
     function cashLadder() {
         if(!ladder.active || ladder.step === 0) return;
-        let w = Math.floor(ladder.bet * Math.pow(1.9, ladder.step));
-        db.ref('users/'+user).transaction(u => { if(u){u.balance += w; u.xp += 60;} return u; });
-        resetLadder(); sfx(1100);
-    }
-    function resetLadder() { 
-        ladder.active = false; 
-        document.getElementById('startLadder').innerText = "НАЧАТЬ ПОДЪЕМ"; 
+        let win = Math.floor(ladder.bet * Math.pow(1.85, ladder.step));
+        db.ref('users/'+user).transaction(u => { if(u){u.balance += win; u.xp += 100;} return u; });
+        ladder.active = false;
+        document.getElementById('areaLadder').innerHTML = '';
+        document.getElementById('startLadder').innerText = "НАЧАТЬ ПОДЪЕМ";
         document.getElementById('startLadder').onclick = initLadder;
+        toast(`ПОДЪЕМ ЗАВЕРШЕН: +${win} ₽`);
     }
 
     // --- CASE SYSTEM ---
-    function openBox(cost, min, max, bid) {
-        if(isCaseOpening || userData.balance < cost) return;
+    function openBox(cost, min, max, btnId) {
+        if(isCaseOpening || userData.balance < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ!");
+        
         isCaseOpening = true;
-        const b = document.getElementById(bid); b.disabled = true; b.style.opacity = "0.5";
+        const btn = document.getElementById(btnId);
+        btn.classList.add('btn-disabled');
+        
         db.ref('users/'+user+'/balance').transaction(v => v - cost);
-        const res = document.getElementById('boxRes'); res.innerText = "ROLLING...";
+        const res = document.getElementById('boxRes');
+        res.innerText = "ROLLING...";
+        res.style.color = "#fff";
         
         setTimeout(() => {
-            let win = Math.floor(Math.random() * (max - min)) + min;
-            db.ref('users/'+user).transaction(u => { if(u){u.balance += win; u.xp += 100;} return u; });
+            let win = Math.floor(Math.random() * (max - min + 1)) + min;
+            db.ref('users/'+user).transaction(u => {
+                if(u) { u.balance += win; u.xp += 150; }
+                return u;
+            });
             res.innerText = win.toLocaleString() + " ₽";
-            res.style.color = win >= cost ? 'var(--green)' : 'var(--pink)';
-            isCaseOpening = false; b.disabled = false; b.style.opacity = "1";
-            sfx(win > cost ? 1200 : 400);
-        }, 1800);
+            res.style.color = (win >= cost) ? 'var(--green)' : 'var(--pink)';
+            sfx(win >= cost ? 1200 : 300);
+            isCaseOpening = false;
+            btn.classList.remove('btn-disabled');
+        }, 2000);
     }
 
     // --- UTILS ---
     function clickFarm() {
-        sfx(400);
+        sfx(400, 'sine', 0.1);
         db.ref('users/'+user).transaction(u => {
-            if(u) { 
-                u.balance += (u.lvl * 3); u.xp += 15;
-                if(u.xp >= u.lvl * 1000) { u.lvl++; u.xp = 0; toast("НОВЫЙ УРОВЕНЬ!"); }
+            if(u) {
+                u.balance += (u.lvl * 5);
+                u.xp += 20;
+                if(u.xp >= u.lvl * 1500) {
+                    u.lvl++; u.xp = 0;
+                    toast("УРОВЕНЬ ПОВЫШЕН!");
+                    sfx(1500, 'sine', 0.5);
+                }
             }
             return u;
         });
     }
 
     function sendMsg() {
-        let t = document.getElementById('chatInput').value.trim();
-        if(t && user) {
-            db.ref('chat').push().set({ u: user, t: ": " + t });
-            document.getElementById('chatInput').value = '';
+        const input = document.getElementById('chatInput');
+        let text = input.value.trim();
+        if(text && user) {
+            db.ref('chat').push().set({
+                u: user,
+                t: ": " + text
+            });
+            input.value = '';
         }
     }
 
-    function syncTop() {
-        db.ref('users').once('value', s => {
-            const list = document.getElementById('listTop'); list.innerHTML = '';
-            let users = [];
-            s.forEach(u => { users.push({n: u.key, b: u.val().balance}); });
-            users.sort((a,b) => b.b - a.b).slice(0, 10).forEach((u, i) => {
-                list.innerHTML += `<div class="msg" style="width:100%; border-color:${i==0?'var(--gold)':'var(--accent)'}">
-                    <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span><b>#${i+1}</b> ${u.n}</span>
-                        <span style="color:var(--green)">${Math.floor(u.b).toLocaleString()} ₽</span>
-                    </div>
-                </div>`;
+    function syncLeaderboard() {
+        db.ref('users').once('value', snap => {
+            const list = document.getElementById('listTop');
+            list.innerHTML = '';
+            let leaders = [];
+            snap.forEach(u => { leaders.push({name: u.key, bal: u.val().balance}); });
+            leaders.sort((a,b) => b.bal - a.bal).slice(0, 10).forEach((l, i) => {
+                list.innerHTML += `
+                    <div class="leader-item">
+                        <span><b>#${i+1}</b> ${l.name.toUpperCase()}</span>
+                        <span style="color:var(--green); font-family:'Orbitron';">${Math.floor(l.bal).toLocaleString()} ₽</span>
+                    </div>`;
             });
         });
-        setTimeout(syncTop, 20000);
+        setTimeout(syncLeaderboard, 30000);
     }
 
-    function showTab(btn, id) {
-        document.querySelectorAll('.nav-btn, .viewport').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active'); document.getElementById(id).classList.add('active');
-        if(id === 'viewMining') syncGPU();
+    function showTab(btn, tabId) {
+        document.querySelectorAll('.nav-btn, .viewport').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+        if(tabId === 'viewMining') renderShop();
     }
 
-    function syncGPU() {
-        const c = document.getElementById('listGPU'); c.innerHTML = '';
+    function renderShop() {
+        const cont = document.getElementById('listGPU');
+        cont.innerHTML = '';
         GPUS.forEach(g => {
             let count = (userData.gpus && userData.gpus[g.id]) || 0;
-            c.innerHTML += `<div class="glass-panel" style="flex-direction:row; padding:20px; align-items:center; justify-content:space-between;">
-                <div><b style="color:var(--accent)">${g.n}</b><br><small>Доход: +${g.i}₽/с | У вас: ${count}</small></div>
-                <button class="btn-ui btn-outline" style="padding:10px 20px" onclick="buyGPU('${g.id}', ${g.p})">${g.p.toLocaleString()} ₽</button>
-            </div>`;
+            cont.innerHTML += `
+                <div class="glass-panel" style="flex-direction:row; padding:25px; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.01);">
+                    <div>
+                        <b style="color:var(--accent); font-size:18px;">${g.n}</b><br>
+                        <small style="color:#5d727b;">ДОХОД: +${g.i} ₽/сек | В НАЛИЧИИ: ${count}</small>
+                    </div>
+                    <button class="btn-ui btn-accent" style="padding:15px 25px; font-size:12px;" onclick="buyGPU('${g.id}', ${g.p})">
+                        КУПИТЬ ЗА ${g.p.toLocaleString()} ₽
+                    </button>
+                </div>`;
         });
     }
-    function buyGPU(id, p) { if(userData.balance >= p) db.ref('users/'+user).transaction(u => { u.balance -= p; if(!u.gpus) u.gpus={}; u.gpus[id] = (u.gpus[id]||0)+1; return u; }); }
+
+    function buyGPU(id, price) {
+        if(userData.balance >= price) {
+            db.ref('users/'+user).transaction(u => {
+                if(u) {
+                    u.balance -= price;
+                    if(!u.gpus) u.gpus = {};
+                    u.gpus[id] = (u.gpus[id] || 0) + 1;
+                }
+                return u;
+            });
+            toast("ОБОРУДОВАНИЕ КУПЛЕНО!");
+            sfx(1100);
+            renderShop();
+        } else toast("НЕДОСТАТОЧНО СРЕДСТВ!");
+    }
+
+    window.onresize = () => { bgCvs.width = window.innerWidth; bgCvs.height = window.innerHeight; };
 </script>
 </body>
 </html>
