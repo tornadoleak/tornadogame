@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO V9.5 | TITAN STABLE</title>
+    <title>TORNADO V9.7 | ULTIMATE FIX</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -36,7 +36,7 @@
         .viewport.active { display: flex; animation: viewIn 0.3s ease-out; }
         @keyframes viewIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Games Layout */
+        /* Crash Layout */
         .crash-area { height: 380px; background: #050709; border-radius: 25px; position: relative; overflow: hidden; border: 1px solid var(--border); }
         #crashCanvas { width: 100%; height: 100%; }
         .crash-info { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 10; }
@@ -62,11 +62,31 @@
         .xp-line { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin: 15px 0; }
         .xp-bar { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 10px var(--accent); transition: 0.5s; }
 
-        /* CHAT FIX */
+        /* CHAT FIX: ПРИНУДИТЕЛЬНОЕ НАПРАВЛЕНИЕ ВНИЗ */
         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: rgba(0,0,0,0.2); }
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
-        .msg { background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; font-size: 13px; line-height: 1.4; border-left: 3px solid var(--accent); align-self: flex-start; max-width: 90%; }
-        .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 10px; display: block; margin-bottom: 3px; }
+        #chatBox { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            scroll-behavior: smooth;
+        }
+        .msg { 
+            background: rgba(255,255,255,0.04); 
+            padding: 12px 18px; 
+            border-radius: 18px; 
+            font-size: 14px; 
+            line-height: 1.4; 
+            border-left: 4px solid var(--accent); 
+            align-self: flex-start; 
+            width: fit-content;
+            max-width: 90%;
+            animation: fadeInMsg 0.2s ease-out;
+        }
+        @keyframes fadeInMsg { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 11px; display: block; margin-bottom: 4px; }
 
         /* Mining Farm */
         .gpu-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 22px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -87,7 +107,7 @@
 
 <div id="authBox" class="glass-panel">
     <h1 style="font-family:'Orbitron'; font-size: 2.5rem; margin:0; color:var(--accent);">TORNADO</h1>
-    <p style="letter-spacing: 8px; font-size: 10px; color: #5d727b; margin-bottom: 30px;">ULTRA STABLE V9.5</p>
+    <p style="letter-spacing: 8px; font-size: 10px; color: #5d727b; margin-bottom: 30px;">ULTRA STABLE V9.7</p>
     <div class="auth-nav">
         <div class="auth-tab active" id="tabLogin" onclick="setAuth('login')">Вход</div>
         <div class="auth-tab" id="tabReg" onclick="setAuth('reg')">Регистрация</div>
@@ -167,17 +187,17 @@
                 <div class="glass-panel" style="padding:25px; text-align:center;">
                     <h3>БРОДЯГА</h3>
                     <p style="color:var(--gold); font-size:12px;">Выигрыш: 200 - 5,000 ₽</p>
-                    <button class="btn-ui btn-outline" style="width:100%; margin-top:15px;" onclick="openBox(1000, 200, 5000)">1,000 ₽</button>
+                    <button id="caseBtn1" class="btn-ui btn-outline" style="width:100%; margin-top:15px;" onclick="openBox(1000, 200, 5000, 'caseBtn1')">1,000 ₽</button>
                 </div>
                 <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--accent);">
                     <h3>МАГНАТ</h3>
                     <p style="color:var(--gold); font-size:12px;">Выигрыш: 10,000 - 150,000 ₽</p>
-                    <button class="btn-ui btn-accent" style="width:100%; margin-top:15px;" onclick="openBox(30000, 10000, 150000)">30,000 ₽</button>
+                    <button id="caseBtn2" class="btn-ui btn-accent" style="width:100%; margin-top:15px;" onclick="openBox(30000, 10000, 150000, 'caseBtn2')">30,000 ₽</button>
                 </div>
                 <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--pink);">
                     <h3>ELITE</h3>
                     <p style="color:var(--gold); font-size:12px;">Выигрыш: 50,000 - 1,000,000 ₽</p>
-                    <button class="btn-ui btn-accent" style="width:100%; margin-top:15px; background:var(--pink); color:#fff;" onclick="openBox(200000, 50000, 1000000)">200,000 ₽</button>
+                    <button id="caseBtn3" class="btn-ui btn-accent" style="width:100%; margin-top:15px; background:var(--pink); color:#fff;" onclick="openBox(200000, 50000, 1000000, 'caseBtn3')">200,000 ₽</button>
                 </div>
             </div>
             <h1 id="boxRes" style="text-align:center; font-family:'Orbitron'; margin-top:50px; font-size:3rem;"></h1>
@@ -199,7 +219,7 @@
         </div>
         <div class="chat-container">
             <div id="chatBox"></div>
-            <div style="padding:20px; display:flex; gap:10px;">
+            <div style="padding:20px; display:flex; gap:10px; background: rgba(0,0,0,0.4);">
                 <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px;">
                 <button class="btn-ui btn-accent" style="padding:0 20px;" onclick="sendMsg()">></button>
             </div>
@@ -227,6 +247,7 @@
     let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [] };
     let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
     let ladder = { active: false, bet: 0, step: 0, max: 8 };
+    let isCaseOpening = false; // Блокировка спама кейсов
 
     const GPUS = [
         {id:'g1', n:'GTX 1050', p:15000, i:15},
@@ -288,14 +309,18 @@
             updateUI();
         });
 
-        // CHAT SYNC
-        db.ref('chat').limitToLast(30).on('value', s => {
+        // CHAT SYNC FIX
+        db.ref('chat').limitToLast(25).on('value', s => {
             const b = document.getElementById('chatBox');
             b.innerHTML = '';
             s.forEach(m => {
-                b.innerHTML += `<div class="msg"><b>${m.val().u}</b>${m.val().t}</div>`;
+                const node = document.createElement('div');
+                node.className = 'msg';
+                node.innerHTML = `<b>${m.val().u}</b>${m.val().t}`;
+                b.appendChild(node);
             });
-            b.scrollTop = b.scrollHeight; // Фикс скролла
+            // Принудительный скролл вниз
+            b.scrollTop = b.scrollHeight;
         });
 
         initCrash();
@@ -320,7 +345,7 @@
         document.getElementById('valPassive').innerText = pass.toLocaleString() + ' ₽/сек';
     }
 
-    // --- CRASH ---
+    // --- CRASH FIX ---
     const cvs = document.getElementById('crashCanvas');
     const ctx = cvs.getContext('2d');
     function initCrash() {
@@ -339,17 +364,18 @@
     function startCrash() {
         crash.active = true;
         cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
-        let boom = Math.random() < 0.1 ? 1.0 : (Math.random() * 5 + 1.1);
+        let boom = Math.random() < 0.1 ? 1.0 : (Math.random() * 6 + 1.1);
         let start = Date.now();
         
         if(crash.bet > 0) {
             document.getElementById('btnCrash').innerText = "ВЫВОД";
             document.getElementById('btnCrash').className = 'btn-ui btn-green';
+            document.getElementById('btnCrash').disabled = false;
         }
 
         let loop = setInterval(() => {
             let now = (Date.now() - start) / 1000;
-            crash.mult = Math.pow(1.07, now).toFixed(2);
+            crash.mult = Math.pow(1.075, now).toFixed(2);
             
             ctx.clearRect(0,0,cvs.width, cvs.height);
             ctx.strokeStyle = '#00f2ff'; ctx.lineWidth = 5;
@@ -362,12 +388,15 @@
             if(crash.mult >= boom) {
                 clearInterval(loop); crash.active = false;
                 document.getElementById('crashMult').innerText = 'BOOM!';
+                document.getElementById('btnCrash').innerText = "СТАВКА";
+                document.getElementById('btnCrash').className = 'btn-ui btn-accent';
                 sfx(100, 'sawtooth'); crash.bet = 0; setTimeout(initCrash, 3000);
             } else {
                 document.getElementById('crashMult').innerText = crash.mult + 'x';
                 if(crash.bet > 0 && !crash.cashed) {
                     document.getElementById('crashProfit').innerText = '+' + Math.floor(crash.bet * crash.mult) + ' ₽';
-                    if(parseFloat(document.getElementById('autoCrash').value) <= crash.mult) actionCrash();
+                    let auto = parseFloat(document.getElementById('autoCrash').value);
+                    if(auto > 1.0 && crash.mult >= auto) actionCrash();
                 }
             }
         }, 50);
@@ -377,14 +406,18 @@
         if(!crash.active) {
             let b = parseInt(document.getElementById('betCrash').value);
             if(b > 0 && b <= userData.balance) {
-                crash.bet = b; db.ref('users/'+user+'/balance').transaction(v => v - b);
-                document.getElementById('btnCrash').innerText = "ЖДЕМ..."; document.getElementById('btnCrash').disabled = true;
-            }
+                crash.bet = b; crash.cashed = false;
+                db.ref('users/'+user+'/balance').transaction(v => v - b);
+                document.getElementById('btnCrash').innerText = "ЖДЕМ..."; 
+                document.getElementById('btnCrash').disabled = true;
+            } else { toast("Недостаточно средств!"); }
         } else if(crash.bet > 0 && !crash.cashed) {
             crash.cashed = true;
             let win = Math.floor(crash.bet * crash.mult);
             db.ref('users/'+user).transaction(u => { u.balance += win; u.xp += 25; return u; });
-            document.getElementById('btnCrash').innerText = "ВЗЯТО"; document.getElementById('btnCrash').disabled = true;
+            document.getElementById('btnCrash').innerText = "ВЗЯТО!"; 
+            document.getElementById('btnCrash').disabled = true;
+            document.getElementById('crashProfit').innerText = '';
             sfx(800);
         }
     }
@@ -430,56 +463,31 @@
         document.getElementById('btnMines').onclick = startMines;
     }
 
-    // --- LADDER ---
-    function initLadder() {
-        let b = parseInt(document.getElementById('betLadder').value);
-        if(b > 0 && b <= userData.balance) {
-            db.ref('users/'+user+'/balance').transaction(v => v - b);
-            ladder.active = true; ladder.bet = b; ladder.step = 0;
-            ladder.max = parseInt(document.getElementById('stepLadder').value);
-            const a = document.getElementById('areaLadder'); a.innerHTML = '';
-            for(let i=0; i<ladder.max; i++) {
-                const r = document.createElement('div'); r.style = "display:flex; gap:10px;";
-                for(let j=0; j<2; j++) {
-                    const s = document.createElement('div'); s.className = 'game-cell';
-                    s.style = "width:100px; height:50px;";
-                    if(i === 0) s.onclick = () => stepLad(j, s, i);
-                    else s.style.opacity = "0.2";
-                    r.appendChild(s);
-                }
-                a.appendChild(r);
-            }
-            document.getElementById('startLadder').innerText = "CASH (1.00x)";
-            document.getElementById('startLadder').onclick = cashLad;
-        }
-    }
+    // --- CASE SPAM FIX ---
+    function openBox(cost, min, max, btnId) {
+        if(isCaseOpening) return; // Если уже открывается - игнор
+        if(userData.balance < cost) return toast("Мало денег!");
 
-    function stepLad(c, el, idx) {
-        if(!ladder.active || idx !== ladder.step) return;
-        if(Math.random() < 0.5) {
-            ladder.active = false; el.classList.add('death'); sfx(130, 'sawtooth');
-            setTimeout(() => { toast("УПАЛ!"); initLadder(); resetLad(); }, 500);
-        } else {
-            el.classList.add('active'); ladder.step++;
-            sfx(600 + (ladder.step*60));
-            let m = Math.pow(1.9, ladder.step).toFixed(2);
-            document.getElementById('startLadder').innerText = `CASH (${m}x)`;
-            const rows = document.getElementById('areaLadder').children;
-            if(ladder.step < ladder.max) {
-                Array.from(rows[ladder.step].children).forEach(s => { s.style.opacity = "1"; s.onclick = () => stepLad(0, s, ladder.step); });
-            }
-        }
-    }
+        isCaseOpening = true;
+        const mainBtn = document.getElementById(btnId);
+        mainBtn.disabled = true;
+        mainBtn.style.opacity = "0.5";
 
-    function cashLad() {
-        if(!ladder.active) return;
-        let w = Math.floor(ladder.bet * Math.pow(1.9, ladder.step));
-        db.ref('users/'+user).transaction(u => { u.balance += w; u.xp += 40; return u; });
-        resetLad(); sfx(1200);
-    }
-    function resetLad() {
-        ladder.active = false; document.getElementById('startLadder').innerText = "СТАРТ";
-        document.getElementById('startLadder').onclick = initLadder;
+        db.ref('users/'+user+'/balance').transaction(b => b - cost);
+        const r = document.getElementById('boxRes'); r.innerText = "ROLLING...";
+        
+        setTimeout(() => {
+            let w = Math.floor(Math.random() * (max - min)) + min;
+            db.ref('users/'+user).transaction(u => { u.balance += w; u.xp += 50; return u; });
+            r.innerText = w.toLocaleString() + " ₽";
+            r.style.color = w >= cost ? 'var(--green)' : 'var(--pink)';
+            sfx(w > cost ? 1000 : 300);
+            
+            // Разблокировка через 1.5 сек
+            isCaseOpening = false;
+            mainBtn.disabled = false;
+            mainBtn.style.opacity = "1";
+        }, 1500);
     }
 
     // --- OTHER ---
@@ -512,18 +520,6 @@
         } else toast("Мало денег!");
     }
 
-    function openBox(cost, min, max) {
-        if(userData.balance < cost) return toast("Мало денег!");
-        db.ref('users/'+user+'/balance').transaction(b => b - cost);
-        const r = document.getElementById('boxRes'); r.innerText = "ROLLING...";
-        setTimeout(() => {
-            let w = Math.floor(Math.random() * (max - min)) + min;
-            db.ref('users/'+user).transaction(u => { u.balance += w; u.xp += 50; return u; });
-            r.innerText = w.toLocaleString() + " ₽";
-            sfx(w > cost ? 1000 : 300);
-        }, 1500);
-    }
-
     function sendMsg() {
         let t = document.getElementById('chatInput').value.trim();
         if(t && user) {
@@ -540,12 +536,15 @@
             s.forEach(u => { users.push({name: u.key, bal: u.val().balance}); });
             users.sort((a,b) => b.bal - a.bal);
             users.slice(0, 10).forEach((u, i) => {
-                list.innerHTML += `<div class="msg" style="display:flex; justify-content:space-between; width:100%; border-color:${i==0?'var(--gold)':'var(--accent)'}">
-                    <span>#${i+1} ${u.name}</span><b>${Math.floor(u.bal).toLocaleString()} ₽</b>
-                </div>`;
+                const node = document.createElement('div');
+                node.className = 'msg';
+                node.style.width = "100%";
+                node.style.borderColor = i == 0 ? 'var(--gold)' : 'var(--accent)';
+                node.innerHTML = `<div style="display:flex; justify-content:space-between; width:100%"><span>#${i+1} ${u.name}</span><b>${Math.floor(u.bal).toLocaleString()} ₽</b></div>`;
+                list.appendChild(node);
             });
         });
-        setTimeout(syncTop, 10000); // Обновление раз в 10 сек
+        setTimeout(syncTop, 15000);
     }
 
     function showTab(btn, id) {
