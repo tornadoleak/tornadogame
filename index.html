@@ -481,7 +481,7 @@
         <input type="password" id="authPass" placeholder="ПАРОЛЬ" class="field" autocomplete="current-password">
     </div>
     
-    <button id="authMainBtn" class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ВОЙТИ В СИСТЕМУ</button>
+    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ВОЙТИ В СИСТЕМУ</button>
 </div>
 
 <div class="app-container" id="mainApp" style="display: none;">
@@ -725,22 +725,8 @@
         projectId: "tornadogame-41ae2",
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
     };
-    // init firebase, если недоступен — покажем ошибку в toast
-    try {
-        firebase.initializeApp(firebaseConfig);
-    } catch (e) {
-        console.error('Firebase init error', e);
-        const notice = document.getElementById('notif');
-        if (notice) {
-            const el = document.createElement('div');
-            el.className = 'toast';
-            el.innerText = 'FIREBASE INIT ERROR — CHECK CONFIG';
-            el.style.borderColor = 'var(--pink)';
-            notice.appendChild(el);
-            setTimeout(() => el.remove(), 6000);
-        }
-    }
-    const db = (window.firebase && firebase.database) ? firebase.database() : null;
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     let user = null, userData = {}, authMode = 'login', audioCtx, soundEnabled = true;
     let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
@@ -819,84 +805,47 @@
         setTimeout(() => el.remove(), 1000);
     }
 
-    // Улучшенная setAuth: включает смену текста основной кнопки
     function setAuth(m) {
         authMode = m;
-        document.getElementById('tabLogin').classList.toggle('active', m === 'login');
-        document.getElementById('tabReg').classList.toggle('active', m === 'reg');
-
-        const authBtn = document.getElementById('authMainBtn');
-        if (authBtn) {
-            authBtn.innerText = (m === 'login') ? 'ВОЙТИ В СИСТЕМУ' : 'ЗАРЕГИСТРИРОВАТЬСЯ';
-        }
-        const passInput = document.getElementById('authPass');
-        if (passInput) passInput.autocomplete = (m === 'reg') ? 'new-password' : 'current-password';
+        document.getElementById('tabLogin').classList.toggle('active', m==='login');
+        document.getElementById('tabReg').classList.toggle('active', m==='reg');
     }
 
-    // Защитный handleAuth: проверяет firebase/db и ловит ошибки
     function handleAuth() {
-        if (!db) {
-            toast("СЕРВИС ОТСУТСТВУЕТ: FIREBASE", 'error');
-            return;
-        }
-
-        const uEl = document.getElementById('authUser');
-        const pEl = document.getElementById('authPass');
-        if(!uEl || !pEl) {
-            toast("ФОРМА АВТОРИЗАЦИИ НЕ НАЙДЕНА", 'error');
-            return;
-        }
-
-        const u = uEl.value.trim().toLowerCase();
-        const p = pEl.value.trim();
+        const u = document.getElementById('authUser').value.trim().toLowerCase();
+        const p = document.getElementById('authPass').value.trim();
         if(u.length < 3) return toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
         if(p.length < 4) return toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
 
-        try {
-            db.ref('users/' + u).once('value', snap => {
-                try {
-                    if(authMode === 'login') {
-                        if(snap.exists() && snap.val().pass === p) {
-                            sfx(600);
-                            toast("ВХОД ВЫПОЛНЕН", 'success');
-                            runSession(u);
-                        } else toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
-                    } else {
-                        if(snap.exists()) toast("ЛОГИН ЗАНЯТ", 'error');
-                        else {
-                            db.ref('users/' + u).set({
-                                pass: p, 
-                                balance: 0, 
-                                xp: 0, 
-                                lvl: 1, 
-                                gpus: {},
-                                stats: {games:0, wins:0, profit:0},
-                                achievements: {},
-                                history: [],
-                                lastDaily: 0,
-                                createdAt: Date.now()
-                            }).then(() => {
-                                toast("РЕГИСТРАЦИЯ УСПЕШНА! ПОЛУЧИ 100₽ СТАРТОВЫЙ БОНУС", 'success');
-                                db.ref('users/' + u + '/balance').set(100).catch(()=>{});
-                                runSession(u);
-                            }).catch(err => {
-                                console.error('Регистрация ошибка', err);
-                                toast("ОШИБКА РЕГИСТРАЦИИ", 'error');
-                            });
-                        }
-                    }
-                } catch(e) {
-                    console.error('handleAuth inner error', e);
-                    toast("ОШИБКА АВТОРИЗАЦИИ", 'error');
+        db.ref('users/' + u).once('value', snap => {
+            if(authMode === 'login') {
+                if(snap.exists() && snap.val().pass === p) {
+                    sfx(600);
+                    toast("ВХОД ВЫПОЛНЕН", 'success');
+                    runSession(u);
+                } else toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
+            } else {
+                if(snap.exists()) toast("ЛОГИН ЗАНЯТ", 'error');
+                else {
+                    db.ref('users/' + u).set({
+                        pass: p, 
+                        balance: 0, 
+                        xp: 0, 
+                        lvl: 1, 
+                        gpus: {},
+                        stats: {games:0, wins:0, profit:0},
+                        achievements: {},
+                        history: [],
+                        lastDaily: 0,
+                        createdAt: Date.now()
+                    }).then(() => {
+                        toast("РЕГИСТРАЦИЯ УСПЕШНА! ПОЛУЧИ 100₽ СТАРТОВЫЙ БОНУС", 'success');
+                        db.ref('users/' + u + '/balance').set(100);
+                        runSession(u);
+                    });
                 }
-            }, err => {
-                console.error('DB once error', err);
-                toast("НЕ УДАЛОСЬ СВЯЗАТЬСЯ С БАЗОЙ", 'error');
-            });
-        } catch(e) {
-            console.error('handleAuth error', e);
-            toast("ОШИБКА АВТОРИЗАЦИИ", 'error');
-        }
+            }
+        });
     }
 
     function logout() {
@@ -905,13 +854,9 @@
         if(crashInterval) clearInterval(crashInterval);
         if(passiveInterval) clearInterval(passiveInterval);
         
-        if (user && db) {
-            try {
-                db.ref('users/' + user).off();
-                db.ref('chat').off();
-                db.ref('pvp').off();
-            } catch(e) {}
-        }
+        db.ref('users/' + user).off();
+        db.ref('chat').off();
+        db.ref('pvp').off();
         
         user = null;
         userData = {};
@@ -934,11 +879,6 @@
         document.getElementById('mainApp').style.display = 'grid';
         document.getElementById('uName').innerText = user.toUpperCase();
         
-        if (!db) {
-            toast("ОТСУТСТВУЕТ ПОДКЛЮЧЕНИЕ К FIREBASE", 'error');
-            return;
-        }
-
         db.ref('users/' + user).on('value', snap => {
             userData = snap.val() || {};
             if(!userData.gpus) userData.gpus = {};
@@ -1027,7 +967,7 @@
     }
 
     const cvs = document.getElementById('crashCanvas');
-    const ctx = cvs ? cvs.getContext('2d') : null;
+    const ctx = cvs.getContext('2d');
 
     function initCrash() {
         crash.active = false; 
@@ -1049,7 +989,7 @@
         status.className = 'status-indicator status-waiting';
         status.innerText = 'ОЖИДАНИЕ';
         
-        if (ctx && cvs) ctx.clearRect(0, 0, cvs.width, cvs.height);
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
         
         let timer = 5;
         const countdown = setInterval(() => {
@@ -1066,10 +1006,8 @@
         crash.active = true;
         crash.startTime = Date.now();
         crash.pts = [];
-        if (cvs) {
-            cvs.width = cvs.offsetWidth; 
-            cvs.height = cvs.offsetHeight;
-        }
+        cvs.width = cvs.offsetWidth; 
+        cvs.height = cvs.offsetHeight;
         
         const btn = document.getElementById('btnCrash');
         const status = document.getElementById('crashStatus');
@@ -1092,22 +1030,20 @@
             let elapsed = (Date.now() - crash.startTime) / 1000;
             crash.mult = Math.pow(1.08, elapsed);
             
-            if (ctx && cvs) {
-                ctx.clearRect(0,0,cvs.width, cvs.height);
-                ctx.strokeStyle = '#00f2ff'; 
-                ctx.lineWidth = 4;
-                ctx.shadowBlur = 10; 
-                ctx.shadowColor = '#00f2ff';
-                
-                let x = (elapsed / 12) * cvs.width;
-                let y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
-                crash.pts.push({x, y});
-                
-                ctx.beginPath();
-                ctx.moveTo(0, cvs.height);
-                crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
-                ctx.stroke();
-            }
+            ctx.clearRect(0,0,cvs.width, cvs.height);
+            ctx.strokeStyle = '#00f2ff'; 
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10; 
+            ctx.shadowColor = '#00f2ff';
+            
+            let x = (elapsed / 12) * cvs.width;
+            let y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
+            crash.pts.push({x, y});
+            
+            ctx.beginPath();
+            ctx.moveTo(0, cvs.height);
+            crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.stroke();
 
             if(crash.mult >= target) {
                 clearInterval(crashInterval);
@@ -1395,11 +1331,10 @@
     }
 
     const bgCvs = document.getElementById('bgCanvas');
-    const bgCtx = bgCvs ? bgCvs.getContext('2d') : null;
+    const bgCtx = bgCvs.getContext('2d');
     let parts = [];
     
     function initBg() {
-        if (!bgCvs) return;
         bgCvs.width = window.innerWidth; 
         bgCvs.height = window.innerHeight;
         parts = [];
@@ -1414,7 +1349,6 @@
     }
     
     function drawBg() {
-        if (!bgCtx || !bgCvs) return;
         bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
         bgCtx.fillStyle = '#00f2ff';
         bgCtx.shadowBlur = 5;
@@ -1491,3 +1425,421 @@
             document.querySelectorAll('.game-cell').forEach((cell, i) => {
                 cell.onclick = null;
                 if(mines.bombs.includes(i) && i !== idx) {
+                    setTimeout(() => {
+                        cell.classList.add('death');
+                        cell.innerText = '💣';
+                    }, Math.random() * 500);
+                }
+            });
+            
+            addGameHistory('Mines', mines.bet, -mines.bet, 'loss');
+            
+            sfx(100, 'sawtooth', 0.5);
+            toast("ВЗРЫВ! СТАВКА ПОТЕРЯНА", 'error');
+            
+            setTimeout(() => { 
+                document.getElementById('gridMines').innerHTML = '';
+                const btn = document.getElementById('btnMines');
+                btn.innerText = "НАЧАТЬ ИГРУ";
+                btn.classList.remove('btn-green');
+                btn.classList.add('btn-accent');
+                document.getElementById('minesOpened').innerText = '0';
+                document.getElementById('minesMulti').innerText = '1.00x';
+            }, 2000);
+        } else {
+            mines.open++; 
+            el.classList.add('active'); 
+            el.innerText = '💎'; 
+            el.onclick = null;
+            sfx(600);
+            
+            let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            document.getElementById('minesOpened').innerText = mines.open;
+            document.getElementById('minesMulti').innerText = curMult.toFixed(2) + 'x';
+        }
+    }
+
+    function collectMines() {
+        if(!mines.active || mines.open === 0) return toast("ОТКРОЙТЕ ХОТЯ БЫ ОДНУ КЛЕТКУ", 'error');
+        
+        let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+        let win = Math.floor(mines.bet * curMult);
+        let profit = win - mines.bet;
+        
+        db.ref('users/'+user).transaction(u => { 
+            if(u) { 
+                u.balance = (u.balance || 0) + win; 
+                u.xp = (u.xp || 0) + Math.floor(profit / 10);
+            } 
+            return u; 
+        });
+        
+        addGameHistory('Mines', mines.bet, profit, 'win');
+        checkWinStreak();
+        
+        mines.active = false;
+        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+        showWinAnimation(profit);
+        sfx(900);
+        
+        document.getElementById('gridMines').innerHTML = '';
+        const btn = document.getElementById('btnMines');
+        btn.innerText = "НАЧАТЬ ИГРУ";
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+        document.getElementById('minesOpened').innerText = '0';
+        document.getElementById('minesMulti').innerText = '1.00x';
+    }
+
+    // TOWER GAME
+    function toggleTower() {
+        if(tower.active) return collectTower();
+        
+        let amt = parseInt(document.getElementById('betTower').value);
+        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        tower = { active: true, bet: amt, level: 0, bombs: [] };
+        
+        for(let i=0; i<10; i++) {
+            tower.bombs.push(Math.floor(Math.random()*3));
+        }
+        
+        const grid = document.getElementById('gridTower');
+        grid.innerHTML = '';
+        
+        for(let row=0; row<10; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;';
+            for(let col=0; col<3; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'game-cell tower';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                if(row === 0) {
+                    cell.onclick = () => stepTower(row, col, cell);
+                } else {
+                    cell.style.opacity = '0.3';
+                }
+                rowDiv.appendChild(cell);
+            }
+            grid.appendChild(rowDiv);
+        }
+        
+        document.getElementById('btnTower').innerText = "ЗАБРАТЬ 1.00x";
+        document.getElementById('btnTower').classList.remove('btn-accent');
+        document.getElementById('btnTower').classList.add('btn-green');
+        document.getElementById('towerLevel').innerText = '0';
+        document.getElementById('towerMulti').innerText = '1.00x';
+        
+        toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
+        sfx(400);
+    }
+
+    function stepTower(row, col, el) {
+        if(!tower.active || row !== tower.level) return;
+        
+        if(tower.bombs[row] === col) {
+            tower.active = false;
+            el.classList.add('death');
+            el.innerText = '💣';
+            
+            document.querySelectorAll('.game-cell.tower').forEach(c => c.onclick = null);
+            
+            addGameHistory('Tower', tower.bet, -tower.bet, 'loss');
+            
+            sfx(100, 'sawtooth', 0.5);
+            toast("ПРОВАЛ! СТАВКА ПОТЕРЯНА", 'error');
+            
+            setTimeout(() => {
+                document.getElementById('gridTower').innerHTML = '';
+                const btn = document.getElementById('btnTower');
+                btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+                btn.classList.remove('btn-green');
+                btn.classList.add('btn-accent');
+            }, 2000);
+        } else {
+            tower.level++;
+            el.classList.add('active');
+            el.innerText = '⭐';
+            el.onclick = null;
+            sfx(700);
+            
+            const curMult = Math.pow(1.4, tower.level);
+            document.getElementById('towerLevel').innerText = tower.level;
+            document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
+            document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            
+            if(tower.level < 10) {
+                document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
+                    c.style.opacity = '1';
+                    c.onclick = () => stepTower(tower.level, parseInt(c.dataset.col), c);
+                });
+            } else {
+                collectTower();
+            }
+            
+            if(tower.level >= 10) checkAchievement('tower_master');
+        }
+    }
+
+    function collectTower() {
+        if(!tower.active || tower.level === 0) return toast("ПРОЙДИТЕ ХОТЯ БЫ ОДИН УРОВЕНЬ", 'error');
+        
+        const curMult = Math.pow(1.4, tower.level);
+        let win = Math.floor(tower.bet * curMult);
+        let profit = win - tower.bet;
+        
+        db.ref('users/'+user).transaction(u => {
+            if(u) {
+                u.balance = (u.balance || 0) + win;
+                u.xp = (u.xp || 0) + Math.floor(profit / 10);
+            }
+            return u;
+        });
+        
+        addGameHistory('Tower', tower.bet, profit, 'win');
+        checkWinStreak();
+        
+        tower.active = false;
+        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+        showWinAnimation(profit);
+        sfx(1100);
+        
+        document.getElementById('gridTower').innerHTML = '';
+        const btn = document.getElementById('btnTower');
+        btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+        document.getElementById('towerLevel').innerText = '0';
+        document.getElementById('towerMulti').innerText = '1.00x';
+    }
+
+    // ROULETTE
+    function initRoulette() {
+        const strip = document.getElementById('rouletteStrip');
+        strip.innerHTML = '';
+        const colors = ['red', 'black', 'green'];
+        const symbols = {'red':'🔴', 'black':'⚫', 'green':'🟢'};
+        for(let i=0; i<100; i++) {
+            const color = Math.random() < 0.07 ? 'green' : (Math.random() < 0.5 ? 'red' : 'black');
+            const item = document.createElement('div');
+            item.className = 'roulette-item';
+            item.style.background = color === 'green' ? 'rgba(0,255,136,0.1)' : color === 'red' ? 'rgba(255,0,123,0.1)' : 'rgba(255,255,255,0.05)';
+            item.innerHTML = `<div style="font-size:36px;">${symbols[color]}</div>`;
+            item.dataset.color = color;
+            strip.appendChild(item);
+        }
+    }
+
+    function playRoulette() {
+        if(rouletteSpinning) return;
+        
+        let amt = parseInt(document.getElementById('betRoulette').value);
+        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        const betColor = document.getElementById('colorRoulette').value;
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        rouletteSpinning = true;
+        document.getElementById('btnRoulette').classList.add('btn-disabled');
+        
+        const strip = document.getElementById('rouletteStrip');
+        const result = Math.random() < 0.07 ? 'green' : (Math.random() < 0.5 ? 'red' : 'black');
+        const targetIndex = Math.floor(Math.random() * 20) + 70;
+        
+        document.querySelectorAll('.roulette-item')[targetIndex].dataset.color = result;
+        const symbols = {'red':'🔴', 'black':'⚫', 'green':'🟢'};
+        document.querySelectorAll('.roulette-item')[targetIndex].innerHTML = `<div style="font-size:36px;">${symbols[result]}</div>`;
+        
+        const offset = -(targetIndex * 100) + (window.innerWidth / 2);
+        strip.style.transform = `translateX(${offset}px)`;
+        
+        sfx(600);
+        
+        setTimeout(() => {
+            rouletteSpinning = false;
+            document.getElementById('btnRoulette').classList.remove('btn-disabled');
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateX(0)';
+            setTimeout(() => { strip.style.transition = ''; initRoulette(); }, 100);
+            
+            if(result === betColor) {
+                const multi = result === 'green' ? 14 : 2;
+                const win = amt * multi;
+                const profit = win - amt;
+                
+                db.ref('users/'+user).transaction(u => {
+                    if(u) {
+                        u.balance = (u.balance || 0) + win;
+                        u.xp = (u.xp || 0) + Math.floor(profit / 10);
+                    }
+                    return u;
+                });
+                
+                addGameHistory('Roulette', amt, profit, 'win');
+                checkWinStreak();
+                
+                toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
+                showWinAnimation(profit);
+                sfx(1000);
+            } else {
+                addGameHistory('Roulette', amt, -amt, 'loss');
+                toast("ПРОИГРЫШ!", 'error');
+                sfx(200, 'sawtooth');
+            }
+        }, 3200);
+    }
+
+    // PVP COINFLIP
+    function createPVPRoom() {
+        let amt = parseInt(document.getElementById('betPVP').value);
+        if(isNaN(amt) || amt < 50) return toast("МИНИМАЛЬНАЯ СТАВКА 50₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        const side = document.getElementById('sidePVP').value;
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        const room = {
+            creator: user,
+            bet: amt,
+            side: side,
+            createdAt: Date.now()
+        };
+        
+        db.ref('pvp').push(room);
+        toast("КОМНАТА СОЗДАНА", 'success');
+        sfx(600);
+    }
+
+    function loadPVPRooms() {
+        db.ref('pvp').on('value', snap => {
+            const cont = document.getElementById('pvpRooms');
+            cont.innerHTML = '';
+            
+            snap.forEach(room => {
+                const data = room.val();
+                if(data.creator === user) return;
+                
+                const div = document.createElement('div');
+                div.className = 'pvp-room';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:800; color:var(--pink);">${data.creator.toUpperCase()}</div>
+                        <div style="font-size:11px; color:#5d727b;">${data.bet.toLocaleString()}₽ • ${data.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}</div>
+                    </div>
+                    <button class="btn-ui btn-pink" style="padding:10px 20px; font-size:11px;" onclick="joinPVP('${room.key}', ${data.bet}, '${data.side}', '${data.creator}')">
+                        ПРИНЯТЬ
+                    </button>
+                `;
+                cont.appendChild(div);
+            });
+            
+            if(cont.innerHTML === '') {
+                cont.innerHTML = '<div style="text-align:center; color:#5d727b; padding:40px;">НЕТ АКТИВНЫХ КОМНАТ</div>';
+            }
+        });
+    }
+
+    function joinPVP(roomKey, bet, creatorSide, creator) {
+        if((userData.balance || 0) < bet) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - bet);
+        
+        const result = Math.random() < 0.5 ? 'heads' : 'tails';
+        const creatorWon = result === creatorSide;
+        const winner = creatorWon ? creator : user;
+        const loser = creatorWon ? user : creator;
+        
+        const totalPot = bet * 2;
+        const fee = Math.floor(totalPot * 0.05);
+        const payout = totalPot - fee;
+        
+        db.ref('users/'+winner+'/balance').transaction(b => (b || 0) + payout);
+        
+        if(winner === user) {
+            const profit = payout - bet;
+            addGameHistory('PVP', bet, profit, 'win');
+            checkWinStreak();
+            toast(`ПОБЕДА В PVP! +${profit.toLocaleString()}₽`, 'success');
+            showWinAnimation(profit);
+            sfx(1200);
+        } else {
+            addGameHistory('PVP', bet, -bet, 'loss');
+            toast("ПРОИГРЫШ В PVP", 'error');
+            sfx(200, 'sawtooth');
+        }
+        
+        db.ref('pvp/' + roomKey).remove();
+    }
+
+    // CASES
+    function openBox(cost, min, max) {
+        if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - cost);
+        
+        const res = document.getElementById('boxRes');
+        res.style.color = 'var(--accent)';
+        res.innerText = "ROLLING...";
+        
+        let count = 0;
+        const rolling = setInterval(() => {
+            res.innerText = Math.floor(Math.random()*(max-min)+min).toLocaleString() + " ₽";
+            sfx(800 + Math.random()*200, 'sine', 0.05, 0.05);
+            count++;
+            
+            if(count > 25) {
+                clearInterval(rolling);
+                
+                // Балансировка: 70% шанс на проигрыш, 25% на +10-30%, 5% на большой выигрыш
+                let final;
+                const roll = Math.random();
+                if(roll < 0.70) {
+                    // Проигрыш: 40-90% от стоимости
+                    final = Math.floor(min + (cost - min) * (0.4 + Math.random() * 0.5));
+                } else if(roll < 0.95) {
+                    // Маленький профит: 110-130% от стоимости
+                    final = Math.floor(cost * (1.1 + Math.random() * 0.2));
+                } else {
+                    // Джекпот: 150-200% от стоимости или до макс
+                    final = Math.floor(Math.min(max, cost * (1.5 + Math.random() * 0.5)));
+                }
+                
+                res.style.color = final > cost ? 'var(--green)' : 'var(--pink)';
+                res.innerText = final.toLocaleString() + " ₽";
+                
+                db.ref('users/'+user).transaction(u => { 
+                    if(u) {
+                        u.balance = (u.balance || 0) + final;
+                        if(final > cost) {
+                            u.xp = (u.xp || 0) + Math.floor((final - cost) / 10);
+                        }
+                    }
+                    return u; 
+                });
+                
+                const profit = final - cost;
+                addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
+                
+                if(profit > 0) {
+                    toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
+                    showWinAnimation(profit);
+                    sfx(1200, 'square', 0.3);
+                    checkWinStreak();
+                } else {
+                    toast(`ПРОИГРЫШ: ${profit.toLocaleString()} ₽`, 'error');
+                    sfx(200, 'sawtooth', 0.3);
+                }
+            }
+        }, 80);
+    }
+</script>
+</body>
+</html>
