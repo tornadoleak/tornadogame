@@ -829,7 +829,7 @@
                 else {
                     db.ref('users/' + u).set({
                         pass: p, 
-                        balance: 0, 
+                        balance: 100, 
                         xp: 0, 
                         lvl: 1, 
                         gpus: {},
@@ -839,9 +839,12 @@
                         lastDaily: 0,
                         createdAt: Date.now()
                     }).then(() => {
-                        toast("РЕГИСТРАЦИЯ УСПЕШНА! ПОЛУЧИ 100₽ СТАРТОВЫЙ БОНУС", 'success');
-                        db.ref('users/' + u + '/balance').set(100);
+                        toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽ СТАРТОВЫЙ БОНУС", 'success');
+                        sfx(800);
                         runSession(u);
+                    }).catch(err => {
+                        toast("ОШИБКА РЕГИСТРАЦИИ", 'error');
+                        console.error(err);
                     });
                 }
             }
