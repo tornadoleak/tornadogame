@@ -439,25 +439,6 @@
         .status-waiting { background: rgba(255, 204, 0, 0.1); color: var(--gold); border: 1px solid var(--gold); }
         .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid var(--green); }
         .status-crashed { background: rgba(255, 0, 123, 0.1); color: var(--pink); border: 1px solid var(--pink); }
-
-        .daily-bonus-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--card);
-            border: 2px solid var(--gold);
-            border-radius: 30px;
-            padding: 40px;
-            z-index: 9999;
-            text-align: center;
-            animation: modalShow 0.5s ease-out;
-            box-shadow: 0 0 50px rgba(255, 204, 0, 0.3);
-        }
-        @keyframes modalShow {
-            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
     </style>
 </head>
 <body>
@@ -814,19 +795,29 @@
     function handleAuth() {
         const u = document.getElementById('authUser').value.trim().toLowerCase();
         const p = document.getElementById('authPass').value.trim();
-        if(u.length < 3) return toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
-        if(p.length < 4) return toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
+        
+        if(u.length < 3) {
+            toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
+            return;
+        }
+        if(p.length < 4) {
+            toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
+            return;
+        }
 
-        db.ref('users/' + u).once('value', snap => {
+        db.ref('users/' + u).once('value').then(snap => {
             if(authMode === 'login') {
                 if(snap.exists() && snap.val().pass === p) {
                     sfx(600);
                     toast("ВХОД ВЫПОЛНЕН", 'success');
                     runSession(u);
-                } else toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
+                } else {
+                    toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
+                }
             } else {
-                if(snap.exists()) toast("ЛОГИН ЗАНЯТ", 'error');
-                else {
+                if(snap.exists()) {
+                    toast("ЛОГИН ЗАНЯТ", 'error');
+                } else {
                     db.ref('users/' + u).set({
                         pass: p, 
                         balance: 100, 
@@ -839,12 +830,9 @@
                         lastDaily: 0,
                         createdAt: Date.now()
                     }).then(() => {
-                        toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽ СТАРТОВЫЙ БОНУС", 'success');
+                        toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽", 'success');
                         sfx(800);
                         runSession(u);
-                    }).catch(err => {
-                        toast("ОШИБКА РЕГИСТРАЦИИ", 'error');
-                        console.error(err);
                     });
                 }
             }
@@ -1374,7 +1362,6 @@
     initBg(); 
     drawBg();
 
-    // MINES GAME
     function toggleMines() {
         if(mines.active) return collectMines();
         
@@ -1495,7 +1482,6 @@
         document.getElementById('minesMulti').innerText = '1.00x';
     }
 
-    // TOWER GAME
     function toggleTower() {
         if(tower.active) return collectTower();
         
@@ -1621,7 +1607,6 @@
         document.getElementById('towerMulti').innerText = '1.00x';
     }
 
-    // ROULETTE
     function initRoulette() {
         const strip = document.getElementById('rouletteStrip');
         strip.innerHTML = '';
@@ -1699,7 +1684,6 @@
         }, 3200);
     }
 
-    // PVP COINFLIP
     function createPVPRoom() {
         let amt = parseInt(document.getElementById('betPVP').value);
         if(isNaN(amt) || amt < 50) return toast("МИНИМАЛЬНАЯ СТАВКА 50₽", 'error');
@@ -1782,7 +1766,6 @@
         db.ref('pvp/' + roomKey).remove();
     }
 
-    // CASES
     function openBox(cost, min, max) {
         if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
         
@@ -1801,17 +1784,13 @@
             if(count > 25) {
                 clearInterval(rolling);
                 
-                // Балансировка: 70% шанс на проигрыш, 25% на +10-30%, 5% на большой выигрыш
                 let final;
                 const roll = Math.random();
                 if(roll < 0.70) {
-                    // Проигрыш: 40-90% от стоимости
                     final = Math.floor(min + (cost - min) * (0.4 + Math.random() * 0.5));
                 } else if(roll < 0.95) {
-                    // Маленький профит: 110-130% от стоимости
                     final = Math.floor(cost * (1.1 + Math.random() * 0.2));
                 } else {
-                    // Джекпот: 150-200% от стоимости или до макс
                     final = Math.floor(Math.min(max, cost * (1.5 + Math.random() * 0.5)));
                 }
                 
