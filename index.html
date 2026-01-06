@@ -1282,14 +1282,14 @@
         const history = userData.history || [];
         history.slice(0, 10).forEach(h => {
             const date = new Date(h.time).toLocaleTimeString('ru-RU');
-            histCont.innerHTML += `
-                <div class="history-item history-${h.result}">
-                    <span><b>${h.game}</b> • ${date}</span>
-                    <span style="color:${h.profit>=0?'var(--green)':'var(--pink)'}; font-weight:800;">
-                        ${h.profit>=0?'+':'}${h.profit.toLocaleString()}₽
-                    </span>
-                </div>
-            `;
+           histCont.innerHTML += `
+    <div class="history-item history-${h.result}">
+        <span><b>${h.game}</b> • ${date}</span>
+        <span style="color:${h.profit>=0?'var(--green)':'var(--pink)'}; font-weight:800;">
+            ${h.profit>=0?'+':''}${h.profit.toLocaleString()}₽
+        </span>
+    </div>
+`;
         });
     }
 
@@ -1825,3 +1825,4 @@
 </script>
 </body>
 </html>
+
