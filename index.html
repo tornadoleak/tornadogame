@@ -1506,7 +1506,7 @@ localStorage.removeItem('tornado_user');
         document.getElementById('minesOpened').innerText = '0';
         document.getElementById('minesMulti').innerText = '1.00x';
     }
-
+    
     function toggleTower() {
     const btn = document.getElementById('btnTower');
 
@@ -1584,6 +1584,96 @@ localStorage.removeItem('tornado_user');
     // Уведомление о старте
     toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
     sfx(400);
+}
+
+function stepTower(row, col, el) {
+    const btn = document.getElementById('btnTower');
+    if(!tower.active || row !== tower.level) return;
+
+    // Проверка на попадание в бомбу
+    if(tower.bombs[row] === col) {
+        tower.active = false;
+        el.classList.add('death');
+        el.innerText = '💣';
+        
+        // Блокируем кнопку после попадания на бомбу
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.disabled = false;
+        }, 2000);
+
+        // Блокируем все клики по клеткам после взрыва
+        document.querySelectorAll('.game-cell.tower').forEach(c => c.onclick = null);
+        
+        addGameHistory('Tower', tower.bet, -tower.bet, 'loss');
+        
+        sfx(100, 'sawtooth', 0.5);
+        toast("ПРОВАЛ! СТАВКА ПОТЕРЯНА", 'error');
+        
+        setTimeout(() => {
+            document.getElementById('gridTower').innerHTML = '';
+            const btn = document.getElementById('btnTower');
+            btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+            btn.classList.remove('btn-green');
+            btn.classList.add('btn-accent');
+        }, 2000);
+    } else {
+        tower.level++;
+        el.classList.add('active');
+        el.innerText = '⭐';
+        el.onclick = null;
+        sfx(700);
+        
+        const curMult = Math.pow(1.4, tower.level);
+        const payout = Math.floor(tower.bet * curMult);
+
+        document.getElementById('towerLevel').innerText = tower.level;
+        document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
+        document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
+        
+        if(tower.level < 10) {
+            document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
+                c.style.opacity = '1';
+                c.onclick = () => stepTower(tower.level, parseInt(c.dataset.col), c);
+            });
+        } else {
+            collectTower();
+        }
+        
+        if(tower.level >= 10) checkAchievement('tower_master');
+    }
+}
+
+function collectTower() {
+    if(!tower.active || tower.level === 0) return toast("ПРОЙДИТЕ ХОТЯ БЫ ОДИН УРОВЕНЬ", 'error');
+    
+    const curMult = Math.pow(1.4, tower.level);
+    let win = Math.floor(tower.bet * curMult);
+    let profit = win - tower.bet;
+    
+    db.ref('users/'+user).transaction(u => {
+        if(u) {
+            u.balance = (u.balance || 0) + win;
+            u.xp = (u.xp || 0) + Math.floor(profit / 10);
+        }
+        return u;
+    });
+    
+    addGameHistory('Tower', tower.bet, profit, 'win');
+    checkWinStreak();
+    
+    tower.active = false;
+    toast(`ЗАБРАЛ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+    showWinAnimation(win);
+    sfx(1100);
+    
+    document.getElementById('gridTower').innerHTML = '';
+    const btn = document.getElementById('btnTower');
+    btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+    btn.classList.remove('btn-green');
+    btn.classList.add('btn-accent');
+    document.getElementById('towerLevel').innerText = '0';
+    document.getElementById('towerMulti').innerText = '1.00x';
 }
     
     function stepTower(row, col, el) {
@@ -1901,6 +1991,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
