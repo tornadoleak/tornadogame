@@ -1408,7 +1408,7 @@ localStorage.removeItem('tornado_user');
             g.appendChild(c);
         }
         
-        document.getElementById('btnMines').innerText = "ЗАБРАТЬ 1.00x";
+        document.getElementById('btnMines').innerText = "ОТКРОЙТЕ КЛЕТКУ";
         document.getElementById('btnMines').classList.remove('btn-accent');
         document.getElementById('btnMines').classList.add('btn-green');
         document.getElementById('minesOpened').innerText = '0';
@@ -1467,7 +1467,8 @@ localStorage.removeItem('tornado_user');
             sfx(600);
             
             let curMult = minesMultiplier(mines.open, mines.total, 0.04);
-            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            let payout = Math.floor(mines.bet * curMult);   
+            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
             document.getElementById('minesOpened').innerText = mines.open;
             document.getElementById('minesMulti').innerText = curMult.toFixed(2) + 'x';
         }
@@ -1493,8 +1494,8 @@ localStorage.removeItem('tornado_user');
         checkWinStreak();
         
         mines.active = false;
-        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
-        showWinAnimation(profit);
+        toast(`ЗАБРАЛ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+        showWinAnimation(win);
         sfx(900);
         
         document.getElementById('gridMines').innerHTML = '';
@@ -1865,6 +1866,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
