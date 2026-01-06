@@ -1531,19 +1531,21 @@ localStorage.removeItem('tornado_user');
     let amt = parseInt(document.getElementById('betTower').value);
     if (isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
     if (amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
-    
+
     // Снимаем ставку с баланса
     db.ref('users/' + user + '/balance').transaction(b => (b || 0) - amt);
-    
+
+    // Настроим начальные параметры
     tower = {
         active: true, 
         bet: amt, 
         level: 0, 
-        bombs: []
+        bombs: [],
+        maxLevel: 10 // Можем изменить максимальное количество уровней
     };
 
     // Заполняем список бомб случайными позициями
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < tower.maxLevel; i++) {
         tower.bombs.push(Math.floor(Math.random() * 3)); // 3 клетки в каждой строке
     }
 
@@ -1552,17 +1554,17 @@ localStorage.removeItem('tornado_user');
     grid.innerHTML = '';
 
     // Добавляем ряды (по 3 клетки в каждом ряду)
-    for (let row = 0; row < 10; row++) {
+    for (let row = 0; row < tower.maxLevel; row++) {
         const rowDiv = document.createElement('div');
         rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%;';
-        
+
         // Создаем ячейки
         for (let col = 0; col < 3; col++) {
             const cell = document.createElement('div');
             cell.className = 'game-cell tower';
             cell.dataset.row = row;
             cell.dataset.col = col;
-            
+
             // Для первой строки устанавливаем обработчик
             if (row === 0) {
                 cell.onclick = () => stepTower(row, col, cell);
@@ -1588,6 +1590,7 @@ localStorage.removeItem('tornado_user');
     sfx(400);
 }
 
+// Шаг лесенки
 function stepTower(row, col, el) {
     const btn = document.getElementById('btnTower');
     if (!tower.active || row !== tower.level) return;
@@ -1597,10 +1600,12 @@ function stepTower(row, col, el) {
         tower.active = false;
         el.classList.add('death');
         el.innerText = '💣';
-        
-        // Блокируем кнопку после попадания на бомбу
+
+        // Блокировка кнопки после попадания на бомбу
         btn.disabled = true;
         btn.classList.add('btn-disabled');
+
+        // После 2 секунд разблокируем кнопку
         setTimeout(() => {
             btn.disabled = false;
             btn.classList.remove('btn-disabled');
@@ -1608,15 +1613,14 @@ function stepTower(row, col, el) {
 
         // Блокируем все клики по клеткам после взрыва
         document.querySelectorAll('.game-cell.tower').forEach(c => c.onclick = null);
-        
+
         addGameHistory('Tower', tower.bet, -tower.bet, 'loss');
-        
+
         sfx(100, 'sawtooth', 0.5);
         toast("ПРОВАЛ! СТАВКА ПОТЕРЯНА", 'error');
-        
+
         setTimeout(() => {
             document.getElementById('gridTower').innerHTML = '';
-            const btn = document.getElementById('btnTower');
             btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
             btn.classList.remove('btn-green');
             btn.classList.add('btn-accent');
@@ -1627,15 +1631,15 @@ function stepTower(row, col, el) {
         el.innerText = '⭐';
         el.onclick = null;
         sfx(700);
-        
+
         const curMult = Math.pow(1.4, tower.level);
         const payout = Math.floor(tower.bet * curMult);
 
         document.getElementById('towerLevel').innerText = tower.level;
         document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
-        document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
-        
-        if (tower.level < 10) {
+        btn.innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
+
+        if (tower.level < tower.maxLevel) {
             document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
                 c.style.opacity = '1';
                 c.onclick = () => stepTower(tower.level, parseInt(c.dataset.col), c);
@@ -1643,8 +1647,8 @@ function stepTower(row, col, el) {
         } else {
             collectTower();
         }
-        
-        if (tower.level >= 10) checkAchievement('tower_master');
+
+        if (tower.level >= tower.maxLevel) checkAchievement('tower_master');
     }
 }
 
@@ -2085,6 +2089,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
