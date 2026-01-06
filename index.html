@@ -711,7 +711,7 @@
 
     let user = null, userData = {}, authMode = 'login', audioCtx, soundEnabled = true;
     let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
-    let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
+    let mines = { active: false, locked: false, bet: 0, bombs: [], open: 0, total: 3 };
     let tower = { active: false, bet: 0, level: 0, bombs: [] };
     let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
     
@@ -1375,6 +1375,7 @@ localStorage.removeItem('tornado_user');
     return mult;
 }
     function toggleMines() {
+        if (mines.locked) return;
         if(mines.active) return collectMines();
         
         let amt = parseInt(document.getElementById('betMines').value);
@@ -1385,6 +1386,7 @@ localStorage.removeItem('tornado_user');
         
         mines = { 
             active: true, 
+            locked: false,
             bet: amt, 
             bombs: [], 
             open: 0, 
@@ -1421,6 +1423,10 @@ localStorage.removeItem('tornado_user');
         
         if(mines.bombs.includes(idx)) {
             mines.active = false; 
+            mines.locked = true;
+            const btn = document.getElementById('btnMines');
+            btn.innerText = "ПРОИГРЫШ...";
+            btn.classList.add('btn-disabled');
             el.classList.add('death'); 
             el.innerText = '💣';
             
@@ -1447,6 +1453,11 @@ localStorage.removeItem('tornado_user');
                 btn.classList.add('btn-accent');
                 document.getElementById('minesOpened').innerText = '0';
                 document.getElementById('minesMulti').innerText = '1.00x';
+                mines.locked = false;
+                mines.bet = 0;
+                mines.open = 0;
+                mines.bombs = [];
+                btn.classList.remove('btn-disabled');
             }, 2000);
         } else {
             mines.open++; 
@@ -1854,6 +1865,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
