@@ -810,7 +810,8 @@
                 if(snap.exists() && snap.val().pass === p) {
                     sfx(600);
                     toast("ВХОД ВЫПОЛНЕН", 'success');
-                    runSession(u);
+localStorage.setItem('tornado_user', u);
+runSession(u);
                 } else {
                     toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
                 }
@@ -831,8 +832,9 @@
                         createdAt: Date.now()
                     }).then(() => {
                         toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽", 'success');
-                        sfx(800);
-                        runSession(u);
+sfx(800);
+localStorage.setItem('tornado_user', u);
+runSession(u);
                     });
                 }
             }
@@ -841,6 +843,8 @@
 
     function logout() {
         if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
+        
+localStorage.removeItem('tornado_user');
         
         if(crashInterval) clearInterval(crashInterval);
         if(passiveInterval) clearInterval(passiveInterval);
@@ -1822,6 +1826,23 @@
             }
         }, 80);
     }
+        }
+    
+    // ✅ АВТОВХОД ПОСЛЕ ОБНОВЛЕНИЯ СТРАНИЦЫ
+    window.addEventListener('load', () => {
+        const saved = localStorage.getItem('tornado_user');
+        if (!saved) return;
+
+        db.ref('users/' + saved).once('value')
+            .then(snap => {
+                if (snap.exists()) {
+                    runSession(saved);
+                } else {
+                    localStorage.removeItem('tornado_user');
+                }
+            })
+            .catch(err => console.error('AUTOLOGIN FAIL:', err));
+    });
 </script>
 </body>
 </html>
