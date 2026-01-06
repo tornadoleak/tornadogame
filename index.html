@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO PLATFORM V10.0</title>
+    <title>TORNADO PLATFORM V10.0 | ULTIMATE EDITION</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,17 +12,21 @@
             --gold: #ffcc00; 
             --green: #00ff88;
             --purple: #b24bf3;
+            --orange: #ff8c00;
             --bg: #030507; 
             --card: rgba(10, 15, 20, 0.98); 
             --border: rgba(0, 242, 255, 0.2);
             --neon-glow: 0 0 25px rgba(0, 242, 255, 0.35);
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { 
             box-sizing: border-box; 
             margin: 0; 
             padding: 0; 
+            transition: var(--transition); 
             outline: none; 
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -199,9 +203,10 @@
         .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; }
         .btn-accent:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
         .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; }
+        .btn-green:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); }
         .btn-pink { background: linear-gradient(135deg, var(--pink), #d6006a); color: #000; }
         .btn-gold { background: linear-gradient(135deg, var(--gold), #e6b800); color: #000; }
-        .btn-disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
 
         .user-block { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); position: relative; }
         .logout-btn {
@@ -216,13 +221,14 @@
             cursor: pointer;
             font-size: 10px;
             font-weight: 800;
+            letter-spacing: 1px;
         }
         .logout-btn:hover { background: var(--pink); color: #000; }
         
         .bal-display { font-family: 'Orbitron'; font-size: 2.8rem; font-weight: 900; color: var(--accent); margin-bottom: 10px; }
         .xp-container { margin: 15px 0; }
         .xp-line { height: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-        .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); }
+        .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); transition: 1s ease; }
 
         .rank-badge {
             display: inline-block;
@@ -230,7 +236,9 @@
             border-radius: 12px;
             font-size: 10px;
             font-weight: 900;
+            letter-spacing: 1px;
             margin-top: 10px;
+            text-transform: uppercase;
         }
 
         .rank-bronze { background: linear-gradient(135deg, #cd7f32, #8b4513); }
@@ -240,7 +248,14 @@
         .rank-diamond { background: linear-gradient(135deg, var(--accent), #00a8e8); }
 
         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        #chatBox { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
         .msg { 
             background: rgba(255,255,255,0.03); 
             padding: 12px 16px; 
@@ -249,7 +264,9 @@
             max-width: 85%; 
             border-left: 3px solid var(--accent); 
             word-wrap: break-word;
+            animation: msgSlide 0.3s ease-out;
         }
+        @keyframes msgSlide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 10px; display: block; margin-bottom: 4px; }
 
         .leader-card {
@@ -271,7 +288,9 @@
             padding: 20px;
             border-radius: 20px;
             border: 1px solid var(--border);
+            transition: 0.3s;
         }
+        .gpu-card:hover { border-color: var(--accent); transform: translateX(5px); }
 
         .gpu-owned {
             font-size: 11px;
@@ -290,6 +309,7 @@
             justify-content: space-between;
             align-items: center;
         }
+        .pvp-room:hover { border-color: var(--pink); }
 
         .achievement {
             background: rgba(0,0,0,0.3);
@@ -344,6 +364,7 @@
             background: #111; border: 1px solid var(--accent); padding: 15px 25px; 
             border-radius: 15px; color: #fff; margin-bottom: 10px; font-weight: 600;
             animation: slideIn 0.3s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
@@ -430,32 +451,32 @@
     <p style="letter-spacing: 8px; font-size: 10px; color: #5d727b; margin-bottom: 40px; font-weight: 800;">ULTIMATE EDITION V10.0</p>
     
     <div class="auth-nav">
-        <div class="auth-tab active" id="tabLogin">Вход</div>
-        <div class="auth-tab" id="tabReg">Регистрация</div>
+        <div class="auth-tab active" id="tabLogin" onclick="setAuth('login')">Вход</div>
+        <div class="auth-tab" id="tabReg" onclick="setAuth('reg')">Регистрация</div>
     </div>
     
     <div class="field-group" style="margin-bottom: 15px;">
-        <input type="text" id="authUser" placeholder="ЛОГИН" class="field">
+        <input type="text" id="authUser" placeholder="ЛОГИН" class="field" autocomplete="username">
     </div>
     <div class="field-group" style="margin-bottom: 30px;">
-        <input type="password" id="authPass" placeholder="ПАРОЛЬ" class="field">
+        <input type="password" id="authPass" placeholder="ПАРОЛЬ" class="field" autocomplete="current-password">
     </div>
     
-    <button class="btn-ui btn-accent" style="width:100%" id="btnAuth">ВОЙТИ В СИСТЕМУ</button>
+    <button class="btn-ui btn-accent" style="width:100%" onclick="handleAuth()">ВОЙТИ В СИСТЕМУ</button>
 </div>
 
 <div class="app-container" id="mainApp" style="display: none;">
     <div class="glass-panel">
         <div class="sidebar-nav">
-            <div class="nav-btn active" data-view="viewCrash">📈 CRASH</div>
-            <div class="nav-btn" data-view="viewMines">💣 MINES</div>
-            <div class="nav-btn" data-view="viewTower">🪜 TOWER</div>
-            <div class="nav-btn" data-view="viewRoulette">🎰 ROULETTE</div>
-            <div class="nav-btn" data-view="viewPVP">⚔️ PVP</div>
-            <div class="nav-btn" data-view="viewMining">⚡ MINING</div>
-            <div class="nav-btn" data-view="viewCases">📦 CASES</div>
-            <div class="nav-btn" data-view="viewTop">🏆 TOP</div>
-            <div class="nav-btn" data-view="viewProfile">👤 PROFILE</div>
+            <div class="nav-btn active" onclick="showTab(this, 'viewCrash')">📈 CRASH</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewMines')">💣 MINES</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewTower')">🪜 TOWER</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewRoulette')">🎰 ROULETTE</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewPVP')">⚔️ PVP</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewMining')">⚡ MINING</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewCases')">📦 CASES</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewTop')">🏆 TOP</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewProfile')">👤 PROFILE</div>
         </div>
 
         <div id="viewCrash" class="viewport active">
@@ -478,7 +499,7 @@
                     <input type="number" id="autoCrash" placeholder="2.00" class="field" step="0.1" min="1.1">
                 </div>
             </div>
-            <button id="btnCrash" class="btn-ui btn-accent">СДЕЛАТЬ СТАВКУ</button>
+            <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
 
         <div id="viewMines" class="viewport">
@@ -503,7 +524,7 @@
                 <span>МНОЖИТЕЛЬ: <span id="minesMulti">1.00x</span></span>
             </div>
             <div id="gridMines" class="mines-grid"></div>
-            <button id="btnMines" class="btn-ui btn-accent" style="margin-top:20px;">НАЧАТЬ ИГРУ</button>
+            <button id="btnMines" class="btn-ui btn-accent" onclick="toggleMines()" style="margin-top:20px;">НАЧАТЬ ИГРУ</button>
         </div>
 
         <div id="viewTower" class="viewport">
@@ -515,7 +536,7 @@
                 УРОВЕНЬ: <span id="towerLevel">0</span> | МНОЖИТЕЛЬ: <span id="towerMulti">1.00x</span>
             </div>
             <div id="gridTower" style="display:flex; flex-direction:column-reverse; gap:10px; max-width:450px; margin:0 auto;"></div>
-            <button id="btnTower" class="btn-ui btn-accent" style="margin-top:20px;">НАЧАТЬ ВОСХОЖДЕНИЕ</button>
+            <button id="btnTower" class="btn-ui btn-accent" onclick="toggleTower()" style="margin-top:20px;">НАЧАТЬ ВОСХОЖДЕНИЕ</button>
         </div>
 
         <div id="viewRoulette" class="viewport">
@@ -537,7 +558,7 @@
                     </select>
                 </div>
             </div>
-            <button id="btnRoulette" class="btn-ui btn-accent">КРУТИТЬ РУЛЕТКУ</button>
+            <button id="btnRoulette" class="btn-ui btn-accent" onclick="playRoulette()">КРУТИТЬ РУЛЕТКУ</button>
         </div>
 
         <div id="viewPVP" class="viewport">
@@ -555,14 +576,14 @@
                     </select>
                 </div>
             </div>
-            <button id="btnPVP" class="btn-ui btn-pink" style="width:100%; margin-bottom:30px;">СОЗДАТЬ КОМНАТУ</button>
+            <button class="btn-ui btn-pink" style="width:100%; margin-bottom:30px;" onclick="createPVPRoom()">СОЗДАТЬ КОМНАТУ</button>
             <h3 style="font-family:'Orbitron'; font-size:14px; margin-bottom:15px; color:#5d727b;">АКТИВНЫЕ КОМНАТЫ:</h3>
             <div id="pvpRooms"></div>
         </div>
 
         <div id="viewMining" class="viewport">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                <button class="btn-ui btn-accent" style="height:180px; flex-direction:column;" id="btnClick">
+                <button class="btn-ui btn-accent" style="height:180px; flex-direction:column;" onclick="clickFarm()">
                     <span style="font-size:30px;">⚡</span>
                     БИТЬ ПО БЛОКУ
                     <span id="valClick" style="font-size:12px; opacity:0.6;">+1.00 ₽</span>
@@ -581,29 +602,29 @@
                 <div class="glass-panel" style="padding:25px; text-align:center;">
                     <h3 style="font-family:'Orbitron'; color:var(--accent); font-size:16px;">STARTER</h3>
                     <p style="font-size:11px; color:#5d727b; margin:12px 0;">50-1,000 ₽</p>
-                    <button class="btn-ui btn-accent caseBtn" data-cost="200" data-min="50" data-max="1000" style="width:100%; padding:12px; font-size:11px;">200 ₽</button>
+                    <button class="btn-ui btn-accent" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(200, 50, 1000)">200 ₽</button>
                 </div>
                 <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--green);">
                     <h3 style="font-family:'Orbitron'; color:var(--green); font-size:16px;">BASIC</h3>
                     <p style="font-size:11px; color:#5d727b; margin:12px 0;">100-3,000 ₽</p>
-                    <button class="btn-ui btn-green caseBtn" data-cost="500" data-min="100" data-max="3000" style="width:100%; padding:12px; font-size:11px;">500 ₽</button>
+                    <button class="btn-ui btn-green" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(500, 100, 3000)">500 ₽</button>
                 </div>
                 <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--gold);">
                     <h3 style="font-family:'Orbitron'; color:var(--gold); font-size:16px;">GOLD</h3>
                     <p style="font-size:11px; color:#5d727b; margin:12px 0;">500-8,000 ₽</p>
-                    <button class="btn-ui btn-gold caseBtn" data-cost="2000" data-min="500" data-max="8000" style="width:100%; padding:12px; font-size:11px;">2,000 ₽</button>
+                    <button class="btn-ui btn-gold" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(2000, 500, 8000)">2,000 ₽</button>
                 </div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
                 <div class="glass-panel" style="padding:30px; text-align:center; border-color:var(--purple);">
                     <h3 style="font-family:'Orbitron'; color:var(--purple); font-size:18px;">PLATINUM</h3>
                     <p style="font-size:11px; color:#5d727b; margin:15px 0;">2,000-20,000 ₽</p>
-                    <button class="btn-ui btn-accent caseBtn" data-cost="5000" data-min="2000" data-max="20000" style="width:100%; background:var(--purple);">5,000 ₽</button>
+                    <button class="btn-ui btn-accent" style="width:100%; background:var(--purple);" onclick="openBox(5000, 2000, 20000)">5,000 ₽</button>
                 </div>
                 <div class="glass-panel" style="padding:30px; text-align:center; border-color:var(--pink);">
                     <h3 style="font-family:'Orbitron'; color:var(--pink); font-size:18px;">ELITE</h3>
                     <p style="font-size:11px; color:#5d727b; margin:15px 0;">5,000-50,000 ₽</p>
-                    <button class="btn-ui btn-pink caseBtn" data-cost="10000" data-min="5000" data-max="50000" style="width:100%;">10,000 ₽</button>
+                    <button class="btn-ui btn-pink" style="width:100%;" onclick="openBox(10000, 5000, 50000)">10,000 ₽</button>
                 </div>
             </div>
             <div id="boxResCont" style="margin-top:40px; text-align:center;">
@@ -644,7 +665,7 @@
             <h3 style="font-family:'Orbitron'; font-size:16px; margin:30px 0 15px 0; color:var(--accent);">📊 ИСТОРИЯ ИГР</h3>
             <div id="gameHistory"></div>
 
-            <button class="btn-ui btn-accent" style="margin-top:20px;" id="btnDaily">
+            <button class="btn-ui btn-accent" style="margin-top:20px;" onclick="claimDaily()">
                 🎁 ЗАБРАТЬ ЕЖЕДНЕВНЫЙ БОНУС
             </button>
         </div>
@@ -652,7 +673,7 @@
 
     <div class="glass-panel" style="width: 380px;">
         <div class="user-block">
-            <button class="logout-btn" id="btnLogout">ВЫХОД</button>
+            <button class="logout-btn" onclick="logout()">ВЫХОД</button>
             <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
@@ -668,8 +689,8 @@
         <div class="chat-container">
             <div id="chatBox"></div>
             <div style="padding:20px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
-                <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200">
-                <button class="btn-ui btn-accent" style="padding:0 20px;" id="btnChat">></button>
+                <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200" onkeypress="if(event.key==='Enter')sendMsg()">
+                <button class="btn-ui btn-accent" style="padding:0 20px;" onclick="sendMsg()">></button>
             </div>
         </div>
     </div>
@@ -679,228 +700,1128 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-// Firebase инициализация
-firebase.initializeApp({
-    apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
-    databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "tornadogame-41ae2",
-    appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
-});
-const db = firebase.database();
+    const firebaseConfig = {
+        apiKey: "AIzaSyC8UkaoaI7nHRSxNPddRwXnNxzHX7kt8s8",
+        databaseURL: "https://tornadogame-41ae2-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tornadogame-41ae2",
+        appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// Глобальные переменные
-let user = null, userData = {}, authMode = 'login', audioCtx;
-let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
-let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
-let tower = { active: false, bet: 0, level: 0, bombs: [] };
-let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
-
-const GPUS = [
-    {id:'g1', n:'GTX 1050 Ti', p:2000, i:5},
-    {id:'g2', n:'GTX 1660', p:8000, i:15},
-    {id:'g3', n:'RTX 2060', p:20000, i:40},
-    {id:'g4', n:'RTX 3060', p:50000, i:100},
-    {id:'g5', n:'RTX 3070', p:150000, i:300},
-    {id:'g6', n:'RTX 3080', p:400000, i:800},
-    {id:'g7', n:'RTX 3090', p:1000000, i:2000},
-    {id:'g8', n:'RTX 4070', p:2500000, i:5000},
-    {id:'g9', n:'RTX 4090', p:6000000, i:12000},
-    {id:'g10', n:'SERVER ASIC', p:15000000, i:30000}
-];
-
-const ACHIEVEMENTS = [
-    {id:'first_win', name:'Первая победа', desc:'Выиграй первую игру', icon:'🎯', reward:500},
-    {id:'level_10', name:'Опыт', desc:'Достигни 10 уровня', icon:'⭐', reward:2000},
-    {id:'millionaire', name:'Миллионер', desc:'Накопи 1,000,000₽', icon:'💰', reward:50000},
-    {id:'win_streak_5', name:'Серия', desc:'Выиграй 5 раз подряд', icon:'🔥', reward:3000},
-    {id:'gpu_master', name:'Майнер', desc:'Купи 10 видеокарт', icon:'⚡', reward:10000},
-    {id:'high_roller', name:'Хайроллер', desc:'Сделай ставку 10,000₽', icon:'💎', reward:5000},
-    {id:'crash_god', name:'Бог Crash', desc:'Выиграй с x50', icon:'📈', reward:25000},
-    {id:'tower_master', name:'Башня', desc:'Пройди 10 уровней Tower', icon:'🪜', reward:15000}
-];
-
-const RANKS = [
-    {min:0, name:'BRONZE', class:'rank-bronze'},
-    {min:10, name:'SILVER', class:'rank-silver'},
-    {min:25, name:'GOLD', class:'rank-gold'},
-    {min:50, name:'PLATINUM', class:'rank-platinum'},
-    {min:100, name:'DIAMOND', class:'rank-diamond'}
-];
-
-// Утилиты
-function toast(txt, type = 'info') {
-    const container = document.getElementById('notif');
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.innerText = txt;
-    if(type === 'error') el.style.borderColor = 'var(--pink)';
-    if(type === 'success') el.style.borderColor = 'var(--green)';
-    if(type === 'gold') el.style.borderColor = 'var(--gold)';
-    container.appendChild(el);
-    setTimeout(() => { 
-        el.style.opacity = '0'; 
-        el.style.transform = 'translateX(120%)';
-        setTimeout(() => el.remove(), 400); 
-    }, 3500);
-}
-
-function sfx(f, type='sine', d=0.2, v=0.1) {
-    try {
-        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(f, audioCtx.currentTime);
-        g.gain.setValueAtTime(v, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + d);
-    } catch(e) {}
-}
-
-function showWinAnimation(amount) {
-    const el = document.createElement('div');
-    el.className = 'win-animation';
-    el.innerText = '+' + amount.toLocaleString() + ' ₽';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1000);
-}
-
-// Авторизация
-document.getElementById('tabLogin').addEventListener('click', () => {
-    authMode = 'login';
-    document.getElementById('tabLogin').classList.add('active');
-    document.getElementById('tabReg').classList.remove('active');
-});
-
-document.getElementById('tabReg').addEventListener('click', () => {
-    authMode = 'reg';
-    document.getElementById('tabReg').classList.add('active');
-    document.getElementById('tabLogin').classList.remove('active');
-});
-
-document.getElementById('btnAuth').addEventListener('click', () => {
-    const u = document.getElementById('authUser').value.trim().toLowerCase();
-    const p = document.getElementById('authPass').value.trim();
+    let user = null, userData = {}, authMode = 'login', audioCtx, soundEnabled = true;
+    let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
+    let mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
+    let tower = { active: false, bet: 0, level: 0, bombs: [] };
+    let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
     
-    if(u.length < 3) return toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
-    if(p.length < 4) return toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
+    const GPUS = [
+        {id:'g1', n:'GTX 1050 Ti', p:2000, i:5},
+        {id:'g2', n:'GTX 1660', p:8000, i:15},
+        {id:'g3', n:'RTX 2060', p:20000, i:40},
+        {id:'g4', n:'RTX 3060', p:50000, i:100},
+        {id:'g5', n:'RTX 3070', p:150000, i:300},
+        {id:'g6', n:'RTX 3080', p:400000, i:800},
+        {id:'g7', n:'RTX 3090', p:1000000, i:2000},
+        {id:'g8', n:'RTX 4070', p:2500000, i:5000},
+        {id:'g9', n:'RTX 4090', p:6000000, i:12000},
+        {id:'g10', n:'SERVER ASIC', p:15000000, i:30000}
+    ];
 
-    db.ref('users/' + u).once('value').then(snap => {
-        if(authMode === 'login') {
-            if(snap.exists() && snap.val().pass === p) {
-                sfx(600);
-                toast("ВХОД ВЫПОЛНЕН", 'success');
-                runSession(u);
-            } else {
-                toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
-            }
-        } else {
-            if(snap.exists()) {
-                toast("ЛОГИН ЗАНЯТ", 'error');
-            } else {
-                db.ref('users/' + u).set({
-                    pass: p, 
-                    balance: 100, 
-                    xp: 0, 
-                    lvl: 1, 
-                    gpus: {},
-                    stats: {games:0, wins:0, profit:0},
-                    achievements: {},
-                    history: [],
-                    lastDaily: 0,
-                    createdAt: Date.now()
-                }).then(() => {
-                    toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽", 'success');
-                    sfx(800);
+    const ACHIEVEMENTS = [
+        {id:'first_win', name:'Первая победа', desc:'Выиграй первую игру', icon:'🎯', reward:500},
+        {id:'level_10', name:'Опыт', desc:'Достигни 10 уровня', icon:'⭐', reward:2000},
+        {id:'millionaire', name:'Миллионер', desc:'Накопи 1,000,000₽', icon:'💰', reward:50000},
+        {id:'win_streak_5', name:'Серия', desc:'Выиграй 5 раз подряд', icon:'🔥', reward:3000},
+        {id:'gpu_master', name:'Майнер', desc:'Купи 10 видеокарт', icon:'⚡', reward:10000},
+        {id:'high_roller', name:'Хайроллер', desc:'Сделай ставку 10,000₽', icon:'💎', reward:5000},
+        {id:'crash_god', name:'Бог Crash', desc:'Выиграй с x50', icon:'📈', reward:25000},
+        {id:'tower_master', name:'Башня', desc:'Пройди 10 уровней Tower', icon:'🪜', reward:15000}
+    ];
+
+    const RANKS = [
+        {min:0, name:'BRONZE', class:'rank-bronze'},
+        {min:10, name:'SILVER', class:'rank-silver'},
+        {min:25, name:'GOLD', class:'rank-gold'},
+        {min:50, name:'PLATINUM', class:'rank-platinum'},
+        {min:100, name:'DIAMOND', class:'rank-diamond'}
+    ];
+
+    function toast(txt, type = 'info') {
+        const container = document.getElementById('notif');
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.innerText = txt;
+        if(type === 'error') el.style.borderColor = 'var(--pink)';
+        if(type === 'success') el.style.borderColor = 'var(--green)';
+        if(type === 'gold') el.style.borderColor = 'var(--gold)';
+        container.appendChild(el);
+        setTimeout(() => { 
+            el.style.opacity = '0'; 
+            el.style.transform = 'translateX(120%)';
+            setTimeout(() => el.remove(), 400); 
+        }, 3500);
+    }
+
+    function sfx(f, type='sine', d=0.2, v=0.1) {
+        if(!soundEnabled) return;
+        try {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(v, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + d);
+        } catch(e) {}
+    }
+
+    function showWinAnimation(amount) {
+        const el = document.createElement('div');
+        el.className = 'win-animation';
+        el.innerText = '+' + amount.toLocaleString() + ' ₽';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function setAuth(m) {
+        authMode = m;
+        document.getElementById('tabLogin').classList.toggle('active', m==='login');
+        document.getElementById('tabReg').classList.toggle('active', m==='reg');
+    }
+
+    function handleAuth() {
+        const u = document.getElementById('authUser').value.trim().toLowerCase();
+        const p = document.getElementById('authPass').value.trim();
+        
+        if(u.length < 3) {
+            toast("СЛИШКОМ КОРОТКИЙ ЛОГИН", 'error');
+            return;
+        }
+        if(p.length < 4) {
+            toast("СЛИШКОМ КОРОТКИЙ ПАРОЛЬ", 'error');
+            return;
+        }
+
+        db.ref('users/' + u).once('value').then(snap => {
+            if(authMode === 'login') {
+                if(snap.exists() && snap.val().pass === p) {
+                    sfx(600);
+                    toast("ВХОД ВЫПОЛНЕН", 'success');
                     runSession(u);
-                });
+                } else {
+                    toast("НЕВЕРНЫЕ ДАННЫЕ", 'error');
+                }
+            } else {
+                if(snap.exists()) {
+                    toast("ЛОГИН ЗАНЯТ", 'error');
+                } else {
+                    db.ref('users/' + u).set({
+                        pass: p, 
+                        balance: 100, 
+                        xp: 0, 
+                        lvl: 1, 
+                        gpus: {},
+                        stats: {games:0, wins:0, profit:0},
+                        achievements: {},
+                        history: [],
+                        lastDaily: 0,
+                        createdAt: Date.now()
+                    }).then(() => {
+                        toast("РЕГИСТРАЦИЯ УСПЕШНА! +100₽", 'success');
+                        sfx(800);
+                        runSession(u);
+                    });
+                }
+            }
+        });
+    }
+
+    function logout() {
+        if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
+        
+        if(crashInterval) clearInterval(crashInterval);
+        if(passiveInterval) clearInterval(passiveInterval);
+        
+        db.ref('users/' + user).off();
+        db.ref('chat').off();
+        db.ref('pvp').off();
+        
+        user = null;
+        userData = {};
+        crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
+        mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
+        tower = { active: false, bet: 0, level: 0, bombs: [] };
+        
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('authBox').style.display = 'block';
+        document.getElementById('authUser').value = '';
+        document.getElementById('authPass').value = '';
+        
+        toast("ВЫХОД ВЫПОЛНЕН", 'success');
+        sfx(400);
+    }
+
+    function runSession(userId) {
+        user = userId;
+        document.getElementById('authBox').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'grid';
+        document.getElementById('uName').innerText = user.toUpperCase();
+        
+        db.ref('users/' + user).on('value', snap => {
+            userData = snap.val() || {};
+            if(!userData.gpus) userData.gpus = {};
+            if(!userData.stats) userData.stats = {games:0, wins:0, profit:0};
+            if(!userData.achievements) userData.achievements = {};
+            if(!userData.history) userData.history = [];
+            updateUI();
+        });
+
+        db.ref('chat').limitToLast(30).on('child_added', snap => {
+            const m = snap.val();
+            if(!m) return;
+            const box = document.getElementById('chatBox');
+            const d = document.createElement('div');
+            d.className = 'msg';
+            d.innerHTML = `<b>${m.u.toUpperCase()}</b>${m.t}`;
+            box.appendChild(d);
+            box.scrollTop = box.scrollHeight;
+        });
+
+        initCrash();
+        syncLeaders();
+        renderGPUs();
+        loadPVPRooms();
+        updateProfile();
+        initRoulette();
+
+        passiveInterval = setInterval(() => {
+            let inc = 0;
+            GPUS.forEach(g => inc += (userData.gpus?.[g.id] || 0) * g.i);
+            if(inc > 0) {
+                db.ref('users/'+user+'/balance').transaction(b => (b || 0) + inc);
+            }
+        }, 1000);
+    }
+
+    function updateUI() {
+        document.getElementById('uBalance').innerText = Math.floor(userData.balance || 0).toLocaleString() + ' ₽';
+        const nextXp = (userData.lvl || 1) * 2000;
+        const currentXp = userData.xp || 0;
+        document.getElementById('uBar').style.width = Math.min(100, (currentXp / nextXp * 100)) + '%';
+        document.getElementById('uLevel').innerText = `УРОВЕНЬ ${userData.lvl || 1}`;
+        document.getElementById('uXP').innerText = `${currentXp} / ${nextXp} XP`;
+        
+        const rank = RANKS.slice().reverse().find(r => (userData.lvl || 1) >= r.min);
+        const rankEl = document.getElementById('uRank');
+        rankEl.className = 'rank-badge ' + rank.class;
+        rankEl.innerText = rank.name;
+        
+        if(currentXp >= nextXp) {
+            db.ref('users/'+user).transaction(u => {
+                if(u) { 
+                    u.lvl++; 
+                    u.xp = 0; 
+                    u.balance += 5000;
+                    checkAchievement('level_10', u);
+                }
+                return u;
+            });
+            toast("УРОВЕНЬ ПОВЫШЕН! +5,000 ₽", 'success');
+            showWinAnimation(5000);
+            sfx(1000, 'square', 0.5);
+        }
+
+        let p = 0; 
+        GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);
+        document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
+        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 5).toFixed(2)} ₽`;
+        
+        if((userData.balance || 0) >= 1000000) {
+            checkAchievement('millionaire');
+        }
+    }
+
+    function checkAchievement(id, customUser = null) {
+        const u = customUser || userData;
+        if(u.achievements?.[id]) return;
+        
+        const ach = ACHIEVEMENTS.find(a => a.id === id);
+        if(!ach) return;
+        
+        db.ref('users/'+user+'/achievements/'+id).set(true);
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) + ach.reward);
+        toast(`🏆 ДОСТИЖЕНИЕ: ${ach.name.toUpperCase()} +${ach.reward}₽`, 'gold');
+        sfx(1200, 'square', 0.5, 0.15);
+    }
+
+    const cvs = document.getElementById('crashCanvas');
+    const ctx = cvs.getContext('2d');
+
+    function initCrash() {
+        crash.active = false; 
+        crash.mult = 1.0; 
+        crash.cashed = false; 
+        crash.pts = [];
+        crash.waitingForRound = false;
+        crash.bet = 0;
+        
+        document.getElementById('crashMult').style.color = '#fff';
+        document.getElementById('crashProfit').innerText = '';
+        
+        const btn = document.getElementById('btnCrash');
+        btn.innerText = "СДЕЛАТЬ СТАВКУ";
+        btn.classList.remove('btn-disabled', 'btn-green');
+        btn.classList.add('btn-accent');
+        
+        const status = document.getElementById('crashStatus');
+        status.className = 'status-indicator status-waiting';
+        status.innerText = 'ОЖИДАНИЕ';
+        
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        
+        let timer = 5;
+        const countdown = setInterval(() => {
+            document.getElementById('crashMult').innerText = timer.toFixed(1) + 's';
+            timer -= 0.1;
+            if(timer <= 0) { 
+                clearInterval(countdown); 
+                startCrash(); 
+            }
+        }, 100);
+    }
+
+    function startCrash() {
+        crash.active = true;
+        crash.startTime = Date.now();
+        crash.pts = [];
+        cvs.width = cvs.offsetWidth; 
+        cvs.height = cvs.offsetHeight;
+        
+        const btn = document.getElementById('btnCrash');
+        const status = document.getElementById('crashStatus');
+        status.className = 'status-indicator status-active';
+        status.innerText = 'АКТИВНО';
+        
+        if(crash.bet > 0) {
+            btn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+            btn.classList.remove('btn-disabled', 'btn-accent');
+            btn.classList.add('btn-green');
+        } else {
+            btn.innerText = "СТАВОК НЕТ";
+            btn.classList.add('btn-disabled');
+        }
+        
+        let target = (Math.random() < 0.12) ? (1.0 + Math.random() * 0.8) : (Math.random() * 4 + 1.2);
+        if(Math.random() < 0.015) target = 20 + Math.random() * 30;
+
+        crashInterval = setInterval(() => {
+            let elapsed = (Date.now() - crash.startTime) / 1000;
+            crash.mult = Math.pow(1.08, elapsed);
+            
+            ctx.clearRect(0,0,cvs.width, cvs.height);
+            ctx.strokeStyle = '#00f2ff'; 
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10; 
+            ctx.shadowColor = '#00f2ff';
+            
+            let x = (elapsed / 12) * cvs.width;
+            let y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
+            crash.pts.push({x, y});
+            
+            ctx.beginPath();
+            ctx.moveTo(0, cvs.height);
+            crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.stroke();
+
+            if(crash.mult >= target) {
+                clearInterval(crashInterval);
+                crash.active = false;
+                document.getElementById('crashMult').innerText = 'CRASH!';
+                document.getElementById('crashMult').style.color = 'var(--pink)';
+                document.getElementById('crashProfit').innerText = '';
+                
+                status.className = 'status-indicator status-crashed';
+                status.innerText = 'КРАШ!';
+                
+                if(crash.bet > 0 && !crash.cashed) {
+                    addGameHistory('Crash', crash.bet, -crash.bet, 'loss');
+                    toast("КРАШ! СТАВКА ПОТЕРЯНА", 'error');
+                }
+                
+                sfx(100, 'sawtooth', 0.4);
+                setTimeout(initCrash, 3000);
+            } else {
+                document.getElementById('crashMult').innerText = crash.mult.toFixed(2) + 'x';
+                if(crash.bet > 0 && !crash.cashed) {
+                    let profit = Math.floor(crash.bet * crash.mult);
+                    document.getElementById('crashProfit').innerText = '+' + profit.toLocaleString() + ' ₽';
+                    
+                    let auto = parseFloat(document.getElementById('autoCrash').value);
+                    if(!isNaN(auto) && auto > 1 && crash.mult >= auto) {
+                        actionCrash();
+                    }
+                }
+                
+                if(crash.mult >= 50) {
+                    checkAchievement('crash_god');
+                }
+            }
+        }, 50);
+    }
+
+    function actionCrash() {
+        const btn = document.getElementById('btnCrash');
+        
+        if(!crash.active && !crash.waitingForRound && crash.bet === 0) {
+            let amt = parseInt(document.getElementById('betCrash').value);
+            if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+            if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+            
+            crash.bet = amt;
+            crash.waitingForRound = true;
+            db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+            
+            btn.innerText = "ОЖИДАНИЕ РАУНДА...";
+            btn.classList.add('btn-disabled');
+            toast("СТАВКА ПРИНЯТА", 'success');
+            sfx(400);
+            
+            if(amt >= 10000) checkAchievement('high_roller');
+        } 
+        else if(crash.active && crash.bet > 0 && !crash.cashed) {
+            crash.cashed = true;
+            let win = Math.floor(crash.bet * crash.mult);
+            let profit = win - crash.bet;
+            
+            db.ref('users/'+user).transaction(u => {
+                if(u) { 
+                    u.balance = (u.balance || 0) + win; 
+                    u.xp = (u.xp || 0) + Math.floor(profit / 10); 
+                    u.stats.games++;
+                    u.stats.wins++;
+                    u.stats.profit += profit;
+                }
+                return u;
+            });
+            
+            addGameHistory('Crash', crash.bet, profit, 'win');
+            checkWinStreak();
+            
+            btn.innerText = "ВЫПЛАТА: " + win.toLocaleString() + " ₽";
+            btn.classList.remove('btn-green');
+            btn.classList.add('btn-accent', 'btn-disabled');
+            document.getElementById('crashProfit').innerText = '';
+            
+            toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${crash.mult.toFixed(2)}x)`, 'success');
+            showWinAnimation(profit);
+            sfx(800);
+            
+            if((userData.stats?.wins || 0) === 1) {
+                checkAchievement('first_win');
             }
         }
-    });
-});
+    }
 
-// Выход
-document.getElementById('btnLogout').addEventListener('click', () => {
-    if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
-    
-    if(crashInterval) clearInterval(crashInterval);
-    if(passiveInterval) clearInterval(passiveInterval);
-    
-    db.ref('users/' + user).off();
-    db.ref('chat').off();
-    db.ref('pvp').off();
-    
-    user = null;
-    userData = {};
-    crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
-    mines = { active: false, bet: 0, bombs: [], open: 0, total: 3 };
-    tower = { active: false, bet: 0, level: 0, bombs: [] };
-    
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('authBox').style.display = 'block';
-    document.getElementById('authUser').value = '';
-    document.getElementById('authPass').value = '';
-    
-    toast("ВЫХОД ВЫПОЛНЕН", 'success');
-    sfx(400);
-});
+    function clickFarm() {
+        let val = (userData.lvl || 1) * 5;
+        db.ref('users/'+user).transaction(u => {
+            if(u) { 
+                u.balance = (u.balance || 0) + val; 
+                u.xp = (u.xp || 0) + 2; 
+            }
+            return u;
+        });
+        sfx(400, 'sine', 0.1);
+        
+        const btn = event.target.closest('.btn-ui');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 100);
+    }
 
-// Запуск сессии
-function runSession(userId) {
-    user = userId;
-    document.getElementById('authBox').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'grid';
-    document.getElementById('uName').innerText = user.toUpperCase();
-    
-    db.ref('users/' + user).on('value', snap => {
-        userData = snap.val() || {};
-        if(!userData.gpus) userData.gpus = {};
-        if(!userData.stats) userData.stats = {games:0, wins:0, profit:0};
-        if(!userData.achievements) userData.achievements = {};
-        if(!userData.history) userData.history = [];
-        updateUI();
-    });
+    function renderGPUs() {
+        const cont = document.getElementById('listGPU');
+        cont.innerHTML = '';
+        let totalOwned = 0;
+        GPUS.forEach(g => {
+            const owned = userData.gpus?.[g.id] || 0;
+            totalOwned += owned;
+            const d = document.createElement('div');
+            d.className = 'gpu-card';
+            d.innerHTML = `
+                <div>
+                    <div style="font-weight:800; font-size:14px;">${g.n}</div>
+                    <div style="font-size:10px; color:var(--green);">+${g.i.toLocaleString()} ₽/сек</div>
+                    ${owned > 0 ? `<div class="gpu-owned">КУПЛЕНО: ${owned}</div>` : ''}
+                </div>
+                <button class="btn-ui btn-accent" style="padding:10px 15px; font-size:10px;" onclick="buyGPU('${g.id}')">
+                    ${g.p.toLocaleString()} ₽
+                </button>
+            `;
+            cont.appendChild(d);
+        });
+        
+        if(totalOwned >= 10) checkAchievement('gpu_master');
+    }
 
-    db.ref('chat').limitToLast(30).on('child_added', snap => {
-        const m = snap.val();
-        if(!m) return;
-        const box = document.getElementById('chatBox');
-        const d = document.createElement('div');
-        d.className = 'msg';
-        d.innerHTML = `<b>${m.u.toUpperCase()}</b>${m.t}`;
-        box.appendChild(d);
-        box.scrollTop = box.scrollHeight;
-    });
+    function buyGPU(id) {
+        const g = GPUS.find(x => x.id === id);
+        if((userData.balance || 0) >= g.p) {
+            db.ref('users/'+user).transaction(u => {
+                if(u) {
+                    if(!u.gpus) u.gpus = {};
+                    u.gpus[id] = (u.gpus[id] || 0) + 1;
+                    u.balance = (u.balance || 0) - g.p;
+                }
+                return u;
+            });
+            toast("ВИДЕОКАРТА КУПЛЕНА", 'success');
+            sfx(900);
+            setTimeout(renderGPUs, 100);
+        } else toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+    }
 
-    initCrash();
-    syncLeaders();
-    renderGPUs();
-    loadPVPRooms();
-    initRoulette();
+    function showTab(btn, id) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.viewport').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+        
+        if(id === 'viewProfile') updateProfile();
+    }
 
-    passiveInterval = setInterval(() => {
-        let inc = 0;
-        GPUS.forEach(g => inc += (userData.gpus?.[g.id] || 0) * g.i);
-        if(inc > 0) {
-            db.ref('users/'+user+'/balance').transaction(b => (b || 0) + inc);
+    function sendMsg() {
+        const inp = document.getElementById('chatInput');
+        const msg = inp.value.trim();
+        if(msg && msg.length > 0) {
+            db.ref('chat').push({ 
+                u: user, 
+                t: msg,
+                time: Date.now()
+            });
+            inp.value = '';
+            sfx(500, 'sine', 0.1);
         }
-    }, 1000);
-}
+    }
 
-function updateUI() {
-    document.getElementById('uBalance').innerText = Math.floor(userData.balance || 0).toLocaleString() + ' ₽';
-    const nextXp = (userData.lvl || 1) * 2000;
-    const currentXp = userData.xp || 0;
-    document.getElementById('uBar').style.width = Math.min(100, (currentXp / nextXp * 100)) + '%';
-    document.getElementById('uLevel').innerText = `УРОВЕНЬ ${userData.lvl || 1}`;
-    document.getElementById('uXP').innerText = `${currentXp} / ${nextXp} XP`;
-    
-    const rank = RANKS.slice().reverse().find(r => (userData.lvl || 1) >= r.min);
-    const rankEl = document.getElementById('uRank');
-    rankEl.className = 'rank-badge ' + rank.class;
-    rankEl.innerText = rank.name;
-    
-    if(currentXp >= nextXp) {
+    function syncLeaders() {
+        db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
+            const cont = document.getElementById('listTop');
+            cont.innerHTML = '';
+            let arr = [];
+            snap.forEach(u => {
+                const val = u.val();
+                arr.push({n: u.key, b: val.balance || 0, l: val.lvl || 1});
+            });
+            arr.reverse().forEach((u, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+                const rank = RANKS.slice().reverse().find(r => u.l >= r.min);
+                cont.innerHTML += `
+                    <div class="leader-card">
+                        <span>${medal} #${i+1} ${u.n.toUpperCase()} <span style="font-size:10px; color:${rank.class.includes('bronze')?'#cd7f32':rank.class.includes('silver')?'#c0c0c0':rank.class.includes('gold')?'var(--gold)':rank.class.includes('platinum')?'#e5e4e2':'var(--accent)'};">${rank.name}</span></span>
+                        <b style="color:var(--accent)">${Math.floor(u.b).toLocaleString()} ₽</b>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    function addGameHistory(game, bet, profit, result) {
+        const entry = {game, bet, profit, result, time:Date.now()};
+        db.ref('users/'+user+'/history').transaction(h => {
+            if(!h) h = [];
+            h.unshift(entry);
+            return h.slice(0, 20);
+        });
+        
+        db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
+        if(result === 'win') {
+            db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
+        }
+        db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
+    }
+
+    function checkWinStreak() {
+        const history = userData.history || [];
+        let streak = 0;
+        for(let h of history) {
+            if(h.result === 'win') streak++;
+            else break;
+        }
+        if(streak >= 5) checkAchievement('win_streak_5');
+    }
+
+    function updateProfile() {
+        const stats = userData.stats || {games:0, wins:0, profit:0};
+        document.getElementById('statGames').innerText = stats.games || 0;
+        document.getElementById('statWins').innerText = stats.wins || 0;
+        document.getElementById('statProfit').innerText = (stats.profit || 0).toLocaleString() + ' ₽';
+        const winrate = stats.games > 0 ? ((stats.wins / stats.games) * 100).toFixed(1) : 0;
+        document.getElementById('statWinrate').innerText = winrate + '%';
+        
+        const achCont = document.getElementById('achievements');
+        achCont.innerHTML = '';
+        ACHIEVEMENTS.forEach(ach => {
+            const unlocked = userData.achievements?.[ach.id];
+            achCont.innerHTML += `
+                <div class="achievement ${unlocked?'':'locked'}">
+                    <div class="achievement-icon">${ach.icon}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:800; font-size:13px;">${ach.name}</div>
+                        <div style="font-size:11px; color:#5d727b;">${ach.desc}</div>
+                    </div>
+                    <div style="color:var(--gold); font-weight:800; font-size:12px;">+${ach.reward}₽</div>
+                </div>
+            `;
+        });
+        
+        const histCont = document.getElementById('gameHistory');
+        histCont.innerHTML = '';
+        const history = userData.history || [];
+        history.slice(0, 10).forEach(h => {
+            const date = new Date(h.time).toLocaleTimeString('ru-RU');
+            histCont.innerHTML += `
+                <div class="history-item history-${h.result}">
+                    <span><b>${h.game}</b> • ${date}</span>
+                    <span style="color:${h.profit>=0?'var(--green)':'var(--pink)'}; font-weight:800;">
+                        ${h.profit>=0?'+':'}${h.profit.toLocaleString()}₽
+                    </span>
+                </div>
+            `;
+        });
+    }
+
+    function claimDaily() {
+        const now = Date.now();
+        const lastDaily = userData.lastDaily || 0;
+        const dayMs = 24 * 60 * 60 * 1000;
+        
+        if(now - lastDaily < dayMs) {
+            const left = dayMs - (now - lastDaily);
+            const hours = Math.floor(left / (60 * 60 * 1000));
+            toast(`СЛЕДУЮЩИЙ БОНУС ЧЕРЕЗ ${hours}Ч`, 'error');
+            return;
+        }
+        
+        const level = userData.lvl || 1;
+        const bonus = 100 + (level * 50);
+        
         db.ref('users/'+user).transaction(u => {
             if(u) {
+                u.balance = (u.balance || 0) + bonus;
+                u.lastDaily = now;
+            }
+            return u;
+        });
+        
+        toast(`ЕЖЕДНЕВНЫЙ БОНУС: +${bonus}₽`, 'gold');
+        showWinAnimation(bonus);
+        sfx(1000, 'square', 0.5);
+    }
+
+    const bgCvs = document.getElementById('bgCanvas');
+    const bgCtx = bgCvs.getContext('2d');
+    let parts = [];
+    
+    function initBg() {
+        bgCvs.width = window.innerWidth; 
+        bgCvs.height = window.innerHeight;
+        parts = [];
+        for(let i=0; i<70; i++) {
+            parts.push({
+                x: Math.random()*bgCvs.width, 
+                y: Math.random()*bgCvs.height, 
+                s: Math.random()*2 + 0.5, 
+                v: Math.random()*0.5 + 0.2
+            });
+        }
+    }
+    
+    function drawBg() {
+        bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
+        bgCtx.fillStyle = '#00f2ff';
+        bgCtx.shadowBlur = 5;
+        bgCtx.shadowColor = '#00f2ff';
+        
+        parts.forEach(p => {
+            bgCtx.beginPath(); 
+            bgCtx.arc(p.x, p.y, p.s, 0, Math.PI*2); 
+            bgCtx.fill();
+            p.y -= p.v; 
+            if(p.y < -10) {
+                p.y = bgCvs.height + 10;
+                p.x = Math.random() * bgCvs.width;
+            }
+        });
+        requestAnimationFrame(drawBg);
+    }
+    
+    window.addEventListener('resize', initBg);
+    initBg(); 
+    drawBg();
+
+    function toggleMines() {
+        if(mines.active) return collectMines();
+        
+        let amt = parseInt(document.getElementById('betMines').value);
+        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        mines = { 
+            active: true, 
+            bet: amt, 
+            bombs: [], 
+            open: 0, 
+            total: parseInt(document.getElementById('cntMines').value) 
+        };
+        
+        while(mines.bombs.length < mines.total) {
+            let r = Math.floor(Math.random()*25);
+            if(!mines.bombs.includes(r)) mines.bombs.push(r);
+        }
+        
+        const g = document.getElementById('gridMines'); 
+        g.innerHTML = '';
+        for(let i=0; i<25; i++) {
+            const c = document.createElement('div');
+            c.className = 'game-cell';
+            c.dataset.index = i;
+            c.onclick = () => openMine(i, c);
+            g.appendChild(c);
+        }
+        
+        document.getElementById('btnMines').innerText = "ЗАБРАТЬ 1.00x";
+        document.getElementById('btnMines').classList.remove('btn-accent');
+        document.getElementById('btnMines').classList.add('btn-green');
+        document.getElementById('minesOpened').innerText = '0';
+        document.getElementById('minesMulti').innerText = '1.00x';
+        
+        toast("ИГРА НАЧАЛАСЬ", 'success');
+        sfx(400);
+    }
+
+    function openMine(idx, el) {
+        if(!mines.active || el.classList.contains('active') || el.classList.contains('death')) return;
+        
+        if(mines.bombs.includes(idx)) {
+            mines.active = false; 
+            el.classList.add('death'); 
+            el.innerText = '💣';
+            
+            document.querySelectorAll('.game-cell').forEach((cell, i) => {
+                cell.onclick = null;
+                if(mines.bombs.includes(i) && i !== idx) {
+                    setTimeout(() => {
+                        cell.classList.add('death');
+                        cell.innerText = '💣';
+                    }, Math.random() * 500);
+                }
+            });
+            
+            addGameHistory('Mines', mines.bet, -mines.bet, 'loss');
+            
+            sfx(100, 'sawtooth', 0.5);
+            toast("ВЗРЫВ! СТАВКА ПОТЕРЯНА", 'error');
+            
+            setTimeout(() => { 
+                document.getElementById('gridMines').innerHTML = '';
+                const btn = document.getElementById('btnMines');
+                btn.innerText = "НАЧАТЬ ИГРУ";
+                btn.classList.remove('btn-green');
+                btn.classList.add('btn-accent');
+                document.getElementById('minesOpened').innerText = '0';
+                document.getElementById('minesMulti').innerText = '1.00x';
+            }, 2000);
+        } else {
+            mines.open++; 
+            el.classList.add('active'); 
+            el.innerText = '💎'; 
+            el.onclick = null;
+            sfx(600);
+            
+            let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+            document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            document.getElementById('minesOpened').innerText = mines.open;
+            document.getElementById('minesMulti').innerText = curMult.toFixed(2) + 'x';
+        }
+    }
+
+    function collectMines() {
+        if(!mines.active || mines.open === 0) return toast("ОТКРОЙТЕ ХОТЯ БЫ ОДНУ КЛЕТКУ", 'error');
+        
+        let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+        let win = Math.floor(mines.bet * curMult);
+        let profit = win - mines.bet;
+        
+        db.ref('users/'+user).transaction(u => { 
+            if(u) { 
+                u.balance = (u.balance || 0) + win; 
+                u.xp = (u.xp || 0) + Math.floor(profit / 10);
+            } 
+            return u; 
+        });
+        
+        addGameHistory('Mines', mines.bet, profit, 'win');
+        checkWinStreak();
+        
+        mines.active = false;
+        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+        showWinAnimation(profit);
+        sfx(900);
+        
+        document.getElementById('gridMines').innerHTML = '';
+        const btn = document.getElementById('btnMines');
+        btn.innerText = "НАЧАТЬ ИГРУ";
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+        document.getElementById('minesOpened').innerText = '0';
+        document.getElementById('minesMulti').innerText = '1.00x';
+    }
+
+    function toggleTower() {
+        if(tower.active) return collectTower();
+        
+        let amt = parseInt(document.getElementById('betTower').value);
+        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        tower = { active: true, bet: amt, level: 0, bombs: [] };
+        
+        for(let i=0; i<10; i++) {
+            tower.bombs.push(Math.floor(Math.random()*3));
+        }
+        
+        const grid = document.getElementById('gridTower');
+        grid.innerHTML = '';
+        
+        for(let row=0; row<10; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;';
+            for(let col=0; col<3; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'game-cell tower';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                if(row === 0) {
+                    cell.onclick = () => stepTower(row, col, cell);
+                } else {
+                    cell.style.opacity = '0.3';
+                }
+                rowDiv.appendChild(cell);
+            }
+            grid.appendChild(rowDiv);
+        }
+        
+        document.getElementById('btnTower').innerText = "ЗАБРАТЬ 1.00x";
+        document.getElementById('btnTower').classList.remove('btn-accent');
+        document.getElementById('btnTower').classList.add('btn-green');
+        document.getElementById('towerLevel').innerText = '0';
+        document.getElementById('towerMulti').innerText = '1.00x';
+        
+        toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
+        sfx(400);
+    }
+
+    function stepTower(row, col, el) {
+        if(!tower.active || row !== tower.level) return;
+        
+        if(tower.bombs[row] === col) {
+            tower.active = false;
+            el.classList.add('death');
+            el.innerText = '💣';
+            
+            document.querySelectorAll('.game-cell.tower').forEach(c => c.onclick = null);
+            
+            addGameHistory('Tower', tower.bet, -tower.bet, 'loss');
+            
+            sfx(100, 'sawtooth', 0.5);
+            toast("ПРОВАЛ! СТАВКА ПОТЕРЯНА", 'error');
+            
+            setTimeout(() => {
+                document.getElementById('gridTower').innerHTML = '';
+                const btn = document.getElementById('btnTower');
+                btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+                btn.classList.remove('btn-green');
+                btn.classList.add('btn-accent');
+            }, 2000);
+        } else {
+            tower.level++;
+            el.classList.add('active');
+            el.innerText = '⭐';
+            el.onclick = null;
+            sfx(700);
+            
+            const curMult = Math.pow(1.4, tower.level);
+            document.getElementById('towerLevel').innerText = tower.level;
+            document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
+            document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            
+            if(tower.level < 10) {
+                document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
+                    c.style.opacity = '1';
+                    c.onclick = () => stepTower(tower.level, parseInt(c.dataset.col), c);
+                });
+            } else {
+                collectTower();
+            }
+            
+            if(tower.level >= 10) checkAchievement('tower_master');
+        }
+    }
+
+    function collectTower() {
+        if(!tower.active || tower.level === 0) return toast("ПРОЙДИТЕ ХОТЯ БЫ ОДИН УРОВЕНЬ", 'error');
+        
+        const curMult = Math.pow(1.4, tower.level);
+        let win = Math.floor(tower.bet * curMult);
+        let profit = win - tower.bet;
+        
+        db.ref('users/'+user).transaction(u => {
+            if(u) {
+                u.balance = (u.balance || 0) + win;
+                u.xp = (u.xp || 0) + Math.floor(profit / 10);
+            }
+            return u;
+        });
+        
+        addGameHistory('Tower', tower.bet, profit, 'win');
+        checkWinStreak();
+        
+        tower.active = false;
+        toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${curMult.toFixed(2)}x)`, 'success');
+        showWinAnimation(profit);
+        sfx(1100);
+        
+        document.getElementById('gridTower').innerHTML = '';
+        const btn = document.getElementById('btnTower');
+        btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+        document.getElementById('towerLevel').innerText = '0';
+        document.getElementById('towerMulti').innerText = '1.00x';
+    }
+
+    function initRoulette() {
+        const strip = document.getElementById('rouletteStrip');
+        strip.innerHTML = '';
+        const colors = ['red', 'black', 'green'];
+        const symbols = {'red':'🔴', 'black':'⚫', 'green':'🟢'};
+        for(let i=0; i<100; i++) {
+            const color = Math.random() < 0.07 ? 'green' : (Math.random() < 0.5 ? 'red' : 'black');
+            const item = document.createElement('div');
+            item.className = 'roulette-item';
+            item.style.background = color === 'green' ? 'rgba(0,255,136,0.1)' : color === 'red' ? 'rgba(255,0,123,0.1)' : 'rgba(255,255,255,0.05)';
+            item.innerHTML = `<div style="font-size:36px;">${symbols[color]}</div>`;
+            item.dataset.color = color;
+            strip.appendChild(item);
+        }
+    }
+
+    function playRoulette() {
+        if(rouletteSpinning) return;
+        
+        let amt = parseInt(document.getElementById('betRoulette').value);
+        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        const betColor = document.getElementById('colorRoulette').value;
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        rouletteSpinning = true;
+        document.getElementById('btnRoulette').classList.add('btn-disabled');
+        
+        const strip = document.getElementById('rouletteStrip');
+        const result = Math.random() < 0.07 ? 'green' : (Math.random() < 0.5 ? 'red' : 'black');
+        const targetIndex = Math.floor(Math.random() * 20) + 70;
+        
+        document.querySelectorAll('.roulette-item')[targetIndex].dataset.color = result;
+        const symbols = {'red':'🔴', 'black':'⚫', 'green':'🟢'};
+        document.querySelectorAll('.roulette-item')[targetIndex].innerHTML = `<div style="font-size:36px;">${symbols[result]}</div>`;
+        
+        const offset = -(targetIndex * 100) + (window.innerWidth / 2);
+        strip.style.transform = `translateX(${offset}px)`;
+        
+        sfx(600);
+        
+        setTimeout(() => {
+            rouletteSpinning = false;
+            document.getElementById('btnRoulette').classList.remove('btn-disabled');
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateX(0)';
+            setTimeout(() => { strip.style.transition = ''; initRoulette(); }, 100);
+            
+            if(result === betColor) {
+                const multi = result === 'green' ? 14 : 2;
+                const win = amt * multi;
+                const profit = win - amt;
+                
+                db.ref('users/'+user).transaction(u => {
+                    if(u) {
+                        u.balance = (u.balance || 0) + win;
+                        u.xp = (u.xp || 0) + Math.floor(profit / 10);
+                    }
+                    return u;
+                });
+                
+                addGameHistory('Roulette', amt, profit, 'win');
+                checkWinStreak();
+                
+                toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
+                showWinAnimation(profit);
+                sfx(1000);
+            } else {
+                addGameHistory('Roulette', amt, -amt, 'loss');
+                toast("ПРОИГРЫШ!", 'error');
+                sfx(200, 'sawtooth');
+            }
+        }, 3200);
+    }
+
+    function createPVPRoom() {
+        let amt = parseInt(document.getElementById('betPVP').value);
+        if(isNaN(amt) || amt < 50) return toast("МИНИМАЛЬНАЯ СТАВКА 50₽", 'error');
+        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        const side = document.getElementById('sidePVP').value;
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+        
+        const room = {
+            creator: user,
+            bet: amt,
+            side: side,
+            createdAt: Date.now()
+        };
+        
+        db.ref('pvp').push(room);
+        toast("КОМНАТА СОЗДАНА", 'success');
+        sfx(600);
+    }
+
+    function loadPVPRooms() {
+        db.ref('pvp').on('value', snap => {
+            const cont = document.getElementById('pvpRooms');
+            cont.innerHTML = '';
+            
+            snap.forEach(room => {
+                const data = room.val();
+                if(data.creator === user) return;
+                
+                const div = document.createElement('div');
+                div.className = 'pvp-room';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:800; color:var(--pink);">${data.creator.toUpperCase()}</div>
+                        <div style="font-size:11px; color:#5d727b;">${data.bet.toLocaleString()}₽ • ${data.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}</div>
+                    </div>
+                    <button class="btn-ui btn-pink" style="padding:10px 20px; font-size:11px;" onclick="joinPVP('${room.key}', ${data.bet}, '${data.side}', '${data.creator}')">
+                        ПРИНЯТЬ
+                    </button>
+                `;
+                cont.appendChild(div);
+            });
+            
+            if(cont.innerHTML === '') {
+                cont.innerHTML = '<div style="text-align:center; color:#5d727b; padding:40px;">НЕТ АКТИВНЫХ КОМНАТ</div>';
+            }
+        });
+    }
+
+    function joinPVP(roomKey, bet, creatorSide, creator) {
+        if((userData.balance || 0) < bet) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - bet);
+        
+        const result = Math.random() < 0.5 ? 'heads' : 'tails';
+        const creatorWon = result === creatorSide;
+        const winner = creatorWon ? creator : user;
+        const loser = creatorWon ? user : creator;
+        
+        const totalPot = bet * 2;
+        const fee = Math.floor(totalPot * 0.05);
+        const payout = totalPot - fee;
+        
+        db.ref('users/'+winner+'/balance').transaction(b => (b || 0) + payout);
+        
+        if(winner === user) {
+            const profit = payout - bet;
+            addGameHistory('PVP', bet, profit, 'win');
+            checkWinStreak();
+            toast(`ПОБЕДА В PVP! +${profit.toLocaleString()}₽`, 'success');
+            showWinAnimation(profit);
+            sfx(1200);
+        } else {
+            addGameHistory('PVP', bet, -bet, 'loss');
+            toast("ПРОИГРЫШ В PVP", 'error');
+            sfx(200, 'sawtooth');
+        }
+        
+        db.ref('pvp/' + roomKey).remove();
+    }
+
+    function openBox(cost, min, max) {
+        if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+        
+        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - cost);
+        
+        const res = document.getElementById('boxRes');
+        res.style.color = 'var(--accent)';
+        res.innerText = "ROLLING...";
+        
+        let count = 0;
+        const rolling = setInterval(() => {
+            res.innerText = Math.floor(Math.random()*(max-min)+min).toLocaleString() + " ₽";
+            sfx(800 + Math.random()*200, 'sine', 0.05, 0.05);
+            count++;
+            
+            if(count > 25) {
+                clearInterval(rolling);
+                
+                let final;
+                const roll = Math.random();
+                if(roll < 0.70) {
+                    final = Math.floor(min + (cost - min) * (0.4 + Math.random() * 0.5));
+                } else if(roll < 0.95) {
+                    final = Math.floor(cost * (1.1 + Math.random() * 0.2));
+                } else {
+                    final = Math.floor(Math.min(max, cost * (1.5 + Math.random() * 0.5)));
+                }
+                
+                res.style.color = final > cost ? 'var(--green)' : 'var(--pink)';
+                res.innerText = final.toLocaleString() + " ₽";
+                
+                db.ref('users/'+user).transaction(u => { 
+                    if(u) {
+                        u.balance = (u.balance || 0) + final;
+                        if(final > cost) {
+                            u.xp = (u.xp || 0) + Math.floor((final - cost) / 10);
+                        }
+                    }
+                    return u; 
+                });
+                
+                const profit = final - cost;
+                addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
+                
+                if(profit > 0) {
+                    toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
+                    showWinAnimation(profit);
+                    sfx(1200, 'square', 0.3);
+                    checkWinStreak();
+                } else {
+                    toast(`ПРОИГРЫШ: ${profit.toLocaleString()} ₽`, 'error');
+                    sfx(200, 'sawtooth', 0.3);
+                }
+            }
+        }, 80);
+    }
+</script>
+</body>
+</html>
