@@ -1365,7 +1365,15 @@ localStorage.removeItem('tornado_user');
     window.addEventListener('resize', initBg);
     initBg(); 
     drawBg();
-
+    
+    function minesMultiplier(opened, bombs, edge = 0.04) {
+    let mult = 1;
+    for (let i = 0; i < opened; i++) {
+        mult *= (25 - i) / (25 - bombs - i);
+    }
+    mult *= (1 - edge);
+    return mult;
+}
     function toggleMines() {
         if(mines.active) return collectMines();
         
@@ -1447,7 +1455,7 @@ localStorage.removeItem('tornado_user');
             el.onclick = null;
             sfx(600);
             
-            let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+            let curMult = minesMultiplier(mines.open, mines.total, 0.04);
             document.getElementById('btnMines').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
             document.getElementById('minesOpened').innerText = mines.open;
             document.getElementById('minesMulti').innerText = curMult.toFixed(2) + 'x';
@@ -1455,9 +1463,10 @@ localStorage.removeItem('tornado_user');
     }
 
     function collectMines() {
-        if(!mines.active || mines.open === 0) return toast("ОТКРОЙТЕ ХОТЯ БЫ ОДНУ КЛЕТКУ", 'error');
-        
-        let curMult = 1 + (mines.open * 0.25 * (mines.total/5));
+        if (!mines.active) return toast("ИГРА НЕ АКТИВНА — НАЖМИТЕ «НАЧАТЬ ИГРУ»", 'error');
+        if (mines.open === 0) return toast("ОТКРОЙТЕ ХОТЯ БЫ ОДНУ КЛЕТКУ", 'error');
+
+        let curMult = minesMultiplier(mines.open, mines.total, 0.04);
         let win = Math.floor(mines.bet * curMult);
         let profit = win - mines.bet;
         
@@ -1845,5 +1854,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
