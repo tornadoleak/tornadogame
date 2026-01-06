@@ -1771,79 +1771,79 @@ localStorage.removeItem('tornado_user');
     }
 
     function openBox(cost, min, max) {
-        if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
-        
-        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - cost);
-        
-        const res = document.getElementById('boxRes');
-        res.style.color = 'var(--accent)';
-        res.innerText = "ROLLING...";
-        
-        let count = 0;
-        const rolling = setInterval(() => {
-            res.innerText = Math.floor(Math.random()*(max-min)+min).toLocaleString() + " ₽";
-            sfx(800 + Math.random()*200, 'sine', 0.05, 0.05);
-            count++;
-            
-            if(count > 25) {
-                clearInterval(rolling);
-                
-                let final;
-                const roll = Math.random();
-                if(roll < 0.70) {
-                    final = Math.floor(min + (cost - min) * (0.4 + Math.random() * 0.5));
-                } else if(roll < 0.95) {
-                    final = Math.floor(cost * (1.1 + Math.random() * 0.2));
-                } else {
-                    final = Math.floor(Math.min(max, cost * (1.5 + Math.random() * 0.5)));
-                }
-                
-                res.style.color = final > cost ? 'var(--green)' : 'var(--pink)';
-                res.innerText = final.toLocaleString() + " ₽";
-                
-                db.ref('users/'+user).transaction(u => { 
-                    if(u) {
-                        u.balance = (u.balance || 0) + final;
-                        if(final > cost) {
-                            u.xp = (u.xp || 0) + Math.floor((final - cost) / 10);
-                        }
-                    }
-                    return u; 
-                });
-                
-                const profit = final - cost;
-                addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
-                
-                if(profit > 0) {
-                    toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
-                    showWinAnimation(profit);
-                    sfx(1200, 'square', 0.3);
-                    checkWinStreak();
-                } else {
-                    toast(`ПРОИГРЫШ: ${profit.toLocaleString()} ₽`, 'error');
-                    sfx(200, 'sawtooth', 0.3);
-                }
-            }
-        }, 80);
-    }
-        }
-    
-    // ✅ АВТОВХОД ПОСЛЕ ОБНОВЛЕНИЯ СТРАНИЦЫ
-    window.addEventListener('load', () => {
-        const saved = localStorage.getItem('tornado_user');
-        if (!saved) return;
+    if((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
 
-        db.ref('users/' + saved).once('value')
-            .then(snap => {
-                if (snap.exists()) {
-                    runSession(saved);
-                } else {
-                    localStorage.removeItem('tornado_user');
+    db.ref('users/'+user+'/balance').transaction(b => (b || 0) - cost);
+
+    const res = document.getElementById('boxRes');
+    res.style.color = 'var(--accent)';
+    res.innerText = "ROLLING...";
+
+    let count = 0;
+    const rolling = setInterval(() => {
+        res.innerText = Math.floor(Math.random()*(max-min)+min).toLocaleString() + " ₽";
+        sfx(800 + Math.random()*200, 'sine', 0.05, 0.05);
+        count++;
+
+        if(count > 25) {
+            clearInterval(rolling);
+
+            let final;
+            const roll = Math.random();
+            if(roll < 0.70) {
+                final = Math.floor(min + (cost - min) * (0.4 + Math.random() * 0.5));
+            } else if(roll < 0.95) {
+                final = Math.floor(cost * (1.1 + Math.random() * 0.2));
+            } else {
+                final = Math.floor(Math.min(max, cost * (1.5 + Math.random() * 0.5)));
+            }
+
+            res.style.color = final > cost ? 'var(--green)' : 'var(--pink)';
+            res.innerText = final.toLocaleString() + " ₽";
+
+            db.ref('users/'+user).transaction(u => {
+                if(u) {
+                    u.balance = (u.balance || 0) + final;
+                    if(final > cost) {
+                        u.xp = (u.xp || 0) + Math.floor((final - cost) / 10);
+                    }
                 }
-            })
-            .catch(err => console.error('AUTOLOGIN FAIL:', err));
-    });
+                return u;
+            });
+
+            const profit = final - cost;
+            addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
+
+            if(profit > 0) {
+                toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
+                showWinAnimation(profit);
+                sfx(1200, 'square', 0.3);
+                checkWinStreak();
+            } else {
+                toast(`ПРОИГРЫШ: ${profit.toLocaleString()} ₽`, 'error');
+                sfx(200, 'sawtooth', 0.3);
+            }
+        }
+    }, 80);
+}
+
+// ✅ АВТОВХОД ПОСЛЕ ОБНОВЛЕНИЯ СТРАНИЦЫ
+window.addEventListener('load', () => {
+    const saved = localStorage.getItem('tornado_user');
+    if (!saved) return;
+
+    db.ref('users/' + saved).once('value')
+        .then(snap => {
+            if (snap.exists()) {
+                runSession(saved);
+            } else {
+                localStorage.removeItem('tornado_user');
+            }
+        })
+        .catch(err => console.error('AUTOLOGIN FAIL:', err));
+});
 </script>
 </body>
 </html>
+
 
