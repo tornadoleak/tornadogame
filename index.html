@@ -535,7 +535,7 @@
             <div style="text-align:center; margin-bottom:15px; font-family:'Orbitron'; color:var(--accent); font-size:18px;">
                 УРОВЕНЬ: <span id="towerLevel">0</span> | МНОЖИТЕЛЬ: <span id="towerMulti">1.00x</span>
             </div>
-            <div id="gridTower" style="display:flex; flex-direction:column-reverse; gap:10px; max-width:450px; width:100%; margin:0 auto;"></div>
+            <div id="gridTower" style="display:flex; flex-direction:column-reverse; gap:10px; max-width:340px; width:100%; margin:0 auto;"></div>
             <button id="btnTower" class="btn-ui btn-accent" onclick="toggleTower()" style="margin-top:20px;">НАЧАТЬ ВОСХОЖДЕНИЕ</button>
         </div>
 
@@ -1508,7 +1508,11 @@ localStorage.removeItem('tornado_user');
     }
 
     function toggleTower() {
-        if(tower.active) return collectTower();
+    
+    if (tower.active) {
+        if (tower.level === 0) return toast("ОТКРОЙТЕ ПЛИТКУ", 'error');
+        return collectTower();
+    }
         
         let amt = parseInt(document.getElementById('betTower').value);
         if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
@@ -1584,9 +1588,10 @@ localStorage.removeItem('tornado_user');
             
             const curMult = Math.pow(1.4, tower.level);
             const payout = Math.floor(tower.bet * curMult);
+
             document.getElementById('towerLevel').innerText = tower.level;
             document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
-            document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${curMult.toFixed(2)}x`;
+            document.getElementById('btnTower').innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
             
             if(tower.level < 10) {
                 document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
@@ -1867,6 +1872,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
