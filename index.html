@@ -1508,55 +1508,78 @@ localStorage.removeItem('tornado_user');
     }
 
     function toggleTower() {
-    
+    // Если игра активна
     if (tower.active) {
-        if (tower.level === 0) return toast("ОТКРОЙТЕ ПЛИТКУ", 'error');
+        // Если уровень равен 0 (игрок попал на бомбу)
+        if (tower.level === 0) {
+            // Блокируем кнопку "Забрать" на 2 секунды
+            document.getElementById('btnTower').disabled = true;  // Блокируем кнопку
+            setTimeout(() => {
+                document.getElementById('btnTower').disabled = false; // Разблокируем кнопку через 2 секунды
+            }, 2000);
+            return collectTower(); // Забрать выигрыш
+        }
         return collectTower();
     }
-        
-        let amt = parseInt(document.getElementById('betTower').value);
-        if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
-        if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
-        
-        db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
-        
-        tower = { active: true, bet: amt, level: 0, bombs: [] };
-        
-        for(let i=0; i<10; i++) {
-            tower.bombs.push(Math.floor(Math.random()*3));
-        }
-        
-        const grid = document.getElementById('gridTower');
-        grid.innerHTML = '';
-        
-        for(let row=0; row<10; row++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%;';
-            for(let col=0; col<3; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'game-cell tower';
-                cell.dataset.row = row;
-                cell.dataset.col = col;
-                if(row === 0) {
-                    cell.onclick = () => stepTower(row, col, cell);
-                } else {
-                    cell.style.opacity = '0.3';
-                }
-                rowDiv.appendChild(cell);
-            }
-            grid.appendChild(rowDiv);
-        }
-        
-        document.getElementById('btnTower').innerText = "ОТКРОЙТЕ ПЛИТКУ";
-        document.getElementById('btnTower').classList.remove('btn-accent');
-        document.getElementById('btnTower').classList.add('btn-green');
-        document.getElementById('towerLevel').innerText = '0';
-        document.getElementById('towerMulti').innerText = '1.00x';
-        
-        toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
-        sfx(400);
+    
+    // Обрабатываем ставку
+    let amt = parseInt(document.getElementById('betTower').value);
+    if (isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
+    if (amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+    
+    // Обновляем баланс игрока
+    db.ref('users/' + user + '/balance').transaction(b => (b || 0) - amt);
+    
+    // Настройка параметров игры
+    tower = { 
+        active: true, 
+        bet: amt, 
+        level: 0, 
+        bombs: [] 
+    };
+    
+    // Заполнение массива бомб
+    for (let i = 0; i < 10; i++) {
+        tower.bombs.push(Math.floor(Math.random() * 3));
     }
-
+    
+    // Обновление игрового поля
+    const grid = document.getElementById('gridTower');
+    grid.innerHTML = '';
+    
+    // Создаем 10 рядов с 3 ячейками
+    for (let row = 0; row < 10; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%;';
+        for (let col = 0; col < 3; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'game-cell tower';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            if (row === 0) {
+                cell.onclick = () => stepTower(row, col, cell);  // Если уровень = 0, можно открывать клетки
+            } else {
+                cell.style.opacity = '0.3';  // Сделать клетки в невидимыми на других уровнях
+            }
+            rowDiv.appendChild(cell);
+        }
+        grid.appendChild(rowDiv);
+    }
+    
+    // Обновление текста на кнопке
+    document.getElementById('btnTower').innerText = "ОТКРОЙТЕ ПЛИТКУ";
+    document.getElementById('btnTower').classList.remove('btn-accent');
+    document.getElementById('btnTower').classList.add('btn-green');
+    
+    // Обновление уровня и множителя
+    document.getElementById('towerLevel').innerText = '0';
+    document.getElementById('towerMulti').innerText = '1.00x';
+    
+    // Уведомление
+    toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
+    sfx(400);
+}
+    
     function stepTower(row, col, el) {
         if(!tower.active || row !== tower.level) return;
         
@@ -1872,6 +1895,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
