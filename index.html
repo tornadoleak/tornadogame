@@ -1508,16 +1508,18 @@ localStorage.removeItem('tornado_user');
     }
 
     function toggleTower() {
-    // Если игра активна
     if (tower.active) {
-        // Если уровень равен 0 (игрок попал на бомбу)
+        // Если игрок попал на бомбу (level === 0), блокируем кнопку "Забрать"
         if (tower.level === 0) {
-            // Блокируем кнопку "Забрать" на 2 секунды
-            document.getElementById('btnTower').disabled = true;  // Блокируем кнопку
+            const btn = document.getElementById('btnTower');
+            btn.disabled = true;  // Блокируем кнопку
+
+            // Блокируем кнопку на 2 секунды
             setTimeout(() => {
-                document.getElementById('btnTower').disabled = false; // Разблокируем кнопку через 2 секунды
+                btn.disabled = false;  // Разблокируем кнопку через 2 секунды
             }, 2000);
-            return collectTower(); // Забрать выигрыш
+            
+            return collectTower(); // Забираем выигрыш
         }
         return collectTower();
     }
@@ -1895,6 +1897,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
