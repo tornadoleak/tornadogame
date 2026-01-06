@@ -1508,76 +1508,80 @@ localStorage.removeItem('tornado_user');
     }
 
     function toggleTower() {
-    if (tower.active) {
-        // Если игрок попал на бомбу (level === 0), блокируем кнопку "Забрать"
-        if (tower.level === 0) {
-            const btn = document.getElementById('btnTower');
-            btn.disabled = true;  // Блокируем кнопку
+    const btn = document.getElementById('btnTower');
 
-            // Блокируем кнопку на 2 секунды
+    // Блокировка кнопки, если игра активна
+    if (tower.active) {
+        // Если уровень равен 0, игрок не может забрать деньги
+        if (tower.level === 0) {
+            // Блокируем кнопку
+            btn.disabled = true;
+            // Ждем 2 секунды, затем разблокируем кнопку
             setTimeout(() => {
-                btn.disabled = false;  // Разблокируем кнопку через 2 секунды
+                btn.disabled = false;
             }, 2000);
-            
-            return collectTower(); // Забираем выигрыш
+            return toast("ПРОЙДИТЕ ХОТЯ БЫ ОДИН УРОВЕНЬ", 'error');
         }
-        return collectTower();
+        return collectTower(); // Собираем деньги, если игра активна
     }
-    
-    // Обрабатываем ставку
+
+    // Начинаем новую игру
     let amt = parseInt(document.getElementById('betTower').value);
     if (isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
     if (amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
     
-    // Обновляем баланс игрока
+    // Снимаем ставку с баланса
     db.ref('users/' + user + '/balance').transaction(b => (b || 0) - amt);
     
-    // Настройка параметров игры
-    tower = { 
+    tower = {
         active: true, 
         bet: amt, 
         level: 0, 
-        bombs: [] 
+        bombs: []
     };
-    
-    // Заполнение массива бомб
+
+    // Заполняем список бомб случайными позициями
     for (let i = 0; i < 10; i++) {
-        tower.bombs.push(Math.floor(Math.random() * 3));
+        tower.bombs.push(Math.floor(Math.random() * 3)); // 3 клетки в каждой строке
     }
-    
-    // Обновление игрового поля
+
+    // Обновляем игровое поле
     const grid = document.getElementById('gridTower');
     grid.innerHTML = '';
-    
-    // Создаем 10 рядов с 3 ячейками
+
+    // Добавляем ряды (по 3 клетки в каждом ряду)
     for (let row = 0; row < 10; row++) {
         const rowDiv = document.createElement('div');
         rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%;';
+        
+        // Создаем ячейки
         for (let col = 0; col < 3; col++) {
             const cell = document.createElement('div');
             cell.className = 'game-cell tower';
             cell.dataset.row = row;
             cell.dataset.col = col;
+            
+            // Для первой строки устанавливаем обработчик
             if (row === 0) {
-                cell.onclick = () => stepTower(row, col, cell);  // Если уровень = 0, можно открывать клетки
+                cell.onclick = () => stepTower(row, col, cell);
             } else {
-                cell.style.opacity = '0.3';  // Сделать клетки в невидимыми на других уровнях
+                cell.style.opacity = '0.3';  // Уменьшаем видимость на других уровнях
             }
             rowDiv.appendChild(cell);
         }
         grid.appendChild(rowDiv);
     }
-    
-    // Обновление текста на кнопке
-    document.getElementById('btnTower').innerText = "ОТКРОЙТЕ ПЛИТКУ";
-    document.getElementById('btnTower').classList.remove('btn-accent');
-    document.getElementById('btnTower').classList.add('btn-green');
-    
+
+    // Обновление кнопки
+    btn.innerText = "ОТКРОЙТЕ ПЛИТКУ";
+    btn.classList.remove('btn-accent');
+    btn.classList.add('btn-green');
+
     // Обновление уровня и множителя
     document.getElementById('towerLevel').innerText = '0';
     document.getElementById('towerMulti').innerText = '1.00x';
-    
-    // Уведомление
+
+    // Уведомление о старте
     toast("НАЧНИТЕ ВОСХОЖДЕНИЕ", 'success');
     sfx(400);
 }
@@ -1897,6 +1901,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
