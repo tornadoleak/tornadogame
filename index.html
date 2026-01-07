@@ -799,12 +799,25 @@
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    finalX
+
+    function subscribeCrashHistory(){
+  db.ref('crashHistory').limitToLast(12).on('value', snap => {
+    const arr = [];
+    snap.forEach(s => {
+      const v = s.val();
+      if(v && typeof v.x === 'number') arr.push(v.x);
+    });
+    crashHistory = arr.reverse();
+    renderCrashHistory(); // твоя функция, которая рисует pills
+  });
+}
+    subscribeCrashHistory();
     
-    function pushCrashHistoryGlobal(x){
+  function pushCrashHistoryGlobal(x){
   db.ref('crashHistory').push({ x: Number(x.toFixed(2)), time: Date.now() });
 }
-
+    
     // ===== SHARED CRASH (ONE FOR ALL USERS) =====
 let serverOffset = 0;
 db.ref(".info/serverTimeOffset").on("value", s => {
@@ -887,7 +900,9 @@ function startCrashHostLoop(){
       const mult = Math.pow(1.08, elapsed);
       if(mult >= (st.targetX || 1.1)){
         const finalX = Number((st.targetX || mult).toFixed(2));
-        return db.ref("crash").update({
+        pushCrashHistoryGlobal(finalX);
+          
+          return db.ref("crash").update({
           phase: "crashed",
           finalX,
           crashAt: now,
@@ -1086,7 +1101,7 @@ let boxResTimer = null;
 
     // ===== CRASH COLORS + HISTORY =====
 const CRASH_HISTORY_MAX = 12;
-let crashHistory = JSON.parse(localStorage.getItem('crash_history') || '[]');
+let crashHistory = [];
 
 function crashColor(mult){
   if(mult >= 10) return 'var(--pink)';   // дохуя
@@ -1120,7 +1135,6 @@ function renderCrashHistory(){
 function pushCrashHistory(x){
   crashHistory.unshift(x);
   crashHistory = crashHistory.slice(0, CRASH_HISTORY_MAX);
-  localStorage.setItem('crash_history', JSON.stringify(crashHistory));
   renderCrashHistory();
 }
 
@@ -2541,6 +2555,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
