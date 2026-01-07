@@ -265,25 +265,27 @@
         .rank-platinum { background: linear-gradient(135deg, #e5e4e2, #bcc6cc); }
         .rank-diamond { background: linear-gradient(135deg, var(--accent), #00a8e8); }
 
-         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-frame {
-            flex: 1;
-            display: flex;
-            padding: 12px;
-            border-radius: 20px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            margin: 12px 16px 10px;
-        }
-        #chatBox { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 4px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-        }
+         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.chat-frame {
+    flex: 1;
+    display: flex;
+    padding: 12px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin: 12px 16px 10px;
+    min-height: 140px;
+}
+#chatBox { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 4px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    min-height: 0;
+}
         .msg { 
             background: rgba(255,255,255,0.03); 
             padding: 12px 16px; 
@@ -468,10 +470,11 @@
         .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid var(--green); }
         .status-crashed { background: rgba(255, 0, 123, 0.1); color: var(--pink); border: 1px solid var(--pink); }
         .online-panel {
-            padding: 14px 16px 10px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(0,0,0,0.25);
-        }
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.25);
+    flex: 0 0 auto;
+}
         .online-header {
             display: flex;
             align-items: center;
@@ -805,35 +808,28 @@
         </div>
     </div>
 
-    <div class="glass-panel" id="sidePanel">
-        <div class="user-block">
-            <button class="logout-btn" onclick="logout()">ВЫХОД</button>
-            <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
-            <div class="bal-display" id="uBalance">0 ₽</div>
-            <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
-            <div class="xp-container">
-                <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
-                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
-                    <span id="uLevel">УРОВЕНЬ 1</span>
-                    <span id="uXP">0 / 1000 XP</span>
-                </div>
+    <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
+                <span id="uLevel">УРОВЕНЬ 1</span>
+                <span id="uXP">0 / 1000 XP</span>
             </div>
         </div>
-        
-        <div class="online-panel">
-            <div class="online-header">
-                <span>ONLINE: <span id="onlineCount">0</span></span>
-                <span style="color:var(--green); font-weight:900;">●</span>
-            </div>
-            <div id="onlineList" class="online-list"></div>
+    </div>
+    
+    <div class="online-panel">
+        <div class="online-header">
+            <span>ONLINE: <span id="onlineCount">0</span></span>
+            <span style="color:var(--green); font-weight:900;">●</span>
         </div>
+        <div id="onlineList" class="online-list"></div>
+    </div>
 
-        <div class="chat-container">
-            <div class="chat-frame">
-                <div id="chatBox"></div>
-            </div>
-            <div style="padding:14px 16px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
-                <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200" onkeypress="if(event.key==='Enter')sendMsg()">
+    <div class="chat-container">
+        <div class="chat-frame">
+            <div id="chatBox"></div>
+        </div>
+        <div style="padding:14px 16px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
+            <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200" onkeypress="if(event.key==='Enter')sendMsg()">
                 <button class="btn-ui btn-accent" style="padding:0 20px;" onclick="sendMsg()">></button>
             </div>
         </div>
@@ -2364,6 +2360,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
