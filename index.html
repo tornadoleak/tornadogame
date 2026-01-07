@@ -51,19 +51,14 @@
         }
 
         .app-container { 
-    display: grid; 
-    grid-template-columns: 380px 1fr; /* ✅ чат слева, игры справа */
-    gap: 20px; 
-    width: 98vw; 
-    height: 94vh; 
-    max-width: 1800px; 
-    z-index: 10;
+  display: grid; 
+  grid-template-columns: 1fr 380px; /* ✅ игры слева, чат справа */
+  gap: 20px; 
+  width: 98vw; 
+  height: 94vh; 
+  max-width: 1800px; 
+  z-index: 10;
 }
-
-/* ✅ фиксируем порядок именно через grid-колонки */
-#sidePanel { grid-column: 1; }
-#mainPanel { grid-column: 2; }
-
         .glass-panel { 
             background: var(--card); 
             border: 1px solid var(--border); 
@@ -97,15 +92,13 @@
         .auth-tab { flex: 1; padding: 12px; border-radius: 14px; cursor: pointer; font-size: 11px; font-weight: 800; color: #5d727b; text-transform: uppercase; letter-spacing: 1px; }
         .auth-tab.active { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
 
-        .sidebar-nav { 
-            display: flex; 
-            background: rgba(0,0,0,0.4); 
-            padding: 15px 25px; 
-            gap: 10px; 
-            border-bottom: 1px solid var(--border); 
-            overflow-x: auto; 
-            scrollbar-width: none; 
-        }
+        .sidebar-nav{
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(20px);
+}
 
         .nav-btn { 
             padding: 12px 22px; 
@@ -2093,5 +2086,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
