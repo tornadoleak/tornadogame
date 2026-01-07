@@ -1871,8 +1871,8 @@ function resetTowerUI() {
             addGameHistory('Roulette', amt, profit, 'win');
             checkWinStreak();
 
-            toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
-            showWinAnimation(profit);
+            toast(`ВЫПЛАТА: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
+            showWinAnimation(win);
             sfx(1000);
         } else {
             addGameHistory('Roulette', amt, -amt, 'loss');
@@ -2009,8 +2009,8 @@ function resetTowerUI() {
             addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
 
             if(profit > 0) {
-                toast(`ВЫИГРЫШ: +${profit.toLocaleString()} ₽`, 'success');
-                showWinAnimation(profit);
+                toast(`ВЫПЛАТА: ${final.toLocaleString()} ₽`, 'success');
+                showWinAnimation(final);
                 sfx(1200, 'square', 0.3);
                 checkWinStreak();
             } else {
@@ -2039,6 +2039,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
