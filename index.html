@@ -51,14 +51,18 @@
         }
 
         .app-container { 
-            display: grid; 
-            grid-template-columns: 1fr 380px; 
-            gap: 20px; 
-            width: 98vw; 
-            height: 94vh; 
-            max-width: 1800px; 
-            z-index: 10;
-        }
+    display: grid; 
+    grid-template-columns: 380px 1fr; /* ✅ чат слева, игры справа */
+    gap: 20px; 
+    width: 98vw; 
+    height: 94vh; 
+    max-width: 1800px; 
+    z-index: 10;
+}
+
+/* ✅ фиксируем порядок именно через grid-колонки */
+#sidePanel { grid-column: 1; }
+#mainPanel { grid-column: 2; }
 
         .glass-panel { 
             background: var(--card); 
@@ -466,13 +470,13 @@
 </div>
 
 <div class="app-container" id="mainApp" style="display: none;">
-    <div class="glass-panel">
+    <div class="glass-panel" id="mainPanel">
         <div class="sidebar-nav">
             <div class="nav-btn active" onclick="showTab(this, 'viewCrash')">📈 CRASH</div>
             <div class="nav-btn" onclick="showTab(this, 'viewMines')">💣 MINES</div>
             <div class="nav-btn" onclick="showTab(this, 'viewTower')">🪜 TOWER</div>
             <div class="nav-btn" onclick="showTab(this, 'viewRoulette')">🎰 ROULETTE</div>
-            <div class="nav-btn" onclick="showTab(this, 'viewPVP')"⚔️ PVP</div>
+            <div class="nav-btn" onclick="showTab(this, 'viewPVP')">⚔️ PVP</div>
             <div class="nav-btn" onclick="showTab(this, 'viewMining')">⚡ MINING</div>
             <div class="nav-btn" onclick="showTab(this, 'viewCases')">📦 CASES</div>
             <div class="nav-btn" onclick="showTab(this, 'viewTop')">🏆 TOP</div>
@@ -671,7 +675,7 @@
         </div>
     </div>
 
-    <div class="glass-panel" style="width: 380px;">
+    <div class="glass-panel" id="sidePanel" style="width: 380px;">
         <div class="user-block">
             <button class="logout-btn" onclick="logout()">ВЫХОД</button>
             <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
@@ -2089,4 +2093,5 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
