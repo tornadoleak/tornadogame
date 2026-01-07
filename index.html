@@ -1078,8 +1078,8 @@ localStorage.removeItem('tornado_user');
             } else {
                 document.getElementById('crashMult').innerText = crash.mult.toFixed(2) + 'x';
                 if(crash.bet > 0 && !crash.cashed) {
-                    let profit = Math.floor(crash.bet * crash.mult);
-                    document.getElementById('crashProfit').innerText = '+' + profit.toLocaleString() + ' ₽';
+                    let payout = Math.floor(crash.bet * crash.mult);
+                    document.getElementById('crashProfit').innerText = payout.toLocaleString() + ' ₽';
                     
                     let auto = parseFloat(document.getElementById('autoCrash').value);
                     if(!isNaN(auto) && auto > 1 && crash.mult >= auto) {
@@ -1137,8 +1137,8 @@ localStorage.removeItem('tornado_user');
             btn.classList.add('btn-accent', 'btn-disabled');
             document.getElementById('crashProfit').innerText = '';
             
-            toast(`ВЫИГРЫШ: ${win.toLocaleString()} ₽ (${crash.mult.toFixed(2)}x)`, 'success');
-            showWinAnimation(profit);
+            toast(`ВЫПЛАТА: ${win.toLocaleString()} ₽ (${crash.mult.toFixed(2)}x)`, 'success');
+            showWinAnimation(win);
             sfx(800);
             
             if((userData.stats?.wins || 0) === 1) {
@@ -2107,6 +2107,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
