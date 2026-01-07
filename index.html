@@ -748,6 +748,7 @@
             <button class="logout-btn" onclick="logout()">ВЫХОД</button>
             <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
             <div class="bal-display" id="uBalance">0 ₽</div>
+            <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
             <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
             <div class="xp-container">
                 <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
@@ -1006,11 +1007,16 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         document.getElementById('uLevel').innerText = `УРОВЕНЬ ${userData.lvl || 1}`;
         document.getElementById('uXP').innerText = `${currentXp} / ${nextXp} XP`;
         
-        const rank = RANKS.slice().reverse().find(r => (userData.lvl || 1) >= r.min);
-        const rankEl = document.getElementById('uRank');
-        rankEl.className = 'rank-badge ' + rank.class;
-        rankEl.innerText = rank.name;
-        const lvl = userData.lvl || 1;
+        const lvl = Number(userData.lvl || 1);
+const sortedRanks = RANKS.slice().sort((a,b)=>a.min-b.min);
+
+const curRank = sortedRanks.filter(r => lvl >= r.min).pop() || sortedRanks[0];
+
+const rankEl = document.getElementById('uRank');
+if (rankEl && curRank) {
+  rankEl.className = 'rank-badge ' + curRank.class;
+  rankEl.textContent = curRank.name;
+}
 
         const nextRank = RANKS
   .slice()
@@ -2187,4 +2193,5 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
