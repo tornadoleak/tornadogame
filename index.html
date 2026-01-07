@@ -800,6 +800,10 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    
+    function pushCrashHistoryGlobal(x){
+  db.ref('crashHistory').push({ x: Number(x.toFixed(2)), time: Date.now() });
+}
 
     // ===== SHARED CRASH (ONE FOR ALL USERS) =====
 let serverOffset = 0;
@@ -1320,6 +1324,17 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         updateProfile();
         initRoulette();
 
+        db.ref('crashHistory').limitToLast(12).on('value', snap => {
+  const arr = [];
+  snap.forEach(s => {
+    const v = s.val();
+    if(v && typeof v.x === 'number') arr.push(v.x);
+  });
+  arr.reverse();
+  crashHistory = arr;       // использует твой renderCrashHistory()
+  renderCrashHistory();
+});
+
         passiveInterval = setInterval(() => {
             let inc = 0;
             GPUS.forEach(g => inc += (userData.gpus?.[g.id] || 0) * g.i);
@@ -1486,7 +1501,7 @@ if(nextEl){
                 clearInterval(crashInterval);
                 crash.active = false;
                 const finalX = Number(crash.mult.toFixed(2));
-pushCrashHistory(finalX);
+pushCrashHistoryGlobal(finalX);
                 document.getElementById('crashMult').innerText = 'CRASH!';
                 document.getElementById('crashMult').style.color = 'var(--pink)';
                 document.getElementById('crashProfit').innerText = '';
@@ -2526,6 +2541,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
