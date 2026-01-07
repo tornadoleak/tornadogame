@@ -1584,9 +1584,10 @@ localStorage.removeItem('tornado_user');
     };
 
     // Заполняем список бомб случайными позициями
-    for (let i = 0; i < tower.maxLevel; i++) {
-        tower.bombs.push(Math.floor(Math.random() * 3)); // 3 клетки в каждой строке
-    }
+    tower.bombs = [];
+for (let i = 0; i < tower.maxLevel; i++) {
+    tower.bombs.push(Math.floor(Math.random() * 3)); // 0..2
+}
 
     // Обновляем игровое поле
     const grid = document.getElementById('gridTower');
@@ -1632,57 +1633,77 @@ localStorage.removeItem('tornado_user');
 // Шаг лесенки
 function stepTower(row, col, el) {
     const btn = document.getElementById('btnTower');
-    if (!tower.active || tower.locked || row !== tower.level) return;
 
-    // 💣 Попал на бомбу
-    if (tower.bombs[row] === col) {
+    // важно: приведение типов
+    row = Number(row);
+    col = Number(col);
+
+    if (!tower.active || tower.locked) return;
+    if (row !== tower.level) return;
+
+    // ❗️после выбора 1 клетки в ряду — отключаем ВСЕ клетки этого ряда
+    document.querySelectorAll(`.game-cell.tower[data-row="${row}"]`).forEach(c => {
+        c.onclick = null;
+        c.style.opacity = '0.55';
+    });
+
+    const bombCol = Number(tower.bombs[row]); // на всякий
+    const isBomb = (bombCol === col);
+
+    if (isBomb) {
+        // проигрыш
         tower.active = false;
         tower.locked = true;
 
         el.classList.add('death');
         el.innerText = '💣';
+        el.style.opacity = '1';
 
-        // полностью блокируем кнопку (как в Mines)
+        // показываем где была бомба (на случай если кликнул не на неё — но у нас клик именно по ней)
+        document.querySelectorAll(`.game-cell.tower[data-row="${row}"]`).forEach(c => {
+            if (Number(c.dataset.col) === bombCol) {
+                c.classList.add('death');
+                c.innerText = '💣';
+                c.style.opacity = '1';
+            }
+        });
+
+        // кнопка как в mines: забрать нельзя
         btn.disabled = true;
         btn.classList.add('btn-disabled');
         btn.innerText = "ПРОИГРЫШ...";
 
-        // блокируем все клики по клеткам
-        document.querySelectorAll('.game-cell.tower').forEach(c => c.onclick = null);
-
         addGameHistory('Tower', tower.bet, -tower.bet, 'loss');
-        sfx(100, 'sawtooth', 0.5);
         toast("ПРОВАЛ! СТАВКА ПОТЕРЯНА", 'error');
+        sfx(100, 'sawtooth', 0.5);
 
-        // через 2 сек сбрасываем игру и только тогда разблокируем кнопку
+        // через 2 сек сброс интерфейса
         setTimeout(() => {
             document.getElementById('gridTower').innerHTML = '';
-
-            // сброс состояния
-            tower.bet = 0;
-            tower.level = 0;
-            tower.bombs = [];
-            tower.locked = false;
-
             btn.disabled = false;
-            btn.classList.remove('btn-disabled');
-            btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
-            btn.classList.remove('btn-green');
+            btn.classList.remove('btn-disabled', 'btn-green');
             btn.classList.add('btn-accent');
+            btn.innerText = "НАЧАТЬ ВОСХОЖДЕНИЕ";
 
             document.getElementById('towerLevel').innerText = '0';
             document.getElementById('towerMulti').innerText = '1.00x';
+
+            tower.locked = false;
+            tower.bet = 0;
+            tower.level = 0;
+            tower.bombs = [];
         }, 2000);
 
         return;
     }
 
-    // ✅ Успешный шаг
-    tower.level++;
+    // выигрышный шаг
     el.classList.add('active');
     el.innerText = '⭐';
-    el.onclick = null;
+    el.style.opacity = '1';
     sfx(700);
+
+    tower.level++;
 
     const curMult = Math.pow(1.4, tower.level);
     const payout = Math.floor(tower.bet * curMult);
@@ -1691,11 +1712,11 @@ function stepTower(row, col, el) {
     document.getElementById('towerMulti').innerText = curMult.toFixed(2) + 'x';
     btn.innerText = `ЗАБРАТЬ ${payout.toLocaleString()} ₽`;
 
-    // открываем следующий уровень
+    // открываем СЛЕДУЮЩИЙ ряд (и только его)
     if (tower.level < tower.maxLevel) {
-        document.querySelectorAll(`.game-cell[data-row="${tower.level}"]`).forEach(c => {
+        document.querySelectorAll(`.game-cell.tower[data-row="${tower.level}"]`).forEach(c => {
             c.style.opacity = '1';
-            c.onclick = () => stepTower(tower.level, parseInt(c.dataset.col), c);
+            c.onclick = () => stepTower(Number(c.dataset.row), Number(c.dataset.col), c);
         });
     } else {
         collectTower();
@@ -1988,6 +2009,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
