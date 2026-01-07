@@ -798,17 +798,17 @@ function setCasesDisabled(disabled) {
 }
     
     const GPUS = [
-        {id:'g1', n:'GTX 1050 Ti', p:2000, i:5},
-        {id:'g2', n:'GTX 1660', p:8000, i:15},
-        {id:'g3', n:'RTX 2060', p:20000, i:40},
-        {id:'g4', n:'RTX 3060', p:50000, i:100},
-        {id:'g5', n:'RTX 3070', p:150000, i:300},
-        {id:'g6', n:'RTX 3080', p:400000, i:800},
-        {id:'g7', n:'RTX 3090', p:1000000, i:2000},
-        {id:'g8', n:'RTX 4070', p:2500000, i:5000},
-        {id:'g9', n:'RTX 4090', p:6000000, i:12000},
-        {id:'g10', n:'SERVER ASIC', p:15000000, i:30000}
-    ];
+  {id:'g1',  n:'GTX 1050 Ti',  p:3000,     i:1},
+  {id:'g2',  n:'GTX 1660',     p:8000,     i:4},
+  {id:'g3',  n:'RTX 2060',     p:20000,    i:12},
+  {id:'g4',  n:'RTX 3060',     p:50000,    i:35},
+  {id:'g5',  n:'RTX 3070',     p:150000,   i:120},
+  {id:'g6',  n:'RTX 3080',     p:400000,   i:350},
+  {id:'g7',  n:'RTX 3090',     p:1000000,  i:900},
+  {id:'g8',  n:'RTX 4070',     p:2500000,  i:2600},
+  {id:'g9',  n:'RTX 4090',     p:6000000,  i:7000},
+  {id:'g10', n:'SERVER ASIC',  p:15000000, i:20000}
+];
 
     const ACHIEVEMENTS = [
         {id:'first_win', name:'Первая победа', desc:'Выиграй первую игру', icon:'🎯', reward:500},
@@ -1052,7 +1052,7 @@ if(nextEl){
         let p = 0; 
         GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);
         document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
-        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 5).toFixed(2)} ₽`;
+        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 1).toFixed(2)} ₽`;
         
         if((userData.balance || 0) >= 1000000) {
             checkAchievement('millionaire');
@@ -1238,7 +1238,7 @@ if(nextEl){
     }
 
     function clickFarm(e) {
-  let val = (userData.lvl || 1) * 5;
+  let val = (userData.lvl || 1) * 1;
   db.ref('users/'+user).transaction(u => {
     if(u) { u.balance = (u.balance || 0) + val; u.xp = (u.xp || 0) + 2; }
     return u;
@@ -2193,5 +2193,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
