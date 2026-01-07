@@ -500,6 +500,24 @@
 .rank-next b{
   color: var(--gold);
 }
+        .crash-history{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  opacity:0.95;
+}
+
+.crash-pill{
+  font-family:'Orbitron';
+  font-size:11px;
+  font-weight:900;
+  padding:6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
         
     </style>
 </head>
@@ -545,6 +563,7 @@
             <div class="crash-area">
                 <canvas id="crashCanvas"></canvas>
                 <div class="crash-info">
+                    <div id="crashHistory" class="crash-history"></div>
                     <div id="crashMult">1.00x</div>
                     <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:1.8rem; height:30px; font-weight:800;"></div>
                     <div id="crashStatus" class="status-indicator status-waiting">ОЖИДАНИЕ</div>
@@ -789,6 +808,46 @@
     let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
     let boxRolling = false;
 let boxResTimer = null;
+
+    // ===== CRASH COLORS + HISTORY =====
+const CRASH_HISTORY_MAX = 12;
+let crashHistory = JSON.parse(localStorage.getItem('crash_history') || '[]');
+
+function crashColor(mult){
+  if(mult >= 10) return 'var(--pink)';   // дохуя
+  if(mult >= 5)  return 'var(--accent)'; // много (красный сделаем вручную ниже)
+  if(mult >= 2)  return 'var(--gold)';   // средне
+  return 'var(--green)';                // мало
+}
+
+// чтобы "много" было именно красным, а не accent
+function crashColorStrict(mult){
+  if(mult >= 10) return 'var(--pink)';
+  if(mult >= 5)  return '#ff3b3b';      // красный
+  if(mult >= 2)  return 'var(--gold)';
+  return 'var(--green)';
+}
+
+function renderCrashHistory(){
+  const el = document.getElementById('crashHistory');
+  if(!el) return;
+
+  el.innerHTML = '';
+  crashHistory.slice(0, CRASH_HISTORY_MAX).forEach(x => {
+    const p = document.createElement('div');
+    p.className = 'crash-pill';
+    p.style.color = crashColorStrict(x);
+    p.textContent = x.toFixed(2) + 'x';
+    el.appendChild(p);
+  });
+}
+
+function pushCrashHistory(x){
+  crashHistory.unshift(x);
+  crashHistory = crashHistory.slice(0, CRASH_HISTORY_MAX);
+  localStorage.setItem('crash_history', JSON.stringify(crashHistory));
+  renderCrashHistory();
+}
 
 function setCasesDisabled(disabled) {
   document.querySelectorAll('#viewCases button[onclick^="openBox"]').forEach(b => {
@@ -1104,6 +1163,7 @@ if(nextEl){
             if(timer <= 0) { 
                 clearInterval(countdown); 
                 startCrash(); 
+                renderCrashHistory();
             }
         }, 100);
     }
@@ -1154,6 +1214,8 @@ if(nextEl){
             if(crash.mult >= target) {
                 clearInterval(crashInterval);
                 crash.active = false;
+                const finalX = Number(crash.mult.toFixed(2));
+pushCrashHistory(finalX);
                 document.getElementById('crashMult').innerText = 'CRASH!';
                 document.getElementById('crashMult').style.color = 'var(--pink)';
                 document.getElementById('crashProfit').innerText = '';
@@ -1170,6 +1232,7 @@ if(nextEl){
                 setTimeout(initCrash, 3000);
             } else {
                 document.getElementById('crashMult').innerText = crash.mult.toFixed(2) + 'x';
+                document.getElementById('crashMult').style.color = crashColorStrict(crash.mult);
                 if(crash.bet > 0 && !crash.cashed) {
                     let payout = Math.floor(crash.bet * crash.mult);
                     document.getElementById('crashProfit').innerText = payout.toLocaleString() + ' ₽';
@@ -2193,6 +2256,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
