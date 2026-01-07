@@ -953,16 +953,23 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-        db.ref('chat').limitToLast(30).on('child_added', snap => {
-            const m = snap.val();
-            if(!m) return;
-            const box = document.getElementById('chatBox');
-            const d = document.createElement('div');
-            d.className = 'msg';
-            d.innerHTML = `<b>${m.u.toUpperCase()}</b>${m.t}`;
-            box.appendChild(d);
-            box.scrollTop = box.scrollHeight;
-        });
+db.ref('chat').limitToLast(30).on('child_added', snap => {
+  const m = snap.val();
+  if (!m) return;
+
+  const box = document.getElementById('chatBox');
+  const d = document.createElement('div');
+  d.className = 'msg';
+
+  const b = document.createElement('b');
+  b.textContent = String(m.u || '').toUpperCase();
+
+  d.appendChild(b);
+  d.appendChild(document.createTextNode(String(m.t || '')));
+
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+});
 
         initCrash();
         syncLeaders();
@@ -1171,15 +1178,12 @@ localStorage.removeItem('tornado_user');
             let profit = win - crash.bet;
             
             db.ref('users/'+user).transaction(u => {
-                if(u) { 
-                    u.balance = (u.balance || 0) + win; 
-                    u.xp = (u.xp || 0) + Math.floor(profit / 10); 
-                    u.stats.games++;
-                    u.stats.wins++;
-                    u.stats.profit += profit;
-                }
-                return u;
-            });
+  if(u) { 
+    u.balance = (u.balance || 0) + win; 
+    u.xp = (u.xp || 0) + Math.floor(profit / 10); 
+  }
+  return u;
+});
             
             addGameHistory('Crash', crash.bet, profit, 'win');
             checkWinStreak();
@@ -1199,21 +1203,20 @@ localStorage.removeItem('tornado_user');
         }
     }
 
-    function clickFarm() {
-        let val = (userData.lvl || 1) * 5;
-        db.ref('users/'+user).transaction(u => {
-            if(u) { 
-                u.balance = (u.balance || 0) + val; 
-                u.xp = (u.xp || 0) + 2; 
-            }
-            return u;
-        });
-        sfx(400, 'sine', 0.1);
-        
-        const btn = event.target.closest('.btn-ui');
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => btn.style.transform = '', 100);
-    }
+    function clickFarm(e) {
+  let val = (userData.lvl || 1) * 5;
+  db.ref('users/'+user).transaction(u => {
+    if(u) { u.balance = (u.balance || 0) + val; u.xp = (u.xp || 0) + 2; }
+    return u;
+  });
+  sfx(400, 'sine', 0.1);
+
+  const btn = e?.target?.closest('.btn-ui');
+  if (btn) {
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => btn.style.transform = '', 100);
+  }
+}
 
     function renderGPUs() {
         const cont = document.getElementById('listGPU');
@@ -2156,6 +2159,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
