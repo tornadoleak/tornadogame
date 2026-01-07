@@ -489,6 +489,17 @@
   background: rgba(255,204,0,0.08);
   border: 1px solid rgba(255,204,0,0.35);
 }
+        .rank-next{
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #5d727b;
+  text-transform: uppercase;
+}
+.rank-next b{
+  color: var(--gold);
+}
         
     </style>
 </head>
@@ -737,7 +748,7 @@
             <button class="logout-btn" onclick="logout()">ВЫХОД</button>
             <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
             <div class="bal-display" id="uBalance">0 ₽</div>
-            <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
+            <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
             <div class="xp-container">
                 <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
                 <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
@@ -999,6 +1010,23 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         const rankEl = document.getElementById('uRank');
         rankEl.className = 'rank-badge ' + rank.class;
         rankEl.innerText = rank.name;
+        const lvl = userData.lvl || 1;
+
+        const nextRank = RANKS
+  .slice()
+  .sort((a,b)=>a.min-b.min)
+  .find(r => lvl < r.min);
+
+const nextEl = document.getElementById('uRankNext');
+if(nextEl){
+  if(!nextRank){
+    nextEl.innerHTML = 'MAX RANK';
+  } else {
+    const left = nextRank.min - lvl;
+    nextEl.innerHTML = `до <b>${nextRank.name}</b>: ещё ${left} ур.`;
+  }
+}
+
         
         if(currentXp >= nextXp) {
             db.ref('users/'+user).transaction(u => {
@@ -2159,3 +2187,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
