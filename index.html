@@ -457,6 +457,25 @@
         .status-waiting { background: rgba(255, 204, 0, 0.1); color: var(--gold); border: 1px solid var(--gold); }
         .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid var(--green); }
         .status-crashed { background: rgba(255, 0, 123, 0.1); color: var(--pink); border: 1px solid var(--pink); }
+        /* ✅ Компактный TOWER (чтобы не скроллить) */
+#viewTower{
+  padding: 18px !important;           /* было 30px у .viewport */
+  gap: 14px !important;
+}
+
+#gridTower{
+  max-width: 300px !important;        /* было 340 */
+  gap: 6px !important;                /* было 10 */
+}
+
+/* переопределяем общий aspect-ratio:1 у .game-cell */
+.game-cell.tower{
+  aspect-ratio: auto !important;
+  height: clamp(34px, 4.2vh, 52px);   /* авто под экран */
+  font-size: 20px !important;
+  border-radius: 14px !important;
+}
+        
     </style>
 </head>
 <body>
@@ -1576,7 +1595,7 @@ localStorage.removeItem('tornado_user');
     // Добавляем ряды (по 3 клетки в каждом ряду)
     for (let row = 0; row < tower.maxLevel; row++) {
         const rowDiv = document.createElement('div');
-        rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%;';
+        rowDiv.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; width:100%;';
 
         // Создаем ячейки
         for (let col = 0; col < 3; col++) {
@@ -1969,6 +1988,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
