@@ -778,59 +778,6 @@
     let boxRolling = false;
 let boxResTimer = null;
 
-    let chatRef = null;
-
-function startChat() {
-  stopChat(); // ✅ важно: сначала снять прошлую подписку
-
-  const box = document.getElementById('chatBox');
-  if (!box) return;
-
-  box.innerHTML = '';
-
-  chatRef = db.ref('chat').limitToLast(10);
-  chatRef.on('child_added', snap => {
-    const m = snap.val();
-    if (!m) return;
-
-    const d = document.createElement('div');
-    d.className = 'msg';
-
-    const b = document.createElement('b');
-    b.textContent = String(m.u || '').toUpperCase();
-
-    d.appendChild(b);
-    d.appendChild(document.createTextNode(String(m.t || '')));
-
-    box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
-  });
-}
-
-function stopChat() {
-  if (chatRef) chatRef.off(); // ✅ снимет слушатель именно с limitToLast(10)
-  chatRef = null;
-
-  const box = document.getElementById('chatBox');
-  if (box) box.innerHTML = '';
-}
-
-// оставляем в базе только 10 сообщений
-async function pruneChatTo10() {
-  const ref = db.ref('chat');
-  const snap = await ref.orderByChild('time').limitToLast(11).once('value');
-
-  const items = [];
-  snap.forEach(child => items.push({ key: child.key, time: child.val()?.time || 0 }));
-
-  if (items.length <= 10) return;
-
-  items.sort((a, b) => a.time - b.time);
-  await ref.child(items[0].key).remove();
-
-  return pruneChatTo10();
-}
-
 function setCasesDisabled(disabled) {
   document.querySelectorAll('#viewCases button[onclick^="openBox"]').forEach(b => {
     b.disabled = disabled;
@@ -966,9 +913,8 @@ runSession(u);
 
     function logout() {
         if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
-
-        stopChat();
-        localStorage.removeItem('tornado_user');
+        
+localStorage.removeItem('tornado_user');
         
         if(crashInterval) clearInterval(crashInterval);
         if(passiveInterval) clearInterval(passiveInterval);
@@ -1007,6 +953,23 @@ runSession(u);
             updateUI();
         });
 
+db.ref('chat').limitToLast(30).on('child_added', snap => {
+  const m = snap.val();
+  if (!m) return;
+
+  const box = document.getElementById('chatBox');
+  const d = document.createElement('div');
+  d.className = 'msg';
+
+  const b = document.createElement('b');
+  b.textContent = String(m.u || '').toUpperCase();
+
+  d.appendChild(b);
+  d.appendChild(document.createTextNode(String(m.t || '')));
+
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+});
 
         initCrash();
         syncLeaders();
@@ -1014,8 +977,6 @@ runSession(u);
         loadPVPRooms();
         updateProfile();
         initRoulette();
-
-        startChat();
 
         passiveInterval = setInterval(() => {
             let inc = 0;
@@ -1317,7 +1278,6 @@ runSession(u);
                 t: msg,
                 time: Date.now()
             });
-            pruneChatTo10();
             inp.value = '';
             sfx(500, 'sine', 0.1);
         }
@@ -2199,7 +2159,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
-
-
-
