@@ -816,29 +816,6 @@ function setCasesDisabled(disabled) {
         {min:50, name:'PLATINUM', class:'rank-platinum'},
         {min:100, name:'DIAMOND', class:'rank-diamond'}
     ];
-    
-    const ECON = {
-  baseClick: 1,                 // ✅ клик = 1
-  xpPerClick: 1,                // ✅ XP за клик (сделаем скромно, чтобы не было изи)
-  rankClickBonus: {             // ✅ бонус к клику по рангу
-    BRONZE: 0,
-    SILVER: 1,
-    GOLD: 3,
-    PLATINUM: 6,
-    DIAMOND: 10
-  }
-};
-
-function getRankByLevel(lvl) {
-  return RANKS.slice().reverse().find(r => lvl >= r.min) || RANKS[0];
-}
-
-function getClickValue(u = userData) {
-  const lvl = u?.lvl || 1;
-  const rank = getRankByLevel(lvl);
-  const bonus = ECON.rankClickBonus[rank.name] ?? 0;
-  return ECON.baseClick + bonus;
-}
 
     function toast(txt, type = 'info') {
         const container = document.getElementById('notif');
@@ -1041,8 +1018,7 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         let p = 0; 
         GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);
         document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
-        const clickVal = getClickValue(userData);
-document.getElementById('valClick').innerText = `+${clickVal.toFixed(2)} ₽`;
+        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 5).toFixed(2)} ₽`;
         
         if((userData.balance || 0) >= 1000000) {
             checkAchievement('millionaire');
@@ -1228,15 +1204,11 @@ document.getElementById('valClick').innerText = `+${clickVal.toFixed(2)} ₽`;
     }
 
     function clickFarm(e) {
-  let val = getClickValue(userData);
-
-db.ref('users/'+user).transaction(u => {
-  if(u) { 
-    u.balance = (u.balance || 0) + val; 
-    u.xp = (u.xp || 0) + ECON.xpPerClick; 
-  }
-  return u;
-});
+  let val = (userData.lvl || 1) * 5;
+  db.ref('users/'+user).transaction(u => {
+    if(u) { u.balance = (u.balance || 0) + val; u.xp = (u.xp || 0) + 2; }
+    return u;
+  });
   sfx(400, 'sine', 0.1);
 
   const btn = e?.target?.closest('.btn-ui');
@@ -2187,4 +2159,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
