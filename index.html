@@ -801,6 +801,277 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ===== SHARED CRASH (ONE FOR ALL USERS) =====
+let serverOffset = 0;
+db.ref(".info/serverTimeOffset").on("value", s => {
+  serverOffset = s.val() || 0;
+});
+function serverNow(){ return Date.now() + serverOffset; }
+
+let crashState = null;
+let crashCountdownTimer = null;
+let isCrashHost = false;
+let crashHostTimer = null;
+
+// генерация цели (как у тебя было)
+function genCrashTarget(){
+  let t = (Math.random() < 0.12) ? (1.0 + Math.random() * 0.8) : (Math.random() * 4 + 1.2);
+  if (Math.random() < 0.015) t = 20 + Math.random() * 30;
+  return Number(t.toFixed(2));
+}
+
+function initCrashShared(){
+  // слушаем состояние раунда
+  db.ref("crash").on("value", snap => {
+    crashState = snap.val() || null;
+    applyCrashState(crashState);
+  });
+
+  // пробуем стать "ведущим" (только один человек управляет раундами)
+  tryBecomeCrashHost();
+}
+
+function tryBecomeCrashHost(){
+  if(!user) return;
+
+  const hostRef = db.ref("crashHost");
+
+  hostRef.transaction(cur => {
+    if(cur && cur.u) return;         // уже есть ведущий
+    return { u: user, at: serverNow() };
+  }).then(res => {
+    const v = res.snapshot.val();
+    if(res.committed && v && v.u === user){
+      isCrashHost = true;
+      hostRef.onDisconnect().remove();
+      startCrashHostLoop();
+    } else {
+      isCrashHost = false;
+    }
+  }).catch(() => {});
+}
+
+function startCrashHostLoop(){
+  if(crashHostTimer) clearInterval(crashHostTimer);
+
+  crashHostTimer = setInterval(() => {
+    const now = serverNow();
+    const st = crashState || null;
+
+    // если состояния нет — создаём WAITING
+    if(!st || !st.phase){
+      return db.ref("crash").set({
+        phase: "waiting",
+        roundId: now,
+        startAt: now + 5000,
+        targetX: genCrashTarget()
+      });
+    }
+
+    // WAITING -> RUNNING
+    if(st.phase === "waiting" && now >= (st.startAt || 0)){
+      return db.ref("crash").update({
+        phase: "running",
+        runAt: st.startAt || now
+      });
+    }
+
+    // RUNNING -> CRASHED
+    if(st.phase === "running"){
+      const runAt = st.runAt || now;
+      const elapsed = Math.max(0, (now - runAt) / 1000);
+      const mult = Math.pow(1.08, elapsed);
+      if(mult >= (st.targetX || 1.1)){
+        const finalX = Number((st.targetX || mult).toFixed(2));
+        return db.ref("crash").update({
+          phase: "crashed",
+          finalX,
+          crashAt: now,
+          nextAt: now + 3000
+        });
+      }
+    }
+
+    // CRASHED -> WAITING (новый раунд)
+    if(st.phase === "crashed" && now >= (st.nextAt || 0)){
+      return db.ref("crash").set({
+        phase: "waiting",
+        roundId: now,
+        startAt: now + 5000,
+        targetX: genCrashTarget()
+      });
+    }
+  }, 250);
+}
+
+// визуализация на клиенте
+function applyCrashState(st){
+  const multEl = document.getElementById("crashMult");
+  const profitEl = document.getElementById("crashProfit");
+  const statusEl = document.getElementById("crashStatus");
+
+  if(!multEl || !statusEl) return;
+
+  // всегда рисуем историю если есть
+  if(typeof renderCrashHistory === "function") renderCrashHistory();
+
+  // стоп таймеров
+  if(crashCountdownTimer) { clearInterval(crashCountdownTimer); crashCountdownTimer = null; }
+
+  // если нет состояния — просто ожидание
+  if(!st || !st.phase){
+    statusEl.className = "status-indicator status-waiting";
+    statusEl.innerText = "ОЖИДАНИЕ";
+    multEl.style.color = "#fff";
+    multEl.innerText = "—";
+    return;
+  }
+
+  // WAITING
+  if(st.phase === "waiting"){
+    // остановить график
+    if(crashInterval) { clearInterval(crashInterval); crashInterval = null; }
+    crash.active = false;
+    crash.mult = 1.0;
+    crash.cashed = false;
+    profitEl.innerText = "";
+    multEl.style.color = "#fff";
+
+    statusEl.className = "status-indicator status-waiting";
+    statusEl.innerText = "ОЖИДАНИЕ";
+
+    // кнопка: если ставка уже сделана — ждать раунда
+    const btn = document.getElementById("btnCrash");
+    if(btn){
+      if(crash.bet > 0){
+        btn.innerText = "ОЖИДАНИЕ РАУНДА...";
+        btn.classList.add("btn-disabled");
+      } else {
+        btn.innerText = "СДЕЛАТЬ СТАВКУ";
+        btn.classList.remove("btn-disabled","btn-green");
+        btn.classList.add("btn-accent");
+      }
+    }
+
+    // обратный отсчёт до startAt
+    crashCountdownTimer = setInterval(() => {
+      const left = Math.max(0, ((st.startAt || serverNow()) - serverNow()) / 1000);
+      multEl.innerText = left.toFixed(1) + "s";
+    }, 100);
+
+    return;
+  }
+
+  // RUNNING
+  if(st.phase === "running"){
+    statusEl.className = "status-indicator status-active";
+    statusEl.innerText = "АКТИВНО";
+
+    // если у игрока есть ставка — кнопка "забрать"
+    const btn = document.getElementById("btnCrash");
+    if(btn){
+      if(crash.bet > 0 && !crash.cashed){
+        btn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+        btn.classList.remove("btn-disabled","btn-accent");
+        btn.classList.add("btn-green");
+      } else if(crash.bet === 0) {
+        btn.innerText = "СТАВОК НЕТ";
+        btn.classList.add("btn-disabled");
+      }
+    }
+
+    // запустить локальную отрисовку (но цель берём из st.targetX)
+    startCrashVisual(st.runAt || serverNow(), st.targetX || 1.2);
+    return;
+  }
+
+  // CRASHED
+  if(st.phase === "crashed"){
+    if(crashInterval) { clearInterval(crashInterval); crashInterval = null; }
+    crash.active = false;
+
+    multEl.innerText = "CRASH!";
+    multEl.style.color = "var(--pink)";
+    profitEl.innerText = "";
+
+    statusEl.className = "status-indicator status-crashed";
+    statusEl.innerText = "КРАШ!";
+
+    // записываем в историю
+    if(typeof pushCrashHistory === "function" && typeof st.finalX === "number"){
+      pushCrashHistory(st.finalX);
+    }
+
+    // если ставка была и не кешаутнул — проигрыш
+    if(crash.bet > 0 && !crash.cashed){
+      addGameHistory('Crash', crash.bet, -crash.bet, 'loss');
+      toast("КРАШ! СТАВКА ПОТЕРЯНА", 'error');
+      crash.bet = 0;
+      crash.cashed = false;
+    }
+
+    return;
+  }
+}
+
+function startCrashVisual(runAtMs, targetX){
+  if(crashInterval) return; // уже запущено
+
+  crash.active = true;
+  crash.startTime = runAtMs;
+  crash.pts = [];
+
+  const cvs = document.getElementById('crashCanvas');
+  const ctx = cvs.getContext('2d');
+  cvs.width = cvs.offsetWidth;
+  cvs.height = cvs.offsetHeight;
+
+  crashInterval = setInterval(() => {
+    const now = serverNow();
+    const elapsed = Math.max(0, (now - runAtMs) / 1000);
+    crash.mult = Math.pow(1.08, elapsed);
+
+    // график
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    ctx.strokeStyle = '#00f2ff';
+    ctx.lineWidth = 4;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#00f2ff';
+
+    const x = (elapsed / 12) * cvs.width;
+    const y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
+    crash.pts.push({x,y});
+
+    ctx.beginPath();
+    ctx.moveTo(0, cvs.height);
+    crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    // X текст + цвет
+    const multEl = document.getElementById("crashMult");
+    if(multEl){
+      multEl.innerText = crash.mult.toFixed(2) + 'x';
+      if(typeof crashColorStrict === "function"){
+        multEl.style.color = crashColorStrict(crash.mult);
+      }
+    }
+
+    // прибыль на экране (если есть ставка и не кешаут)
+    if(crash.bet > 0 && !crash.cashed){
+      const payout = Math.floor(crash.bet * crash.mult);
+      const profitEl = document.getElementById("crashProfit");
+      if(profitEl) profitEl.innerText = payout.toLocaleString() + " ₽";
+
+      const auto = parseFloat(document.getElementById('autoCrash').value);
+      if(!isNaN(auto) && auto > 1 && crash.mult >= auto){
+        actionCrash();
+      }
+    }
+
+    // мы НЕ останавливаемся по targetX локально — остановка приходит из Firebase (phase=crashed)
+  }, 50);
+}
+
     let user = null, userData = {}, authMode = 'login', audioCtx, soundEnabled = true;
     let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
     let mines = { active: false, locked: false, bet: 0, bombs: [], open: 0, total: 3 };
@@ -1042,7 +1313,7 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
   box.scrollTop = box.scrollHeight;
 });
 
-        initCrash();
+        initCrashShared();
         syncLeaders();
         renderGPUs();
         loadPVPRooms();
@@ -1253,13 +1524,12 @@ pushCrashHistory(finalX);
     function actionCrash() {
         const btn = document.getElementById('btnCrash');
         
-        if(!crash.active && !crash.waitingForRound && crash.bet === 0) {
+        if((crashState?.phase === "waiting") && crash.bet === 0) {
             let amt = parseInt(document.getElementById('betCrash').value);
             if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
             if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
             
             crash.bet = amt;
-            crash.waitingForRound = true;
             db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
             
             btn.innerText = "ОЖИДАНИЕ РАУНДА...";
@@ -2256,6 +2526,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
