@@ -780,14 +780,18 @@ let boxResTimer = null;
 
     let chatRef = null;
 
+let chatRef = null;
+
 function startChat() {
+  stopChat(); // ✅ важно: сначала снять прошлую подписку
+
   const box = document.getElementById('chatBox');
   if (!box) return;
 
   box.innerHTML = '';
 
-  chatRef = db.ref('chat');
-  chatRef.limitToLast(10).on('child_added', snap => {
+  chatRef = db.ref('chat').limitToLast(10);
+  chatRef.on('child_added', snap => {
     const m = snap.val();
     if (!m) return;
 
@@ -806,7 +810,7 @@ function startChat() {
 }
 
 function stopChat() {
-  if (chatRef) chatRef.off();
+  if (chatRef) chatRef.off(); // ✅ снимет слушатель именно с limitToLast(10)
   chatRef = null;
 
   const box = document.getElementById('chatBox');
@@ -966,8 +970,7 @@ runSession(u);
         if(!confirm("ВЫЙТИ ИЗ АККАУНТА?")) return;
 
         stopChat();
-        
-localStorage.removeItem('tornado_user');
+        localStorage.removeItem('tornado_user');
         
         if(crashInterval) clearInterval(crashInterval);
         if(passiveInterval) clearInterval(passiveInterval);
@@ -1006,23 +1009,6 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-db.ref('chat').limitToLast(30).on('child_added', snap => {
-  const m = snap.val();
-  if (!m) return;
-
-  const box = document.getElementById('chatBox');
-  const d = document.createElement('div');
-  d.className = 'msg';
-
-  const b = document.createElement('b');
-  b.textContent = String(m.u || '').toUpperCase();
-
-  d.appendChild(b);
-  d.appendChild(document.createTextNode(String(m.t || '')));
-
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-});
 
         initCrash();
         syncLeaders();
@@ -2215,5 +2201,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
