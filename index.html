@@ -50,24 +50,24 @@
             opacity: 0.5;
         }
 
-        .app-container { 
-  display: grid; 
-  grid-template-columns: 1fr 380px; /* ✅ игры слева, чат справа */
-  gap: 20px; 
-  width: 98vw; 
-  height: 94vh; 
-  max-width: 1800px; 
-  z-index: 10;
-}
-        .glass-panel { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 30px; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            backdrop-filter: blur(50px); 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8); 
+        .app-container { ␊
+  display: grid; ␊
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); /* ✅ игры слева, чат справа */
+  gap: clamp(12px, 2vw, 18px); 
+  width: 96vw; 
+  height: 92vh; 
+  max-width: 1800px; ␊
+  z-index: 10;␊
+}␊
+        .glass-panel { ␊
+            background: var(--card); ␊
+            border: 1px solid var(--border); ␊
+            border-radius: 24px; 
+            display: flex; ␊
+            flex-direction: column; ␊
+            overflow: hidden; ␊
+            backdrop-filter: blur(50px); ␊
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
 
         #authBox { 
@@ -141,7 +141,7 @@
   border-color: var(--accent) !important;
 }
 
-        .viewport { flex: 1; overflow-y: auto; padding: 30px; display: none; flex-direction: column; gap: 25px; }
+        .viewport { flex: 1; overflow-y: auto; padding: clamp(16px, 2vw, 24px); display: none; flex-direction: column; gap: clamp(14px, 2vw, 22px); }
         .viewport.active { display: flex; animation: viewIn 0.4s ease-out; }
 
         @keyframes viewIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -226,7 +226,7 @@
         .btn-gold { background: linear-gradient(135deg, var(--gold), #e6b800); color: #000; }
         .btn-disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
 
-        .user-block { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); position: relative; }
+        .user-block { padding: 22px; text-align: center; border-bottom: 1px solid var(--border); position: relative; }
         .logout-btn {
             position: absolute;
             top: 15px;
@@ -265,11 +265,21 @@
         .rank-platinum { background: linear-gradient(135deg, #e5e4e2, #bcc6cc); }
         .rank-diamond { background: linear-gradient(135deg, var(--accent), #00a8e8); }
 
-        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+         .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-frame {
+            flex: 1;
+            display: flex;
+            padding: 12px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin: 12px 16px 10px;
+        }
         #chatBox { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 20px; 
+            padding: 4px; 
             display: flex; 
             flex-direction: column; 
             gap: 12px; 
@@ -457,6 +467,68 @@
         .status-waiting { background: rgba(255, 204, 0, 0.1); color: var(--gold); border: 1px solid var(--gold); }
         .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid var(--green); }
         .status-crashed { background: rgba(255, 0, 123, 0.1); color: var(--pink); border: 1px solid var(--pink); }
+        .online-panel {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.25);
+        }
+        .online-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 900;
+            color: #5d727b;
+        }
+        .online-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .online-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        .online-name {
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .online-status {
+            color: #8aa3ad;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .chat-toggle-btn {
+            margin-left: auto;
+            background: rgba(0, 242, 255, 0.12);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .chat-collapsed #sidePanel {
+            width: 70px;
+        }
+        .chat-collapsed #sidePanel .user-block,
+        .chat-collapsed #sidePanel .chat-container,
+        .chat-collapsed #sidePanel .online-panel {
+            display: none;
+        }
+        @media (max-width: 900px) {
+            body { overflow: auto; }
+            .app-container { grid-template-columns: 1fr; height: 100vh; width: 100vw; }
+            #sidePanel { display: none; width: 100%; }
+            .app-container.mobile-chat-open #sidePanel { display: flex; }
+            .app-container.mobile-chat-open #mainPanel { display: none; }
+        }
         /* ✅ Компактный TOWER (чтобы не скроллить) */
 #viewTower{
   padding: 18px !important;           /* было 30px у .viewport */
@@ -518,7 +590,7 @@
 
 <div class="app-container" id="mainApp" style="display: none;">
     <div class="glass-panel" id="mainPanel">
-        <div class="sidebar-nav">
+         <div class="sidebar-nav">
             <div class="nav-btn active" onclick="showTab(this, 'viewCrash')">📈 CRASH</div>
             <div class="nav-btn" onclick="showTab(this, 'viewMines')">💣 MINES</div>
             <div class="nav-btn" onclick="showTab(this, 'viewTower')">🪜 TOWER</div>
@@ -528,6 +600,7 @@
             <div class="nav-btn" onclick="showTab(this, 'viewCases')">📦 CASES</div>
             <div class="nav-btn" onclick="showTab(this, 'viewTop')">🏆 TOP</div>
             <div class="nav-btn" onclick="showTab(this, 'viewProfile')">👤 PROFILE</div>
+            <div class="nav-btn chat-toggle-btn" onclick="toggleChat()">💬 ЧАТ</div>
         </div>
 
         <div id="viewCrash" class="viewport active">
@@ -732,7 +805,7 @@
         </div>
     </div>
 
-    <div class="glass-panel" id="sidePanel" style="width: 380px;">
+    <div class="glass-panel" id="sidePanel">
         <div class="user-block">
             <button class="logout-btn" onclick="logout()">ВЫХОД</button>
             <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
@@ -747,9 +820,19 @@
             </div>
         </div>
         
+        <div class="online-panel">
+            <div class="online-header">
+                <span>ONLINE: <span id="onlineCount">0</span></span>
+                <span style="color:var(--green); font-weight:900;">●</span>
+            </div>
+            <div id="onlineList" class="online-list"></div>
+        </div>
+
         <div class="chat-container">
-            <div id="chatBox"></div>
-            <div style="padding:20px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
+            <div class="chat-frame">
+                <div id="chatBox"></div>
+            </div>
+            <div style="padding:14px 16px; display:flex; gap:10px; background: rgba(0,0,0,0.3);">
                 <input type="text" id="chatInput" placeholder="Сообщение..." class="field" style="padding:12px; font-size:13px;" maxlength="200" onkeypress="if(event.key==='Enter')sendMsg()">
                 <button class="btn-ui btn-accent" style="padding:0 20px;" onclick="sendMsg()">></button>
             </div>
@@ -777,6 +860,22 @@
     let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
     let boxRolling = false;
 let boxResTimer = null;
+    let presenceRef = null;
+    let presenceInfoRef = null;
+    let presenceListRef = null;
+    let currentView = 'viewCrash';
+
+    const VIEW_LABELS = {
+        viewCrash: 'Crash',
+        viewMines: 'Mines',
+        viewTower: 'Tower',
+        viewRoulette: 'Roulette',
+        viewPVP: 'PVP',
+        viewMining: 'Mining',
+        viewCases: 'Cases',
+        viewTop: 'Top',
+        viewProfile: 'Меню'
+    };
 
 function setCasesDisabled(disabled) {
   document.querySelectorAll('#viewCases button[onclick^="openBox"]').forEach(b => {
@@ -922,6 +1021,19 @@ localStorage.removeItem('tornado_user');
         db.ref('users/' + user).off();
         db.ref('chat').off();
         db.ref('pvp').off();
+
+        if (presenceRef) {
+            presenceRef.remove();
+            presenceRef = null;
+        }
+        if (presenceInfoRef) {
+            presenceInfoRef.off();
+            presenceInfoRef = null;
+        }
+        if (presenceListRef) {
+            presenceListRef.off();
+            presenceListRef = null;
+        }
         
         user = null;
         userData = {};
@@ -938,12 +1050,90 @@ localStorage.removeItem('tornado_user');
         sfx(400);
     }
 
+    function getViewLabel(id) {
+        return VIEW_LABELS[id] || 'Меню';
+    }
+
+    function setPresenceStatus(viewId) {
+        if (!presenceRef || !user) return;
+        const label = getViewLabel(viewId);
+        presenceRef.update({
+            name: user,
+            status: label === 'Меню' ? 'в меню' : `в игре: ${label}`,
+            updatedAt: Date.now()
+        });
+    }
+
+    function initPresence() {
+        presenceRef = db.ref('presence/' + user);
+        presenceInfoRef = db.ref('.info/connected');
+        presenceListRef = db.ref('presence');
+
+        presenceInfoRef.on('value', snap => {
+            if (snap.val() === true) {
+                presenceRef.onDisconnect().remove();
+                setPresenceStatus(currentView);
+            }
+        });
+
+        presenceListRef.on('value', snap => {
+            const list = document.getElementById('onlineList');
+            const count = document.getElementById('onlineCount');
+            if (!list || !count) return;
+
+            const items = [];
+            snap.forEach(child => {
+                const data = child.val();
+                if (!data) return;
+                items.push({
+                    name: String(data.name || child.key || ''),
+                    status: String(data.status || 'в меню')
+                });
+            });
+
+            count.textContent = items.length.toString();
+
+            while (list.firstChild) list.removeChild(list.firstChild);
+            items
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'online-item';
+
+                    const name = document.createElement('span');
+                    name.className = 'online-name';
+                    name.textContent = item.name.toUpperCase();
+
+                    const status = document.createElement('span');
+                    status.className = 'online-status';
+                    status.textContent = item.status;
+
+                    row.appendChild(name);
+                    row.appendChild(status);
+                    list.appendChild(row);
+                });
+        });
+    }
+
+    function toggleChat() {
+        const app = document.getElementById('mainApp');
+        if (!app) return;
+        const isMobile = window.matchMedia('(max-width: 900px)').matches;
+        if (isMobile) {
+            app.classList.toggle('mobile-chat-open');
+        } else {
+            app.classList.toggle('chat-collapsed');
+        }
+    }
+
     function runSession(userId) {
         user = userId;
         document.getElementById('authBox').style.display = 'none';
         document.getElementById('mainApp').style.display = 'grid';
         document.getElementById('uName').innerText = user.toUpperCase();
         
+        initPresence();
+
         db.ref('users/' + user).on('value', snap => {
             userData = snap.val() || {};
             if(!userData.gpus) userData.gpus = {};
@@ -953,7 +1143,12 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-db.ref('chat').limitToLast(30).on('child_added', snap => {
+        const box = document.getElementById('chatBox');
+        if (box) {
+            while (box.firstChild) box.removeChild(box.firstChild);
+        }
+
+db.ref('chat').limitToLast(10).on('child_added', snap => {
   const m = snap.val();
   if (!m) return;
 
@@ -968,6 +1163,9 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
   d.appendChild(document.createTextNode(String(m.t || '')));
 
   box.appendChild(d);
+  while (box.children.length > 10) {
+    box.removeChild(box.firstElementChild);
+  }
   box.scrollTop = box.scrollHeight;
 });
 
@@ -1267,6 +1465,13 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         document.getElementById(id).classList.add('active');
         
         if(id === 'viewProfile') updateProfile();
+        currentView = id;
+        setPresenceStatus(id);
+
+        const app = document.getElementById('mainApp');
+        if (app && app.classList.contains('mobile-chat-open')) {
+            app.classList.remove('mobile-chat-open');
+        }
     }
 
     function sendMsg() {
@@ -2159,6 +2364,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
