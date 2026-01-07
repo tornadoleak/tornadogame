@@ -816,23 +816,6 @@ function setCasesDisabled(disabled) {
         {min:50, name:'PLATINUM', class:'rank-platinum'},
         {min:100, name:'DIAMOND', class:'rank-diamond'}
     ];
-    const RANK_CLICK_MULTIPLIERS = {
-        BRONZE: 1.0,
-        SILVER: 1.05,
-        GOLD: 1.1,
-        PLATINUM: 1.15,
-        DIAMOND: 1.2
-    };
-
-    function getRankForLevel(level) {
-        return RANKS.slice().reverse().find(r => level >= r.min);
-    }
-
-    function getClickReward(level) {
-        const rank = getRankForLevel(level);
-        const mult = RANK_CLICK_MULTIPLIERS[rank.name] || 1;
-        return level * mult;
-    }
 
     function toast(txt, type = 'info') {
         const container = document.getElementById('notif');
@@ -1012,10 +995,10 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         document.getElementById('uLevel').innerText = `УРОВЕНЬ ${userData.lvl || 1}`;
         document.getElementById('uXP').innerText = `${currentXp} / ${nextXp} XP`;
         
-        const rank = getRankForLevel(userData.lvl || 1);
-        const rankEl = document.getElementById('uRank');␊
-        rankEl.className = 'rank-badge ' + rank.class;␊
-        rankEl.innerText = rank.name;␊
+        const rank = RANKS.slice().reverse().find(r => (userData.lvl || 1) >= r.min);
+        const rankEl = document.getElementById('uRank');
+        rankEl.className = 'rank-badge ' + rank.class;
+        rankEl.innerText = rank.name;
         
         if(currentXp >= nextXp) {
             db.ref('users/'+user).transaction(u => {
@@ -1032,10 +1015,10 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
             sfx(1000, 'square', 0.5);
         }
 
-        let p = 0; ␊
-        GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);␊
-        document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';␊
-        document.getElementById('valClick').innerText = `+${getClickReward(userData.lvl || 1).toFixed(2)} ₽`;
+        let p = 0; 
+        GPUS.forEach(g => p += (userData.gpus?.[g.id] || 0) * g.i);
+        document.getElementById('valPassive').innerText = p.toLocaleString() + ' ₽';
+        document.getElementById('valClick').innerText = `+${((userData.lvl || 1) * 5).toFixed(2)} ₽`;
         
         if((userData.balance || 0) >= 1000000) {
             checkAchievement('millionaire');
@@ -1220,8 +1203,8 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         }
     }
 
-    function clickFarm(e) {␊
-  let val = getClickReward(userData.lvl || 1);
+    function clickFarm(e) {
+  let val = (userData.lvl || 1) * 5;
   db.ref('users/'+user).transaction(u => {
     if(u) { u.balance = (u.balance || 0) + val; u.xp = (u.xp || 0) + 2; }
     return u;
@@ -2176,4 +2159,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
