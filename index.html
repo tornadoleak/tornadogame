@@ -829,6 +829,9 @@ let crashState = null;
 let crashCountdownTimer = null;
 let isCrashHost = false;
 let crashHostTimer = null;
+const HOST_LEASE_MS = 12000;   // если хост не обновлялся 12с — считаем мёртвым
+const HOST_BEAT_MS  = 3000;    // хост обновляет at раз в 3с
+let hostBeatTimer = null;
 
 // генерация цели (как у тебя было)
 function genCrashTarget(){
@@ -844,6 +847,14 @@ function initCrashShared(){
     applyCrashState(crashState);
   });
 
+    // ✅ следим за хостом и перехватываем, если он "протух"
+  db.ref("crashHost").on("value", snap => {
+    const h = snap.val();
+    const now = serverNow();
+    const dead = !h || !h.at || (now - h.at) > HOST_LEASE_MS;
+    if(dead) tryBecomeCrashHost();
+  });
+    
   // пробуем стать "ведущим" (только один человек управляет раундами)
   tryBecomeCrashHost();
 }
@@ -854,14 +865,18 @@ function tryBecomeCrashHost(){
   const hostRef = db.ref("crashHost");
 
   hostRef.transaction(cur => {
-    if(cur && cur.u) return;         // уже есть ведущий
-    return { u: user, at: serverNow() };
+    const now = serverNow();
+    const alive = cur && cur.u && cur.at && (now - cur.at) < HOST_LEASE_MS;
+
+    if(alive) return; // есть живой ведущий — не трогаем
+    return { u: user, at: now };
   }).then(res => {
     const v = res.snapshot.val();
     if(res.committed && v && v.u === user){
       isCrashHost = true;
       hostRef.onDisconnect().remove();
       startCrashHostLoop();
+      startCrashHostHeartbeat();
     } else {
       isCrashHost = false;
     }
@@ -923,6 +938,15 @@ function startCrashHostLoop(){
   }, 250);
 }
 
+function startCrashHostHeartbeat(){
+  if(hostBeatTimer) clearInterval(hostBeatTimer);
+
+  hostBeatTimer = setInterval(() => {
+    if(!isCrashHost) return;
+    db.ref("crashHost").update({ u: user, at: serverNow() }).catch(()=>{});
+  }, HOST_BEAT_MS);
+}
+    
 // визуализация на клиенте
 function applyCrashState(st){
   const multEl = document.getElementById("crashMult");
@@ -2554,4 +2578,5 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
