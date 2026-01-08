@@ -1571,8 +1571,6 @@ if(nextEl){
             crash.cashed = true;
             let win = Math.floor(crash.bet * crash.mult);
             let profit = win - crash.bet;
-            crash.bet = 0;
-crash.cashed = false;
             
             db.ref('users/'+user).transaction(u => {
   if(u) { 
@@ -2556,3 +2554,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
