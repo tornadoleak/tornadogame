@@ -1040,11 +1040,6 @@ function applyCrashState(st){
     statusEl.className = "status-indicator status-crashed";
     statusEl.innerText = "КРАШ!";
 
-    // записываем в историю
-    if(typeof pushCrashHistory === "function" && typeof st.finalX === "number"){
-      pushCrashHistory(st.finalX);
-    }
-
     // если ставка была и не кешаутнул — проигрыш
     if(crash.bet > 0 && !crash.cashed){
       addGameHistory('Crash', crash.bet, -crash.bet, 'loss');
@@ -2578,5 +2573,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
