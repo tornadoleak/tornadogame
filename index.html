@@ -961,17 +961,17 @@ function applyCrashState(st){
 
     // кнопка: если ставка уже сделана — ждать раунда
     const btn = document.getElementById("btnCrash");
-    if(btn){
-      if(crash.bet > 0){
-        btn.innerText = "ОЖИДАНИЕ РАУНДА...";
-        btn.classList.add("btn-disabled");
-      } else {
-        btn.innerText = "СДЕЛАТЬ СТАВКУ";
-        btn.classList.remove("btn-disabled","btn-green");
-        btn.classList.add("btn-accent");
-      }
-    }
-
+   if(btn){
+  if(crash.bet > 0){
+    btn.innerText = "ОТМЕНИТЬ СТАВКУ";
+    btn.classList.remove("btn-disabled","btn-green","btn-accent");
+    btn.classList.add("btn-pink"); // можно любой стиль
+  } else {
+    btn.innerText = "СДЕЛАТЬ СТАВКУ";
+    btn.classList.remove("btn-disabled","btn-green","btn-pink");
+    btn.classList.add("btn-accent");
+  }
+}
     // обратный отсчёт до startAt
     crashCountdownTimer = setInterval(() => {
       const left = Math.max(0, ((st.startAt || serverNow()) - serverNow()) / 1000);
@@ -1551,6 +1551,22 @@ if(nextEl){
 
     function actionCrash() {
         const btn = document.getElementById('btnCrash');
+        // ✅ отмена ставки ДО начала раунда
+if ((crashState?.phase === "waiting") && crash.bet > 0) {
+  const refund = crash.bet;
+  crash.bet = 0;
+  crash.cashed = false;
+
+  db.ref('users/'+user+'/balance').transaction(b => (b || 0) + refund);
+
+  btn.innerText = "СДЕЛАТЬ СТАВКУ";
+  btn.classList.remove("btn-pink","btn-disabled","btn-green");
+  btn.classList.add("btn-accent");
+
+  toast("СТАВКА ОТМЕНЕНА", "success");
+  sfx(300);
+  return;
+}
         
         if((crashState?.phase === "waiting") && crash.bet === 0) {
             let amt = parseInt(document.getElementById('betCrash').value);
@@ -1571,6 +1587,8 @@ if(nextEl){
             crash.cashed = true;
             let win = Math.floor(crash.bet * crash.mult);
             let profit = win - crash.bet;
+            crash.bet = 0;
+crash.cashed = false;
             
             db.ref('users/'+user).transaction(u => {
   if(u) { 
@@ -2554,6 +2572,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
