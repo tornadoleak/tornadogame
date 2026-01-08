@@ -799,6 +799,7 @@
         appId: "1:926174944730:web:20be5b57efb23ab853b4e3"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.database(); // ✅ добавь эту строку
 
     function subscribeCrashHistory(){
   db.ref('crashHistory').limitToLast(12).on('value', snap => {
@@ -2553,6 +2554,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
