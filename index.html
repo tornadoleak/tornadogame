@@ -1550,33 +1550,28 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-// ✅ CHAT subscribe (вставь в runSession вместо твоего блока)
 const chatRef = db.ref('chat');
-
-// 1) снять прошлые подписки (иначе будет баг/дубли при повторном runSession)
 chatRef.off();
 
-// 2) очистить чат перед загрузкой последних
 const box = document.getElementById('chatBox');
 if(!box) return;
 box.innerHTML = '';
 
-chatRef
-  .orderByChild('time')
-  .limitToLast(10)
-  .on('child_added', snap => {
-    const m = snap.val();
+const chatQuery = chatRef.orderByChild('time').limitToLast(10);
+
+chatQuery.on('value', snap => {
+  // ✅ не прыгать вниз, если юзер читает вверх
+  const nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
+
+  box.innerHTML = '';
+
+  snap.forEach(s => {
+    const m = s.val();
     if (!m) return;
 
     const t = Number(m.time || 0);
-
-    // ✅ фильтр "в будущее" (эти сообщения обычно и "прилипают" снизу)
-    // если serverNow() нет — замени на Date.now()
     const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
-    if (t > now + 2 * 60 * 1000) return;
-
-    // ✅ не прыгать вниз, если юзер читает вверх
-    const nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
+    if (t > now + 2 * 60 * 1000) return; // фильтр "будущих" сообщений
 
     const d = document.createElement('div');
     d.className = 'msg';
@@ -1588,9 +1583,10 @@ chatRef
     d.appendChild(document.createTextNode(String(m.t || '')));
 
     box.appendChild(d);
-
-    if (nearBottom) box.scrollTop = box.scrollHeight;
   });
+
+  if (nearBottom) box.scrollTop = box.scrollHeight;
+});
 
         initCrashShared();
         syncLeaders();
@@ -2898,6 +2894,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
