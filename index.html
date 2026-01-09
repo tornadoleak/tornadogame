@@ -527,6 +527,35 @@
   from{ opacity:0; transform: translateY(6px) scale(0.98); }
   to{ opacity:1; transform: translateY(0) scale(1); }
 }
+        /* ✅ ONLINE badge */
+.online-badge{
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 7px 12px;
+  border-radius: 14px;
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  color: var(--accent);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,242,255,0.18);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+}
+
+.online-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 12px rgba(0,255,136,0.6);
+}
         
     </style>
 </head>
@@ -778,6 +807,10 @@
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
             <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
+            <div class="online-badge">
+  <span class="online-dot"></span>
+  ONLINE: <span id="onlineCount">—</span>
+</div>
             <div class="xp-container">
                 <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
                 <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
@@ -875,7 +908,60 @@ function genCrashTarget(){
 
   return Number(x.toFixed(2));
 }
+// ✅ ONLINE PRESENCE (сколько игроков онлайн)
+let onlineInterval = null;
+let presenceListenerRef = null;
 
+function startPresence(){
+  if(!user) return;
+
+  const presRef = db.ref('presence');
+  const myRef = presRef.child(String(user));
+
+  // отметили себя онлайн
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+
+  myRef.onDisconnect().remove();
+  myRef.set({ at: now }).catch(()=>{});
+
+  // heartbeat чтобы “онлайн” был живой (иначе на мобилках залипает)
+  if(onlineInterval) clearInterval(onlineInterval);
+  onlineInterval = setInterval(() => {
+    const t = (typeof serverNow === 'function') ? serverNow() : Date.now();
+    myRef.update({ at: t }).catch(()=>{});
+  }, 8000);
+
+  // слушаем всех и считаем активных за последние 20 сек
+  if(presenceListenerRef) presenceListenerRef.off();
+  presenceListenerRef = presRef;
+
+  presRef.on('value', snap => {
+    const v = snap.val() || {};
+    const now2 = (typeof serverNow === 'function') ? serverNow() : Date.now();
+
+    let count = 0;
+    Object.keys(v).forEach(k => {
+      const at = Number(v[k]?.at || 0);
+      if(now2 - at < 20000) count++;
+    });
+
+    const el = document.getElementById('onlineCount');
+    if(el) el.textContent = String(count);
+  });
+}
+
+function stopPresence(){
+  try{
+    if(onlineInterval) clearInterval(onlineInterval);
+    onlineInterval = null;
+
+    if(presenceListenerRef) presenceListenerRef.off();
+    presenceListenerRef = null;
+
+    if(user) db.ref('presence').child(String(user)).remove().catch(()=>{});
+  }catch(e){}
+}
+    
 function initCrashShared(){
   // слушаем состояние раунда
   db.ref("crash").on("value", snap => {
@@ -1520,6 +1606,8 @@ localStorage.removeItem('tornado_user');
         db.ref('chat').off();
         db.ref('pvp').off();
         
+        stopPresence();
+        
         user = null;
         userData = {};
         crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
@@ -1594,6 +1682,7 @@ chatQuery.on('value', snap => {
         loadPVPRooms();
         updateProfile();
         initRoulette();
+        startPresence();
 
         passiveInterval = setInterval(() => {
             let inc = 0;
@@ -2894,6 +2983,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
