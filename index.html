@@ -1272,6 +1272,9 @@ function setCasesDisabled(disabled) {
         const el = document.createElement('div');
         el.className = 'toast';
         el.innerText = txt;
+        if(type === 'success') playSfx('win');
+else if(type === 'error') playSfx('lose');
+else playSfx('ui');
         if(type === 'error') el.style.borderColor = 'var(--pink)';
         if(type === 'success') el.style.borderColor = 'var(--green)';
         if(type === 'gold') el.style.borderColor = 'var(--gold)';
@@ -1284,50 +1287,163 @@ function setCasesDisabled(disabled) {
     }
 
 
+// ===== ULTRA SFX ENGINE (лучше звук + пресеты) =====
+var SFX = window.__SFX__ = window.__SFX__ || {};
+
+function ensureAudio(){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return null;
+
+  // audioCtx и soundEnabled у тебя уже есть в глобале — НЕ объявляем заново
+  if(!audioCtx) audioCtx = new Ctx();
+
+  if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+
+  // мастер-цепочка один раз: master -> compressor -> destination
+  if(!SFX.master){
+    SFX.master = audioCtx.createGain();
+    SFX.master.gain.value = (typeof SFX.vol === 'number') ? SFX.vol : 0.55;
+
+    SFX.comp = audioCtx.createDynamicsCompressor();
+    SFX.comp.threshold.value = -24;
+    SFX.comp.knee.value = 20;
+    SFX.comp.ratio.value = 6;
+    SFX.comp.attack.value = 0.003;
+    SFX.comp.release.value = 0.15;
+
+    SFX.master.connect(SFX.comp);
+    SFX.comp.connect(audioCtx.destination);
+  }
+
+  return audioCtx;
+}
+
+// можно менять громкость: setSfxVolume(0.3)
+function setSfxVolume(v){
+  SFX.vol = Math.max(0, Math.min(1, Number(v)));
+  if(SFX.master) SFX.master.gain.value = SFX.vol;
+}
+
+// ✅ улучшенный sfx (совместим со старым вызовом sfx(600,'sine',0.2,0.12))
 function sfx(f, type='sine', d=0.2, v=0.12) {
   if(!soundEnabled) return;
 
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if(!Ctx) return;
+  const ctx = ensureAudio();
+  if(!ctx) return;
 
-    if(!audioCtx) audioCtx = new Ctx();
+  const now = ctx.currentTime;
 
-    if(audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(()=>{});
-    }
+  const freqs = Array.isArray(f) ? f : [f];
 
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
+  const out = ctx.createGain();
+  out.gain.setValueAtTime(0.0001, now);
+  out.connect(SFX.master);
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+  // ADSR (чтоб звук был “живой”, не плоский)
+  const attack  = Math.min(0.02, d * 0.25);
+  const release = Math.max(0.03, d * 0.55);
+  const sustain = Math.max(0.0001, v * 0.45);
 
-    g.gain.setValueAtTime(v, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+  out.gain.exponentialRampToValueAtTime(Math.max(0.0001, v), now + attack);
+  out.gain.exponentialRampToValueAtTime(Math.max(0.0001, sustain), now + Math.max(attack, d - release));
+  out.gain.exponentialRampToValueAtTime(0.0001, now + d);
 
-    osc.connect(g);
-    g.connect(audioCtx.destination);
+  freqs.forEach((freq, i) => {
+    freq = Math.max(20, Number(freq) || 440);
 
-    osc.start();
-    osc.stop(audioCtx.currentTime + d);
-  } catch(e) {
-    console.warn("SFX error:", e);
+    // основной осц
+    const o1 = ctx.createOscillator();
+    o1.type = type;
+    o1.frequency.setValueAtTime(freq, now);
+
+    // маленький “питч-дроп” в начале = ударность
+    o1.frequency.exponentialRampToValueAtTime(freq * 0.96, now + Math.min(0.06, d * 0.4));
+    o1.detune.setValueAtTime((i % 2 ? -6 : 6), now);
+
+    // тихая гармоника сверху (делает звук богаче)
+    const o2 = ctx.createOscillator();
+    o2.type = (type === 'sine') ? 'triangle' : 'sine';
+    o2.frequency.setValueAtTime(freq * 2, now);
+    o2.detune.setValueAtTime((i % 2 ? 8 : -8), now);
+
+    const g1 = ctx.createGain(); g1.gain.value = 0.75;
+    const g2 = ctx.createGain(); g2.gain.value = 0.18;
+
+    o1.connect(g1); g1.connect(out);
+    o2.connect(g2); g2.connect(out);
+
+    o1.start(now); o2.start(now);
+    o1.stop(now + d + 0.05);
+    o2.stop(now + d + 0.05);
+  });
+}
+
+// короткий “шум” для эффектов (кэш-аут, взрыв, свист)
+function sfxNoise(d=0.12, v=0.07, hp=800){
+  if(!soundEnabled) return;
+
+  const ctx = ensureAudio();
+  if(!ctx) return;
+
+  const now = ctx.currentTime;
+
+  const len = Math.floor(ctx.sampleRate * d);
+  const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for(let i=0;i<len;i++){
+    const k = 1 - (i / len);
+    data[i] = (Math.random() * 2 - 1) * k; // затухание
+  }
+
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.setValueAtTime(hp, now);
+
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(v, now + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + d);
+
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(SFX.master);
+
+  src.start(now);
+  src.stop(now + d + 0.02);
+}
+
+// ✅ пресеты под события (чтобы было “как в играх”)
+function playSfx(name){
+  switch(name){
+    case 'ui':       return sfx(620,'sine',0.07,0.10);
+    case 'bet':      return (sfx([420,840],'triangle',0.10,0.10), sfxNoise(0.05,0.03,1200));
+    case 'tick':     return sfx(1200,'square',0.03,0.05);
+    case 'win':      return (sfx([523,659,784],'sine',0.22,0.10), sfxNoise(0.10,0.04,900));
+    case 'lose':     return sfx(140,'sawtooth',0.25,0.10);
+    case 'crash':    return (sfx(95,'sawtooth',0.35,0.12), sfxNoise(0.20,0.06,450));
+    case 'cashout':  return (sfx([440,880],'square',0.14,0.10), sfxNoise(0.06,0.03,1400));
+    case 'mine':     return sfx(760,'triangle',0.08,0.09);
+    case 'bomb':     return (sfx(110,'sawtooth',0.30,0.12), sfxNoise(0.18,0.07,500));
+    default:         return sfx(600,'sine',0.10,0.10);
   }
 }
 
+// ✅ разлочить звук после первого касания/клика/клавы
 function unlockAudioOnce(){
   try{
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if(!Ctx) return;
-    if(!audioCtx) audioCtx = new Ctx();
-    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+    ensureAudio();
   }catch(e){}
 }
-
 window.addEventListener('pointerdown', unlockAudioOnce, { once:true });
 window.addEventListener('touchstart', unlockAudioOnce, { once:true });
 window.addEventListener('keydown', unlockAudioOnce, { once:true });
+
+// можно сразу поставить громкость (по желанию)
+setSfxVolume(0.55);
 
     function showWinAnimation(amount, prefix = '+') {
     const el = document.createElement('div');
@@ -2664,6 +2780,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
