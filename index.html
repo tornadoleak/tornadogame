@@ -1563,7 +1563,7 @@ box.innerHTML = '';
 
 chatRef
   .orderByChild('time')
-  .limitToLast(30)
+  .limitToLast(10)
   .on('child_added', snap => {
     const m = snap.val();
     if (!m) return;
@@ -2898,6 +2898,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
