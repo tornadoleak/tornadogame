@@ -1550,23 +1550,47 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-db.ref('chat').orderByChild('time').limitToLast(30).on('child_added', snap => {
-  const m = snap.val();
-  if (!m) return;
+// ✅ CHAT subscribe (вставь в runSession вместо твоего блока)
+const chatRef = db.ref('chat');
 
-  const box = document.getElementById('chatBox');
-  const d = document.createElement('div');
-  d.className = 'msg';
+// 1) снять прошлые подписки (иначе будет баг/дубли при повторном runSession)
+chatRef.off();
 
-  const b = document.createElement('b');
-  b.textContent = String(m.u || '').toUpperCase();
+// 2) очистить чат перед загрузкой последних
+const box = document.getElementById('chatBox');
+if(!box) return;
+box.innerHTML = '';
 
-  d.appendChild(b);
-  d.appendChild(document.createTextNode(String(m.t || '')));
+chatRef
+  .orderByChild('time')
+  .limitToLast(30)
+  .on('child_added', snap => {
+    const m = snap.val();
+    if (!m) return;
 
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-});
+    const t = Number(m.time || 0);
+
+    // ✅ фильтр "в будущее" (эти сообщения обычно и "прилипают" снизу)
+    // если serverNow() нет — замени на Date.now()
+    const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+    if (t > now + 2 * 60 * 1000) return;
+
+    // ✅ не прыгать вниз, если юзер читает вверх
+    const nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
+
+    const d = document.createElement('div');
+    d.className = 'msg';
+
+    const b = document.createElement('b');
+    b.textContent = String(m.u || '').toUpperCase();
+
+    d.appendChild(b);
+    d.appendChild(document.createTextNode(String(m.t || '')));
+
+    box.appendChild(d);
+
+    if (nearBottom) box.scrollTop = box.scrollHeight;
+  });
 
         initCrashShared();
         syncLeaders();
@@ -1891,18 +1915,19 @@ if(nextEl){
     }
 
     function sendMsg() {
-        const inp = document.getElementById('chatInput');
-        const msg = inp.value.trim();
-        if(msg && msg.length > 0) {
-            db.ref('chat').push({ 
-                u: user, 
-                t: msg,
-                time: Date.now()
-            });
-            inp.value = '';
-            sfx(500, 'sine', 0.1);
-        }
-    }
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim();
+  if(!msg) return;
+
+  db.ref('chat').push({ 
+  u: user, 
+  t: msg,
+  time: firebase.database.ServerValue.TIMESTAMP
+});
+
+  inp.value = '';
+  sfx(500, 'sine', 0.1);
+}
 
     function syncLeaders() {
         db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
@@ -2873,6 +2898,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
