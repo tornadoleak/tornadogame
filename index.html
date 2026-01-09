@@ -850,24 +850,25 @@ function initCrashShared(){
     applyCrashState(crashState);
   });
 
-    tryBecomeCrashHost();
-  setInterval(() => { if(!isCrashHost) tryBecomeCrashHost(); }, 5000);
-}
-
-    // ✅ следим за хостом и перехватываем, если он "протух"
+  // ✅ следим за хостом и перехватываем, если он "протух"
   db.ref("crashHost").on("value", snap => {
     const h = snap.val();
     const now = serverNow();
     const dead = !h || !h.at || (now - h.at) > HOST_LEASE_MS;
-    if(dead) tryBecomeCrashHost();
+    if (dead) tryBecomeCrashHost();
   });
-    
+
   // пробуем стать "ведущим" (только один человек управляет раундами)
   tryBecomeCrashHost();
+
+  // если не хост — раз в 5 сек пробуем забрать, когда хост умер
+  setInterval(() => {
+    if (!isCrashHost) tryBecomeCrashHost();
+  }, 5000);
 }
 
 const HOST_TTL = 15000; // 15 сек - если хост не обновлялся, его можно забрать
-
+    
 function tryBecomeCrashHost(){
   if(!user) return;
 
@@ -1389,16 +1390,6 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         loadPVPRooms();
         updateProfile();
         initRoulette();
-
-  const arr = [];
-  snap.forEach(s => {
-    const v = s.val();
-    if(v && typeof v.x === 'number') arr.push(v.x);
-  });
-  arr.reverse();
-  crashHistory = arr;       // использует твой renderCrashHistory()
-  renderCrashHistory();
-});
 
         passiveInterval = setInterval(() => {
             let inc = 0;
@@ -2605,6 +2596,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
