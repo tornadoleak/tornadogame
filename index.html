@@ -1012,7 +1012,7 @@ function applyCrashState(st){
     crash.mult = 1.0;
     crash.cashed = false;
     profitEl.innerText = "";
-    multEl.style.color = "#fff";
+    setCrashMultStyle(multEl, '#fff');
 
     statusEl.className = "status-indicator status-waiting";
     statusEl.innerText = "ОЖИДАНИЕ";
@@ -1068,7 +1068,7 @@ function applyCrashState(st){
     crash.active = false;
 
     multEl.innerText = "CRASH!";
-    multEl.style.color = "var(--pink)";
+    setCrashMultStyle(multEl, "var(--pink)");
     profitEl.innerText = "";
 
     statusEl.className = "status-indicator status-crashed";
@@ -1122,11 +1122,10 @@ function startCrashVisual(runAtMs, targetX){
     // X текст + цвет
     const multEl = document.getElementById("crashMult");
     if(multEl){
-      multEl.innerText = crash.mult.toFixed(2) + 'x';
-      if(typeof crashColorStrict === "function"){
-        multEl.style.color = crashColorStrict(crash.mult);
-      }
-    }
+  multEl.innerText = crash.mult.toFixed(2) + 'x';
+  const col = (typeof crashColorStrict === "function") ? crashColorStrict(crash.mult) : '#fff';
+  setCrashMultStyle(multEl, col);
+}
 
     // прибыль на экране (если есть ставка и не кешаут)
     if(crash.bet > 0 && !crash.cashed){
@@ -1169,6 +1168,11 @@ function crashColorStrict(mult){
   if(mult >= 5)  return '#ff3b3b';      // красный
   if(mult >= 2)  return 'var(--gold)';
   return 'var(--green)';
+}
+    function setCrashMultStyle(el, color){
+  if(!el) return;
+  el.style.color = color;
+  el.style.textShadow = `0 0 40px ${color}, 0 0 90px ${color}`;
 }
 
 function renderCrashHistory(){
@@ -1366,7 +1370,7 @@ localStorage.removeItem('tornado_user');
             updateUI();
         });
 
-db.ref('chat').limitToLast(30).on('child_added', snap => {
+db.ref('chat').orderByChild('time').limitToLast(30).on('child_added', snap => {
   const m = snap.val();
   if (!m) return;
 
@@ -2596,6 +2600,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
