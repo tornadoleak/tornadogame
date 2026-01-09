@@ -836,11 +836,35 @@ const HOST_LEASE_MS = 12000;   // если хост не обновлялся 12
 const HOST_BEAT_MS  = 3000;    // хост обновляет at раз в 3с
 let hostBeatTimer = null;
 
-// генерация цели (как у тебя было)
+// ✅ НОВОЕ распределение без "дырки" 5.2–20
+// Шансы по диапазонам:
+// 55%: 1.00–2.00
+// 25%: 2.00–5.00
+// 12%: 5.00–10.00
+//  6%: 10.00–20.00
+//  2%: 20.00–50.00
 function genCrashTarget(){
-  let t = (Math.random() < 0.12) ? (1.0 + Math.random() * 0.8) : (Math.random() * 4 + 1.2);
-  if (Math.random() < 0.015) t = 20 + Math.random() * 30;
-  return Number(t.toFixed(2));
+  const r = Math.random();
+  let x;
+
+  if (r < 0.55) {
+    // 1–2 (чаще ближе к 1)
+    x = 1 + Math.pow(Math.random(), 1.8) * 1.0;
+  } else if (r < 0.80) {
+    // 2–5
+    x = 2 + Math.pow(Math.random(), 1.5) * 3.0;
+  } else if (r < 0.92) {
+    // 5–10
+    x = 5 + Math.pow(Math.random(), 1.3) * 5.0;
+  } else if (r < 0.98) {
+    // 10–20
+    x = 10 + Math.pow(Math.random(), 1.2) * 10.0;
+  } else {
+    // 20–50 (редко, и чаще ближе к 20 чем к 50)
+    x = 20 + Math.pow(Math.random(), 2.0) * 30.0;
+  }
+
+  return Number(x.toFixed(2));
 }
 
 function initCrashShared(){
@@ -2600,6 +2624,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
