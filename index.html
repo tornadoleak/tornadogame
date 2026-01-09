@@ -517,6 +517,15 @@
   border-radius: 999px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
+/* ✅ добавляем “живость” */
+  animation: pillIn .22s ease-out;
+  filter: drop-shadow(0 0 10px currentColor);
+  transform-origin: center;
+}
+
+@keyframes pillIn{
+  from{ opacity:0; transform: translateY(6px) scale(0.98); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
 }
         
     </style>
@@ -1274,20 +1283,53 @@ function setCasesDisabled(disabled) {
         }, 3500);
     }
 
-    function sfx(f, type='sine', d=0.2, v=0.1) {
-        if(!soundEnabled) return;
-        try {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
-            g.gain.setValueAtTime(v, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + d);
-        } catch(e) {}
+    let audioCtx;
+let soundEnabled = true;
+
+function sfx(f, type='sine', d=0.2, v=0.12) {
+  if(!soundEnabled) return;
+
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+
+    if(!audioCtx) audioCtx = new Ctx();
+
+    if(audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(()=>{});
     }
+
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+
+    g.gain.setValueAtTime(v, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + d);
+  } catch(e) {
+    console.warn("SFX error:", e);
+  }
+}
+
+function unlockAudioOnce(){
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    if(!audioCtx) audioCtx = new Ctx();
+    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  }catch(e){}
+}
+
+window.addEventListener('pointerdown', unlockAudioOnce, { once:true });
+window.addEventListener('touchstart', unlockAudioOnce, { once:true });
+window.addEventListener('keydown', unlockAudioOnce, { once:true });
 
     function showWinAnimation(amount, prefix = '+') {
     const el = document.createElement('div');
@@ -2624,6 +2666,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
