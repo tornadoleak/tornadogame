@@ -802,20 +802,23 @@
     const db = firebase.database(); // ✅ добавь эту строку
 
     function subscribeCrashHistory(){
-  db.ref('crashHistory').limitToLast(12).on('value', snap => {
+  db.ref('crashHistory').orderByChild('time').limitToLast(12).on('value', snap => {
     const arr = [];
     snap.forEach(s => {
       const v = s.val();
       if(v && typeof v.x === 'number') arr.push(v.x);
     });
     crashHistory = arr.reverse();
-    renderCrashHistory(); // твоя функция, которая рисует pills
+    renderCrashHistory();
   });
 }
     subscribeCrashHistory();
     
-  function pushCrashHistoryGlobal(x){
-  db.ref('crashHistory').push({ x: Number(x.toFixed(2)), time: Date.now() });
+  function pushCrashHistoryGlobal(roundId, x){
+  db.ref('crashHistory').child(String(roundId)).set({
+    x: Number(x.toFixed(2)),
+    time: serverNow()
+  });
 }
     
     // ===== SHARED CRASH (ONE FOR ALL USERS) =====
@@ -847,6 +850,10 @@ function initCrashShared(){
     applyCrashState(crashState);
   });
 
+    tryBecomeCrashHost();
+  setInterval(() => { if(!isCrashHost) tryBecomeCrashHost(); }, 5000);
+}
+
     // ✅ следим за хостом и перехватываем, если он "протух"
   db.ref("crashHost").on("value", snap => {
     const h = snap.val();
@@ -859,36 +866,49 @@ function initCrashShared(){
   tryBecomeCrashHost();
 }
 
+const HOST_TTL = 15000; // 15 сек - если хост не обновлялся, его можно забрать
+
 function tryBecomeCrashHost(){
   if(!user) return;
 
   const hostRef = db.ref("crashHost");
+  const now = serverNow();
 
   hostRef.transaction(cur => {
-    const now = serverNow();
-    const alive = cur && cur.u && cur.at && (now - cur.at) < HOST_LEASE_MS;
+    // если нет хоста
+    if(!cur || !cur.u) return { u: user, at: now };
 
-    if(alive) return; // есть живой ведущий — не трогаем
-    return { u: user, at: now };
+    // если хост "мертвый" (не обновлялся)
+    if(now - (cur.at || 0) > HOST_TTL) return { u: user, at: now };
+
+    return; // иначе не забираем
   }).then(res => {
     const v = res.snapshot.val();
     if(res.committed && v && v.u === user){
       isCrashHost = true;
       hostRef.onDisconnect().remove();
       startCrashHostLoop();
-      startCrashHostHeartbeat();
     } else {
       isCrashHost = false;
     }
-  }).catch(() => {});
+  }).catch(()=>{});
 }
 
 function startCrashHostLoop(){
   if(crashHostTimer) clearInterval(crashHostTimer);
 
+  const hostRef = db.ref("crashHost");
+  let lastBeat = 0;
+
   crashHostTimer = setInterval(() => {
     const now = serverNow();
     const st = crashState || null;
+
+    // ✅ heartbeat хоста (чтобы не залипал)
+    if(now - lastBeat > 2000){
+      lastBeat = now;
+      hostRef.update({ at: now });
+    }
 
     // если состояния нет — создаём WAITING
     if(!st || !st.phase){
@@ -900,12 +920,21 @@ function startCrashHostLoop(){
       });
     }
 
-    // WAITING -> RUNNING
-    if(st.phase === "waiting" && now >= (st.startAt || 0)){
-      return db.ref("crash").update({
-        phase: "running",
-        runAt: st.startAt || now
-      });
+    // WAITING
+    if(st.phase === "waiting"){
+      // ✅ если кто-то завис и startAt уже давно прошёл — сдвигаем старт вперёд
+      if(now - (st.startAt || 0) > 10000){
+        return db.ref("crash").update({ startAt: now + 2000 });
+      }
+
+      // ✅ старт раунда
+      if(now >= (st.startAt || 0)){
+        return db.ref("crash").update({
+          phase: "running",
+          runAt: now // ❗ВАЖНО: ставим runAt = NOW (а не старый startAt)
+        });
+      }
+      return;
     }
 
     // RUNNING -> CRASHED
@@ -913,20 +942,24 @@ function startCrashHostLoop(){
       const runAt = st.runAt || now;
       const elapsed = Math.max(0, (now - runAt) / 1000);
       const mult = Math.pow(1.08, elapsed);
+
       if(mult >= (st.targetX || 1.1)){
         const finalX = Number((st.targetX || mult).toFixed(2));
-        pushCrashHistoryGlobal(finalX);
-          
-          return db.ref("crash").update({
+
+        // ✅ пишем историю по roundId (без дублей)
+        pushCrashHistoryGlobal(st.roundId || runAt, finalX);
+
+        return db.ref("crash").update({
           phase: "crashed",
           finalX,
           crashAt: now,
           nextAt: now + 3000
         });
       }
+      return;
     }
 
-    // CRASHED -> WAITING (новый раунд)
+    // CRASHED -> WAITING
     if(st.phase === "crashed" && now >= (st.nextAt || 0)){
       return db.ref("crash").set({
         phase: "waiting",
@@ -1357,7 +1390,6 @@ db.ref('chat').limitToLast(30).on('child_added', snap => {
         updateProfile();
         initRoulette();
 
-        db.ref('crashHistory').limitToLast(12).on('value', snap => {
   const arr = [];
   snap.forEach(s => {
     const v = s.val();
@@ -2573,6 +2605,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
