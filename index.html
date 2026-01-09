@@ -1155,6 +1155,7 @@ function applyCrashState(st){
       multEl.innerText = left.toFixed(1) + "s";
     }, 100);
 
+    startCrashWaitingTicks();  
     return;
   }
 
@@ -1176,6 +1177,7 @@ function applyCrashState(st){
       }
     }
 
+    startCrashRunningBeeps();
     // запустить локальную отрисовку (но цель берём из st.targetX)
     startCrashVisual(st.runAt || serverNow(), st.targetX || 1.2);
     return;
@@ -1183,6 +1185,7 @@ function applyCrashState(st){
 
   // CRASHED
   if(st.phase === "crashed"){
+    crashBoom();
     if(crashInterval) { clearInterval(crashInterval); crashInterval = null; }
     crash.active = false;
 
@@ -1463,6 +1466,39 @@ function sfx(f, type='sine', d=0.2, v=0.12) {
     o2.stop(now + d + 0.05);
   });
 }
+    // ==== CRASH SFX ====
+let crashTickTimer = null;
+let crashRunBeepTimer = null;
+
+function stopCrashSfx(){
+  if(crashTickTimer){ clearInterval(crashTickTimer); crashTickTimer = null; }
+  if(crashRunBeepTimer){ clearInterval(crashRunBeepTimer); crashRunBeepTimer = null; }
+}
+
+function startCrashWaitingTicks(){
+  stopCrashSfx();
+  crashTickTimer = setInterval(() => {
+    sfx(900, 'sine', 0.05, 0.06);
+  }, 350);
+}
+
+function startCrashRunningBeeps(){
+  stopCrashSfx();
+  crashRunBeepTimer = setInterval(() => {
+    const m = Math.max(1, crash?.mult || 1);
+    const f = Math.min(1800, 500 + m * 120);
+    sfx(f, 'triangle', 0.03, 0.05);
+  }, 220);
+}
+
+function crashBoom(){
+  stopCrashSfx();
+  sfx([140, 90], 'sawtooth', 0.25, 0.14);
+}
+
+function crashCashout(){
+  sfx([900, 1200], 'square', 0.12, 0.12);
+}
 
 // короткий “шум” для эффектов (кэш-аут, взрыв, свист)
 function sfxNoise(d=0.12, v=0.07, hp=800){
@@ -1601,6 +1637,7 @@ localStorage.removeItem('tornado_user');
         
         if(crashInterval) clearInterval(crashInterval);
         if(passiveInterval) clearInterval(passiveInterval);
+        stopCrashSfx();
         
         db.ref('users/' + user).off();
         db.ref('chat').off();
@@ -1904,6 +1941,7 @@ if(nextEl){
         } 
         else if(crash.active && crash.bet > 0 && !crash.cashed) {
             crash.cashed = true;
+            crashCashout();
             let win = Math.floor(crash.bet * crash.mult);
             let profit = win - crash.bet;
             
@@ -2983,6 +3021,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
