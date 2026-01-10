@@ -1323,15 +1323,24 @@ function applyCrashState(st){
   return v || fallback;
 }
 
+function cssVar(name, fallback){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
 function startCrashVisual(runAtMs, targetX){
-  if(crashInterval) return; // уже запущено
+  if(crashInterval) return;
 
   crash.active = true;
   crash.startTime = runAtMs;
-  crash.pts = []; // будем хранить нормализованные точки (0..1)
+  crash.pts = []; // {t, m}
 
   const cvs = document.getElementById('crashCanvas');
   const ctx = cvs.getContext('2d');
+
+  const WINDOW_SEC = 12;              // сколько секунд показываем на графике
+  const MAX_POINTS = 900;
+  const pad = 22;
 
   function resize(){
     cvs.width  = cvs.offsetWidth;
@@ -1339,42 +1348,38 @@ function startCrashVisual(runAtMs, targetX){
   }
   resize();
 
-  const GROW = 1.08;
-  const logBase = Math.log(GROW);
-  const safeTarget = Math.max(1.01, Number(targetX) || 1.2);
-
-  // сколько секунд нужно, чтобы дойти до targetX при mult = 1.08^t
-  const tTarget = Math.max(0.25, Math.log(safeTarget) / logBase);
+  // 🧠 маппинг Y без палёва targetX: асимптотически стремится к верху
+  function yFracFromMult(mult){
+    const k = 0.9; // форма кривой (0.7-1.1 норм)
+    mult = Math.max(1, mult || 1);
+    return 1 - 1 / Math.pow(mult, k); // 1->0, 2->~0.46, 5->~0.83, 20->~0.97
+  }
 
   crashInterval = setInterval(() => {
-    // если канвас менялся по размеру (мобила/ресайз панелей)
+    // ресайз на всякий
     if (cvs.width !== cvs.offsetWidth || cvs.height !== cvs.offsetHeight) resize();
 
     const now = serverNow();
     const elapsed = Math.max(0, (now - runAtMs) / 1000);
 
-    crash.mult = Math.pow(GROW, elapsed);
+    // мультик как у тебя (shared crash)
+    crash.mult = Math.pow(1.08, elapsed);
 
-    // ✅ X: прогресс по времени (0..1)
-    const xFrac = Math.min(1, elapsed / tTarget);
+    // сохраняем точки
+    crash.pts.push({ t: now, m: crash.mult });
+    if (crash.pts.length > MAX_POINTS) crash.pts.shift();
 
-    // ✅ Y: прогресс по множителю (0..1) — даст красивую “экспоненту”
-    const denom = Math.max(0.01, safeTarget - 1);
-    const yFrac = Math.min(1, (crash.mult - 1) / denom);
-
-    crash.pts.push({ x: xFrac, y: yFrac });
-    if (crash.pts.length > 800) crash.pts.shift();
+    // чистим старые точки (скользящее окно)
+    const cut = now - WINDOW_SEC * 1000;
+    while (crash.pts.length && crash.pts[0].t < cut) crash.pts.shift();
 
     // ===== DRAW =====
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    ctx.clearRect(0,0,cvs.width,cvs.height);
 
-    const pad = 22;
     const W = Math.max(10, cvs.width  - pad * 2);
     const H = Math.max(10, cvs.height - pad * 2);
 
-    // ✅ цвет линии = цвет темы
     const lineCol = cssVar('--accent', '#00f2ff');
-
     ctx.strokeStyle = lineCol;
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
@@ -1383,17 +1388,20 @@ function startCrashVisual(runAtMs, targetX){
     ctx.shadowColor = lineCol;
 
     ctx.beginPath();
-    // старт снизу-слева
     ctx.moveTo(pad, pad + H);
 
     for (const p of crash.pts){
-      const x = pad + p.x * W;
-      const y = pad + (1 - p.y) * H; // инверт по оси Y (0 внизу)
+      // X = позиция во времени внутри окна (0..1)
+      const xFrac = (p.t - cut) / (WINDOW_SEC * 1000);
+      const yFrac = yFracFromMult(p.m);
+
+      const x = pad + Math.max(0, Math.min(1, xFrac)) * W;
+      const y = pad + (1 - Math.max(0, Math.min(1, yFrac))) * H;
       ctx.lineTo(x, y);
     }
     ctx.stroke();
 
-    // ===== UI: мультик + цвет как раньше =====
+    // ===== UI =====
     const multEl = document.getElementById("crashMult");
     if(multEl){
       multEl.innerText = crash.mult.toFixed(2) + 'x';
@@ -1401,7 +1409,6 @@ function startCrashVisual(runAtMs, targetX){
       setCrashMultStyle(multEl, col);
     }
 
-    // прибыль (если ставка есть и не кешаут)
     if(crash.bet > 0 && !crash.cashed){
       const payout = Math.floor(crash.bet * crash.mult);
       const profitEl = document.getElementById("crashProfit");
@@ -1413,7 +1420,6 @@ function startCrashVisual(runAtMs, targetX){
       }
     }
 
-    // ❗️остановка всё равно приходит из Firebase (phase=crashed), тут не стопаем
   }, 50);
 }
 
@@ -3352,6 +3358,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
