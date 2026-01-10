@@ -293,6 +293,31 @@
         }
         @keyframes msgSlide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 10px; display: block; margin-bottom: 4px; }
+        
+        .msg-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:4px;
+}
+
+.msg-head b{
+  display:inline;           /* перебиваем твой .msg b { display:block } */
+  margin:0;
+}
+
+.msg-time{
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:800;
+  color: var(--muted);
+  opacity:0.8;
+}
+
+.msg-text{
+  white-space:pre-wrap;
+}
 
         .leader-card {
             display: flex;
@@ -1969,15 +1994,37 @@ chatQuery.on('value', snap => {
     if (t > now + 2 * 60 * 1000) return; // фильтр "будущих" сообщений
 
     const d = document.createElement('div');
-    d.className = 'msg';
+d.className = 'msg';
 
-    const b = document.createElement('b');
-    b.textContent = String(m.u || '').toUpperCase();
+const head = document.createElement('div');
+head.className = 'msg-head';
 
-    d.appendChild(b);
-    d.appendChild(document.createTextNode(String(m.t || '')));
+const b = document.createElement('b');
+b.textContent = String(m.u || '').toUpperCase();
 
-    box.appendChild(d);
+const ts = document.createElement('span');
+ts.className = 'msg-time';
+
+const tt = Number(m.time || 0);
+if(tt){
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+  const dt = new Date(Math.min(tt, now)); // кламп на всякий
+  ts.textContent = dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+} else {
+  ts.textContent = '';
+}
+
+head.appendChild(b);
+head.appendChild(ts);
+
+const text = document.createElement('div');
+text.className = 'msg-text';
+text.textContent = String(m.t || '');
+
+d.appendChild(head);
+d.appendChild(text);
+
+box.appendChild(d);
   });
 
   if (nearBottom) box.scrollTop = box.scrollHeight;
@@ -3449,6 +3496,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
