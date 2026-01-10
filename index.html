@@ -866,6 +866,12 @@
 
         <div id="viewCrash" class="viewport active">
             <div class="crash-area">
+                        <!-- ✅ ПОСЛЕДНИЕ ИГРЫ (Crash feed) -->
+<div class="recent-wrap">
+  <div class="recent-head">
+    <div class="recent-title">Последние игры</div>
+    <div class="recent-hint">история ставок</div>
+  </div>
                 <canvas id="crashCanvas"></canvas>
                 <div class="crash-info">
                     <div id="eventBanner" style="
@@ -902,12 +908,6 @@
             </div>
             <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
-        <!-- ✅ ПОСЛЕДНИЕ ИГРЫ (Crash feed) -->
-<div class="recent-wrap">
-  <div class="recent-head">
-    <div class="recent-title">Последние игры</div>
-    <div class="recent-hint">история ставок</div>
-  </div>
 
   <div id="recentFeed" class="recent-feed"></div>
 </div>
@@ -2190,6 +2190,7 @@ localStorage.removeItem('tornado_user');
 db.ref('crashHost').off();
 db.ref('crashHistory').off();
 db.ref('events').off(); // или точнее конкретный путь daily
+        db.ref('recentGames').off();
         
         stopPresence();
         
@@ -2224,6 +2225,7 @@ if(sel) sel.value = userData.theme || 'neon';
             if(!userData.achievements) userData.achievements = {};
             if(!userData.history) userData.history = [];
             updateUI();
+            subscribeRecentFeed();
         });
 
         function formatChatTime(ts){
@@ -2592,7 +2594,10 @@ db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
   return u;
 });
             
-            addGameHistory('Crash', crash.bet, profit, 'win');
+            addGameHistory('Crash', crash.bet, profit, 'win', {
+  mult: Number(crash.mult.toFixed(2)),
+  payout: win
+});
             checkWinStreak();
             
             btn.innerText = "ВЫПЛАТА: " + win.toLocaleString() + " ₽";
@@ -2863,20 +2868,35 @@ function renderTopFromCache(){
   });
 }
 
-    function addGameHistory(game, bet, profit, result) {
-        const entry = {game, bet, profit, result, time: serverNow()};
-        db.ref('users/'+user+'/history').transaction(h => {
-            if(!h) h = [];
-            h.unshift(entry);
-            return h.slice(0, 200);
-        });
-        
-        db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
-        if(result === 'win') {
-            db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
-        }
-        db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
-    }
+    function addGameHistory(game, bet, profit, result, meta = {}) {
+  const t = serverNow();
+  const entry = { game, bet, profit, result, time: t, ...meta };
+
+  // локальная история игрока
+  db.ref('users/'+user+'/history').transaction(h => {
+    if(!h) h = [];
+    h.unshift(entry);
+    return h.slice(0, 200);
+  });
+
+  db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
+  if(result === 'win') {
+    db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
+  }
+  db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
+
+  // ✅ ГЛОБАЛЬНАЯ ЛЕНТА (для всех игроков)
+  db.ref('recentGames').push({
+    u: user,
+    game,
+    bet,
+    profit,
+    result,
+    mult: meta.mult ?? null,
+    payout: meta.payout ?? (result === 'win' ? (bet + profit) : 0),
+    time: t
+  });
+}
 
     function checkWinStreak() {
         const history = userData.history || [];
@@ -3121,7 +3141,10 @@ function renderTopFromCache(){
             return u; 
         });
         
-        addGameHistory('Mines', mines.bet, profit, 'win');
+        addGameHistory('Mines', mines.bet, profit, 'win', {
+  mult: Number(curMult.toFixed(2)),
+  payout: win
+});
         checkWinStreak();
         
         mines.active = false;
@@ -3334,7 +3357,10 @@ function collectTower() {
         return u;
     });
     
-    addGameHistory('Tower', tower.bet, profit, 'win');
+    addGameHistory('Tower', tower.bet, profit, 'win', {
+  mult: Number(curMult.toFixed(2)),
+  payout: win
+});
     checkWinStreak();
     
     tower.active = false;
@@ -3462,7 +3488,7 @@ function resetTowerUI() {
                 return u;
             });
 
-            addGameHistory('Roulette', amt, profit, 'win');
+            addGameHistory('Roulette', amt, profit, 'win', { mult: multi, payout: win });
             checkWinStreak();
 
             toast(`ВЫПЛАТА: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
@@ -3703,7 +3729,7 @@ function openBox(cost, min, max) {
       });
 
       const profit = final - cost;
-      addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
+      addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss', { payout: final });
 
       if (profit > 0) {
         toast(`ВЫПЛАТА: ${final.toLocaleString()} ₽`, 'success');
@@ -3810,30 +3836,53 @@ window.addEventListener('load', () => {
         .catch(err => console.error('AUTOLOGIN FAIL:', err));
 });
     // === RECENT FEED API ===
-const recentFeedEl = document.getElementById("recentFeed");
+// === GLOBAL RECENT GAMES (shared feed) ===
 const RECENT_LIMIT = 15;
+const recentRef = db.ref('recentGames');
 
-function money(n){
-  // ₽ можно поменять на монеты/баланс
-  const num = Number(n);
-  if (Number.isNaN(num)) return String(n);
-  return (Math.round(num * 100) / 100).toLocaleString("ru-RU") + "₽";
+function subscribeRecentFeed(){
+  recentRef
+    .orderByChild('time')
+    .limitToLast(RECENT_LIMIT)
+    .on('value', snap => {
+      const list = [];
+      snap.forEach(s => {
+        const v = s.val();
+        if(v) list.push(v);
+      });
+
+      // новые сверху
+      list.sort((a,b) => (b.time||0) - (a.time||0));
+      renderRecentFeed(list);
+    });
 }
 
-function pushRecent({ user, bet, win, mult, payout, profit }) {
-  if (!recentFeedEl) return;
+function renderRecentFeed(list){
+  if(!recentFeedEl) return;
+  recentFeedEl.innerHTML = '';
+  list.forEach(e => renderRecentItem(e));
+}
 
-  const item = document.createElement("div");
-  item.className = "recent-item";
+function renderRecentItem(e){
+  const user = String(e.u || '???').toUpperCase();
+  const game = String(e.game || '');
+  const bet = Number(e.bet || 0);
+  const profit = Number(e.profit || 0);
+  const win = (e.result === 'win');
+  const mult = (e.mult == null) ? null : Number(e.mult);
+  const payout = (e.payout == null)
+    ? (win ? (bet + profit) : 0)
+    : Number(e.payout);
 
   const statusText = win ? "выиграл" : "проиграл";
   const statusCls  = win ? "win" : "lose";
 
-  // строка как ты хотел: ник — ставка — исход — выплата/профит
   const meta = win
-    ? `ставка ${money(bet)} · ✅ кэш-аут ${mult}x · выплата ${money(payout)} (${profit > 0 ? "+" : ""}${money(profit)})`
-    : `ставка ${money(bet)} · ❌ краш до кэшаута · проигрыш -${money(Math.abs(bet))}`;
+    ? `${game} · ставка ${money(bet)} · ${mult ? `✅ ${mult.toFixed(2)}x · ` : '✅ '}выплата ${money(payout)} (${profit>=0?'+':''}${money(profit)})`
+    : `${game} · ставка ${money(bet)} · ❌ проигрыш -${money(Math.abs(bet))}`;
 
+  const item = document.createElement("div");
+  item.className = "recent-item";
   item.innerHTML = `
     <div class="recent-left">
       <div class="recent-user">${user}</div>
@@ -3841,34 +3890,15 @@ function pushRecent({ user, bet, win, mult, payout, profit }) {
     </div>
     <div class="recent-right">
       <div class="recent-status ${statusCls}">${statusText}</div>
-      <div class="recent-profit ${statusCls}">${win ? "+" : "-"}${money(Math.abs(profit || bet))}</div>
+      <div class="recent-profit ${statusCls}">${win ? "+" : "-"}${money(Math.abs(win ? profit : bet))}</div>
     </div>
   `;
 
-  // вставляем наверх
-  recentFeedEl.prepend(item);
-
-  // лимит строк
-  while (recentFeedEl.children.length > RECENT_LIMIT) {
-    recentFeedEl.removeChild(recentFeedEl.lastElementChild);
-  }
+  recentFeedEl.appendChild(item);
 }
-
-/* ✅ DEMO: чтобы сразу увидеть как выглядит (потом удалишь) */
-pushRecent({ user:"KID_NEON", bet:100, win:true,  mult:2.64, payout:264,  profit:164 });
-pushRecent({ user:"TORN4DO",   bet:250, win:false, mult:null, payout:0,    profit:-250 });
-pushRecent({ user:"VORTEX",    bet:80,  win:true,  mult:5.10, payout:408,  profit:328 });
-
-/*
-  ✅ КАК ПОДКЛЮЧАТЬ К ТВОЕЙ ИГРЕ:
-  - когда игрок кэшаутит:
-    pushRecent({ user: username, bet, win:true, mult:cashoutX, payout:bet*cashoutX, profit:bet*(cashoutX-1) });
-
-  - когда раунд крашнулся и игрок НЕ кэшаутнул:
-    pushRecent({ user: username, bet, win:false, payout:0, profit:-bet });
-*/
 </script>
 </body>
 </html>
+
 
 
