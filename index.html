@@ -646,6 +646,120 @@
   border-color: rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
 }
+        /* === CRASH: RECENT BETS (под кнопкой) === */
+.recent-panel{
+  margin-top: 14px;
+  padding: 14px 14px 10px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(0,242,255,0.12);
+}
+
+.recent-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.recent-title{
+  font-family:'Orbitron';
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:1px;
+  color: var(--muted);
+  text-transform:uppercase;
+}
+
+.recent-badge{
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.75);
+}
+
+.recent-list{
+  max-height: 120px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding-right: 6px;
+}
+
+.recent-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  background: rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+.recent-left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+}
+
+.recent-user{
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:0.7px;
+  color: var(--accent);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 170px;
+}
+
+.recent-sub{
+  font-size:11px;
+  color: rgba(255,255,255,0.75);
+}
+
+.recent-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  white-space:nowrap;
+}
+
+.recent-x{
+  font-family:'Orbitron';
+  font-size:11px;
+  font-weight:900;
+}
+
+.recent-x.win{ color: var(--green); }
+.recent-x.lose{ color: var(--pink); }
+
+.recent-time{
+  font-family:'Orbitron';
+  font-size:10px;
+  color: var(--muted);
+  opacity:0.85;
+}
+
+/* scroll */
+.recent-list::-webkit-scrollbar{ width:6px; }
+.recent-list::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.08);
+  border-radius:999px;
+}
+.recent-list::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.14);
+}
         
     </style>
 </head>
@@ -725,6 +839,14 @@
             </div>
             <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
+        <div class="recent-panel" id="crashRecent">
+  <div class="recent-head">
+    <div class="recent-title">Последние ставки</div>
+    <div class="recent-badge" id="recentRound">Раунд #—</div>
+  </div>
+
+  <div class="recent-list" id="recentList"></div>
+</div>
 
         <div id="viewMines" class="viewport">
             <div class="input-row" style="margin-bottom: 20px;">
@@ -3623,9 +3745,86 @@ window.addEventListener('load', () => {
         })
         .catch(err => console.error('AUTOLOGIN FAIL:', err));
 });
+    const recentList = document.getElementById('recentList');
+const recentRound = document.getElementById('recentRound');
+const MAX_RECENT = 8;
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[s]));
+}
+
+function fmtMoney(n){
+  return `${Number(n).toLocaleString('ru-RU')}₽`;
+}
+
+function fmtTime(d = new Date()){
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * result: "win" | "lose"
+ * cashout: число (множитель) или null
+ */
+function addRecentBet({ user, amount, cashout, result, time }){
+  if (!recentList) return;
+
+  const el = document.createElement('div');
+  el.className = 'recent-item';
+
+  const xText = cashout ? `${Number(cashout).toFixed(2)}x` : '—';
+  const xClass = result === 'win' ? 'win' : 'lose';
+
+  el.innerHTML = `
+    <div class="recent-left">
+      <div class="recent-user">${escapeHtml(user)}</div>
+      <div class="recent-sub">${fmtMoney(amount)} • ${result === 'win' ? 'кэшаут' : 'слил'}</div>
+    </div>
+    <div class="recent-right">
+      <div class="recent-x ${xClass}">${xText}</div>
+      <div class="recent-time">${time || fmtTime()}</div>
+    </div>
+  `;
+
+  recentList.prepend(el);
+
+  while (recentList.children.length > MAX_RECENT) {
+    recentList.removeChild(recentList.lastElementChild);
+  }
+}
+
+// Если хочешь — обновляй номер раунда:
+function setRound(n){
+  if (recentRound) recentRound.textContent = `Раунд #${n}`;
+}
+
+/* === ДЕМО (убери, когда подключишь реальные события) === */
+const demoUsers = ['TORNADO','KIRA','NEO','ICE','VOLK','RAVEN','MARS','LUNA'];
+let demoRound = 1;
+setRound(demoRound);
+
+setInterval(() => {
+  const user = demoUsers[Math.floor(Math.random() * demoUsers.length)];
+  const amount = [50,100,200,500,1000][Math.floor(Math.random()*5)];
+  const win = Math.random() > 0.35;
+  const cashout = win ? (1.10 + Math.random() * 3.50) : null;
+
+  addRecentBet({
+    user,
+    amount,
+    cashout,
+    result: win ? 'win' : 'lose'
+  });
+
+  // имитация смены раунда иногда
+  if (Math.random() > 0.8) setRound(++demoRound);
+}, 1700);
+    
 </script>
 </body>
 </html>
+
 
 
 
