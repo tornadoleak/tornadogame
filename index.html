@@ -8,6 +8,7 @@
     <style>
         :root {
             --accent: #00f2ff; 
+            --accent2: #0072ff;
             --pink: #ff007b; 
             --gold: #ffcc00; 
             --green: #00ff88;
@@ -19,6 +20,7 @@
             --border: rgba(0, 242, 255, 0.2);
             --neon-glow: 0 0 25px rgba(0, 242, 255, 0.35);
             --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --muted: #5d727b;
         }
 
         * { 
@@ -137,7 +139,7 @@
 }
 
 .nav-btn.active{
-  background: rgba(0, 242, 255, 0.10) !important;
+  background: rgba(255,255,255,0.06) !important;
   color: var(--accent) !important;
   border-color: var(--accent) !important;
 }
@@ -219,7 +221,7 @@
             justify-content: center;
             gap: 10px;
         }
-        .btn-accent { background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; }
         .btn-accent:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3); }
         .btn-green { background: linear-gradient(135deg, var(--green), #00b35d); color: #000; }
         .btn-green:hover:not(.btn-disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3); }
@@ -572,15 +574,15 @@
   font-weight:900;
   letter-spacing:1px;
   text-transform:uppercase;
-  color:#5d727b;
+  color: var(--muted);
   background: rgba(255,255,255,0.03);
   border:1px solid rgba(255,255,255,0.06);
   backdrop-filter: blur(18px);
 }
 .top-tab.active{
   color: var(--accent);
-  border-color: rgba(0,242,255,0.35);
-  background: rgba(0,242,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
 }
         
     </style>
@@ -737,7 +739,7 @@
                 </div>
             </div>
             <button class="btn-ui btn-pink" style="width:100%; margin-bottom:30px;" onclick="createPVPRoom()">СОЗДАТЬ КОМНАТУ</button>
-            <h3 style="font-family:'Orbitron'; font-size:14px; margin-bottom:15px; color:#5d727b;">АКТИВНЫЕ КОМНАТЫ:</h3>
+            <h3 style="font-family:'Orbitron'; font-size:14px; margin-bottom:15px; color: var(--muted);">АКТИВНЫЕ КОМНАТЫ:</h3>
             <div id="pvpRooms"></div>
         </div>
 
@@ -749,7 +751,7 @@
                     <span id="valClick" style="font-size:12px; opacity:0.6;">+1.00 ₽</span>
                 </button>
                 <div class="glass-panel" style="justify-content:center; align-items:center; background:rgba(0,242,255,0.03);">
-                    <p style="font-size:10px; letter-spacing:2px; color:#5d727b;">ТЕКУЩИЙ ДОХОД</p>
+                    <p style="font-size:10px; letter-spacing:2px; color: var(--muted);">ТЕКУЩИЙ ДОХОД</p>
                     <h2 id="valPassive" style="color:var(--green); font-family:'Orbitron'; font-size:2.5rem; margin:10px 0;">0 ₽</h2>
                     <p style="font-size:9px; font-weight:800;">В СЕКУНДУ ПАССИВНО</p>
                 </div>
@@ -761,21 +763,21 @@
   <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
     <div class="glass-panel" style="padding:25px; text-align:center;">
       <h3 style="font-family:'Orbitron'; color:var(--accent); font-size:16px;">STARTER</h3>
-      <p style="font-size:11px; color:#5d727b; margin:12px 0;">50-1,000 ₽</p>
+      <p style="font-size:11px; color: var(--muted); margin:12px 0;">50-1,000 ₽</p>
       <div class="rtp-badge" id="rtp_starter"></div>
       <button class="btn-ui btn-accent" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(200, 50, 1000)">200 ₽</button>
     </div>
 
     <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--green);">
       <h3 style="font-family:'Orbitron'; color:var(--green); font-size:16px;">BASIC</h3>
-      <p style="font-size:11px; color:#5d727b; margin:12px 0;">100-3,000 ₽</p>
+      <p style="font-size:11px; color: var(--muted); margin:12px 0;">100-3,000 ₽</p>
       <div class="rtp-badge" id="rtp_basic"></div>
       <button class="btn-ui btn-green" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(500, 100, 3000)">500 ₽</button>
     </div>
 
     <div class="glass-panel" style="padding:25px; text-align:center; border-color:var(--gold);">
       <h3 style="font-family:'Orbitron'; color:var(--gold); font-size:16px;">GOLD</h3>
-      <p style="font-size:11px; color:#5d727b; margin:12px 0;">500-8,000 ₽</p>
+      <p style="font-size:11px; color: var(--muted); margin:12px 0;">500-8,000 ₽</p>
       <div class="rtp-badge" id="rtp_gold"></div>
       <button class="btn-ui btn-gold" style="width:100%; padding:12px; font-size:11px;" onclick="openBox(2000, 500, 8000)">2,000 ₽</button>
     </div>
@@ -784,14 +786,14 @@
   <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
     <div class="glass-panel" style="padding:30px; text-align:center; border-color:var(--purple);">
       <h3 style="font-family:'Orbitron'; color:var(--purple); font-size:18px;">PLATINUM</h3>
-      <p style="font-size:11px; color:#5d727b; margin:15px 0;">2,000-20,000 ₽</p>
+      <p style="font-size:11px; color: var(--muted); margin:15px 0;">2,000-20,000 ₽</p>
       <div class="rtp-badge" id="rtp_platinum"></div>
       <button class="btn-ui btn-accent" style="width:100%; background:var(--purple);" onclick="openBox(5000, 2000, 20000)">5,000 ₽</button>
     </div>
 
     <div class="glass-panel" style="padding:30px; text-align:center; border-color:var(--pink);">
       <h3 style="font-family:'Orbitron'; color:var(--pink); font-size:18px;">ELITE</h3>
-      <p style="font-size:11px; color:#5d727b; margin:15px 0;">5,000-50,000 ₽</p>
+      <p style="font-size:11px; color: var(--muted); margin:15px 0;">5,000-50,000 ₽</p>
       <div class="rtp-badge" id="rtp_elite"></div>
       <button class="btn-ui btn-pink" style="width:100%;" onclick="openBox(10000, 5000, 50000)">10,000 ₽</button>
     </div>
@@ -822,6 +824,7 @@
     <option value="sunset">SUNSET</option>
     <option value="ice">ICE</option>
     <option value="purple">PURPLE</option>
+    <option value="mono">MONO</option>
   </select>
 </div>
             
@@ -859,7 +862,7 @@
     <div class="glass-panel" id="sidePanel" style="width: 380px;">
         <div class="user-block">
             <button class="logout-btn" onclick="logout()">ВЫХОД</button>
-            <div style="font-size:11px; color:#5d727b; margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
+            <div style="font-size:11px; color: var(--muted); margin-bottom:8px; font-weight:800;" id="uName">ПОЛЬЗОВАТЕЛЬ</div>
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
             <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
@@ -869,7 +872,7 @@
 </div>
             <div class="xp-container">
                 <div class="xp-line"><div class="xp-bar" id="uBar"></div></div>
-                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#5d727b; margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color: var(--muted); margin-top:8px;">
                     <span id="uLevel">УРОВЕНЬ 1</span>
                     <span id="uXP">0 / 1000 XP</span>
                 </div>
@@ -1463,6 +1466,23 @@ function setCasesDisabled(disabled) {
     border:'rgba(185, 246, 255, 0.22)',
     glow:'0 0 30px rgba(185, 246, 255, 0.18)'
   },
+        mono: {
+  accent:'#ffffff',
+  pink:'#ffffff',
+  gold:'#ffffff',
+  green:'#ffffff',
+  purple:'#ffffff',
+  orange:'#ffffff',
+
+  bg:'#000000',
+  bg2:'#0a0a0a',
+
+  card:'rgba(255,255,255,0.05)',
+  border:'rgba(255,255,255,0.12)',
+  glow:'0 0 22px rgba(255,255,255,0.10)',
+
+  muted:'#b7b7b7'
+},
 
   sunset: { accent:'#ffb300', pink:'#ff3d7f', gold:'#ffd54f', green:'#00e676', purple:'#ff6d00', orange:'#ff8c00', bg:'#070404', bg2:'#1a0707',
     card:'rgba(22, 10, 10, 0.92)', border:'rgba(255, 179, 0, 0.18)', glow:'0 0 25px rgba(255, 179, 0, 0.25)' },
@@ -1476,6 +1496,7 @@ function applyTheme(id){
   const r = document.documentElement.style;
 
   r.setProperty('--accent', t.accent);
+  r.setProperty('--accent2', t.accent2 || t.accent);
   r.setProperty('--pink', t.pink);
   r.setProperty('--gold', t.gold);
   r.setProperty('--green', t.green);
@@ -1488,6 +1509,7 @@ function applyTheme(id){
   if(t.card) r.setProperty('--card', t.card);
   if(t.border) r.setProperty('--border', t.border);
   if(t.glow) r.setProperty('--neon-glow', t.glow);
+  if(t.muted) r.setProperty('--muted', t.muted);
 }
 
 function setTheme(id){
@@ -2346,7 +2368,7 @@ function renderTopFromCache(){
                     <div class="achievement-icon">${ach.icon}</div>
                     <div style="flex:1;">
                         <div style="font-weight:800; font-size:13px;">${ach.name}</div>
-                        <div style="font-size:11px; color:#5d727b;">${ach.desc}</div>
+                        <div style="font-size:11px; color: var(--muted);">${ach.desc}</div>
                     </div>
                     <div style="color:var(--gold); font-weight:800; font-size:12px;">+${ach.reward}₽</div>
                 </div>
@@ -2967,7 +2989,7 @@ const dis = taken ? 'disabled' : '';
 div.innerHTML = `
   <div>
     <div style="font-weight:900; color:var(--accent);">ВАША КОМНАТА</div>
-    <div style="font-size:11px; color:#5d727b;">
+    <div style="font-size:11px; color: var(--muted);">
       ${Number(r.bet||0).toLocaleString()}₽ • ${r.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}
       ${taken ? ' • <b style="color:var(--gold)">ПРИНЯЛИ...</b>' : ''}
     </div>
@@ -2985,7 +3007,7 @@ div.innerHTML = `
       div.innerHTML = `
         <div>
           <div style="font-weight:800; color:var(--pink);">${String(r.creator||'').toUpperCase()}</div>
-          <div style="font-size:11px; color:#5d727b;">
+          <div style="font-size:11px; color: var(--muted);">
             ${Number(r.bet||0).toLocaleString()}₽ • ${r.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}
           </div>
         </div>
@@ -2998,7 +3020,7 @@ div.innerHTML = `
     });
 
     if (!rooms.length) {
-      cont.innerHTML = '<div style="text-align:center; color:#5d727b; padding:40px;">НЕТ АКТИВНЫХ КОМНАТ</div>';
+      cont.innerHTML = '<div style="text-align:center; color: var(--muted); padding:40px;">НЕТ АКТИВНЫХ КОМНАТ</div>';
     }
   });
 }
@@ -3253,6 +3275,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
