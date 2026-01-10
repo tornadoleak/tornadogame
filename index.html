@@ -1236,6 +1236,12 @@ function applyCrashState(st){
 
   // WAITING
   if(st.phase === "waiting"){
+      // ✅ если ставка осталась от прошлого раунда — убираем
+if (crash.bet > 0 && crash.betRoundId && st.roundId && crash.betRoundId !== st.roundId) {
+  crash.bet = 0;
+  crash.cashed = false;
+  crash.betRoundId = null;
+}
     // остановить график
     if(crashInterval) { clearInterval(crashInterval); crashInterval = null; }
     crash.active = false;
@@ -1424,7 +1430,7 @@ function startCrashVisual(runAtMs, targetX){
 }
 
     let user = null, userData = {}, authMode = 'login', audioCtx, soundEnabled = true;
-    let crash = { active: false, mult: 1.0, bet: 0, cashed: false, pts: [], startTime: 0, waitingForRound: false };
+    let crash = { active:false, mult:1.0, bet:0, cashed:false, betRoundId:null, pts:[], startTime:0, waitingForRound:false };
     let mines = { active: false, locked: false, bet: 0, bombs: [], open: 0, total: 3 };
     let tower = { active: false, locked: false, bet: 0, level: 0, bombs: [], maxLevel: 10 };
     let crashInterval = null, passiveInterval = null, rouletteSpinning = false;
@@ -1905,6 +1911,8 @@ db.ref('crashHistory').off();
 db.ref('events').off(); // или точнее конкретный путь daily
         
         stopPresence();
+
+betRoundId:null
         
         user = null;
         userData = {};
@@ -2196,7 +2204,10 @@ if(nextEl){
             if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
             
             crash.bet = amt;
-            db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
+crash.cashed = false;
+crash.betRoundId = crashState?.roundId || null;
+
+db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
             
             btn.innerText = "ОЖИДАНИЕ РАУНДА...";
             btn.classList.add('btn-disabled');
@@ -2206,6 +2217,7 @@ if(nextEl){
             if(amt >= 10000) checkAchievement('high_roller');
         } 
         else if(crash.active && crash.bet > 0 && !crash.cashed) {
+            const betAmt = crash.bet;
             crash.cashed = true;
             crashCashout();
             let win = Math.floor(crash.bet * crash.mult);
@@ -2231,6 +2243,10 @@ if(nextEl){
             tryClaimDailyEvent(crash.mult);
             showWinAnimation(win);
             sfx(800);
+            crash.bet = 0;
+crash.betRoundId = null;
+// crash.cashed можно оставить true или сбросить — уже не важно, bet=0
+
             
             if((userData.stats?.wins || 0) === 1) {
                 checkAchievement('first_win');
@@ -3358,6 +3374,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
