@@ -343,6 +343,15 @@
   background: rgba(255,255,255,0.03);
   text-transform:uppercase;
 }
+        .msg-time{
+  margin-left:auto;
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:800;
+  color: var(--muted);
+  opacity:0.85;
+  white-space:nowrap;
+}
 
 .msg-text{
   white-space: pre-wrap;
@@ -2059,6 +2068,30 @@ if(sel) sel.value = userData.theme || 'neon';
             updateUI();
         });
 
+        function formatChatTime(ts){
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+
+  const dNow = new Date(now);
+  dNow.setHours(0,0,0,0);
+  const startToday = dNow.getTime();
+  const startYesterday = startToday - 24*60*60*1000;
+
+  const dt = new Date(Math.min(Number(ts||0), now));
+  const hhmm = dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+
+  if(dt.getTime() >= startToday){
+    return hhmm; // сегодня -> 21:14
+  }
+  if(dt.getTime() >= startYesterday){
+    return `вчера ${hhmm}`; // вчера 21:14
+  }
+
+  // иначе дата + время
+  let ddm = dt.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }); // "10 янв."
+  ddm = ddm.replace('.', ''); // убираем точку если бесит
+  return `${ddm} ${hhmm}`; // 10 янв 21:14
+}
+
 const chatRef = db.ref('chat');
 chatRef.off();
 
@@ -2080,7 +2113,8 @@ chatQuery.on('value', snap => {
 
     const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
 
-    let t = Number(m.time || 0);
+    let t = (typeof m.time === 'number') ? m.time : Number(m.time);
+if(!Number.isFinite(t) || t <= 0) t = now;
     if(t > now + 2 * 60 * 1000) return;
     if(t > now) t = now;
 
@@ -2126,7 +2160,7 @@ ts.className = 'msg-time';
 
 if(m.time){
   const dt = new Date(m.time);
-  ts.textContent = dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+  ts.textContent = m.time ? formatChatTime(m.time) : '';
 } else {
   ts.textContent = '';
 }
@@ -2503,7 +2537,7 @@ crash.betRoundId = null;
   db.ref('chat').push({ 
   u: user, 
   t: msg,
-  time: firebase.database.ServerValue.TIMESTAMP
+  time: serverNow()
 });
 
   inp.value = '';
@@ -3620,4 +3654,5 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
