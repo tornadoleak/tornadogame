@@ -347,6 +347,29 @@
 .msg-text{
   white-space: pre-wrap;
 }
+        /* === CHAT TIME FIX (вставь в конец style) === */
+.msg-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.msg-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.msg-time{
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:800;
+  color: var(--muted);
+  opacity:0.85;
+  white-space:nowrap;
+}
 
         .leader-card {
             display: flex;
@@ -2093,8 +2116,23 @@ chatQuery.on('value', snap => {
       rankEl.style.color = col;
       rankEl.style.borderColor = col;
 
-      head.appendChild(userEl);
-      head.appendChild(rankEl);
+      const left = document.createElement('div');
+left.className = 'msg-left';
+left.appendChild(userEl);
+left.appendChild(rankEl);
+
+const ts = document.createElement('span');
+ts.className = 'msg-time';
+
+if(m.time){
+  const dt = new Date(m.time);
+  ts.textContent = dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+} else {
+  ts.textContent = '';
+}
+
+head.appendChild(left);
+head.appendChild(ts);
 
       const textEl = document.createElement('div');
       textEl.className = 'msg-text';
@@ -3582,3 +3620,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
