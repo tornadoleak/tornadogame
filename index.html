@@ -1657,14 +1657,20 @@ function stopCrashSfx(){
 
 function startCrashWaitingTicks(){
   stopCrashSfx();
+  if(!allowCrashSfx()) return;
+
   crashTickTimer = setInterval(() => {
+    if(!allowCrashSfx()) return stopCrashSfx();
     sfx(900, 'sine', 0.05, 0.06);
   }, 350);
 }
 
 function startCrashRunningBeeps(){
   stopCrashSfx();
+  if(!allowCrashSfx()) return;
+
   crashRunBeepTimer = setInterval(() => {
+    if(!allowCrashSfx()) return stopCrashSfx();
     const m = Math.max(1, crash?.mult || 1);
     const f = Math.min(1800, 500 + m * 120);
     sfx(f, 'triangle', 0.03, 0.05);
@@ -1673,11 +1679,20 @@ function startCrashRunningBeeps(){
 
 function crashBoom(){
   stopCrashSfx();
+  if(!allowCrashSfx()) return;
   sfx([140, 90], 'sawtooth', 0.25, 0.14);
 }
 
 function crashCashout(){
+  if(!allowCrashSfx()) return;
   sfx([900, 1200], 'square', 0.12, 0.12);
+}
+    function isCrashViewActive(){
+  return document.getElementById('viewCrash')?.classList.contains('active');
+}
+
+function allowCrashSfx(){
+  return !document.hidden && isCrashViewActive() && soundEnabled;
 }
 
 // короткий “шум” для эффектов (кэш-аут, взрыв, свист)
@@ -2223,7 +2238,13 @@ if(nextEl){
         document.querySelectorAll('.viewport').forEach(v => v.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(id).classList.add('active');
-        
+
+        if(id !== 'viewCrash') {
+  stopCrashSfx();
+} else {
+  // если вернулись в crash — восстановим звуки по текущему состоянию
+  if (typeof applyCrashState === 'function') applyCrashState(crashState);
+}
         if(id === 'viewProfile') updateProfile();
     }
 
@@ -3275,6 +3296,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
