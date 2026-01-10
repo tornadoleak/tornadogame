@@ -14,6 +14,7 @@
             --purple: #b24bf3;
             --orange: #ff8c00;
             --bg: #030507; 
+            --bg2: #0a1018;
             --card: rgba(10, 15, 20, 0.98); 
             --border: rgba(0, 242, 255, 0.2);
             --neon-glow: 0 0 25px rgba(0, 242, 255, 0.35);
@@ -39,7 +40,7 @@
             justify-content: center; 
             align-items: center;
             overflow: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #0a1018 0%, #030507 100%);
+            background-image: radial-gradient(circle at 50% 50%, var(--bg2) 0%, var(--bg) 100%);
         }
 
         #bgCanvas {
@@ -1440,22 +1441,53 @@ function setCasesDisabled(disabled) {
   {id:'g10', n:'SERVER ASIC',  p:15000000, i:20000}
 ];
     const THEMES = {
-  neon:   { accent:'#00f2ff', pink:'#ff007b', gold:'#ffcc00', green:'#00ff88', purple:'#b24bf3', orange:'#ff8c00', bg:'#030507' },
-  sunset: { accent:'#ffb300', pink:'#ff3d7f', gold:'#ffd54f', green:'#00e676', purple:'#ff6d00', orange:'#ff8c00', bg:'#070404' },
-  ice:    { accent:'#7ae7ff', pink:'#ff5aa5', gold:'#ffe082', green:'#7cffc4', purple:'#9aa7ff', orange:'#ffb86b', bg:'#020609' },
-  purple: { accent:'#b24bf3', pink:'#ff4fd8', gold:'#ffcc00', green:'#4dff9a', purple:'#7c4dff', orange:'#ff8c00', bg:'#040214' },
+  neon:   {
+    accent:'#00f2ff', pink:'#ff007b', gold:'#ffcc00', green:'#00ff88', purple:'#b24bf3', orange:'#ff8c00',
+    bg:'#030507', bg2:'#0a1018',
+    card:'rgba(10, 15, 20, 0.98)', border:'rgba(0, 242, 255, 0.20)', glow:'0 0 25px rgba(0, 242, 255, 0.35)'
+  },
+
+  ice: {
+    // ❄️ прям заметно другое настроение
+    accent:'#b9f6ff',
+    pink:'#ff5aa5',
+    gold:'#ffe082',
+    green:'#33ffd1',
+    purple:'#9aa7ff',
+    orange:'#a8d8ff',
+
+    bg:'#010b16',
+    bg2:'#062337',
+
+    card:'rgba(6, 14, 22, 0.78)',
+    border:'rgba(185, 246, 255, 0.22)',
+    glow:'0 0 30px rgba(185, 246, 255, 0.18)'
+  },
+
+  sunset: { accent:'#ffb300', pink:'#ff3d7f', gold:'#ffd54f', green:'#00e676', purple:'#ff6d00', orange:'#ff8c00', bg:'#070404', bg2:'#1a0707',
+    card:'rgba(22, 10, 10, 0.92)', border:'rgba(255, 179, 0, 0.18)', glow:'0 0 25px rgba(255, 179, 0, 0.25)' },
+
+  purple: { accent:'#b24bf3', pink:'#ff4fd8', gold:'#ffcc00', green:'#4dff9a', purple:'#7c4dff', orange:'#ff8c00', bg:'#040214', bg2:'#12062a',
+    card:'rgba(12, 6, 20, 0.92)', border:'rgba(178, 75, 243, 0.22)', glow:'0 0 30px rgba(178, 75, 243, 0.20)' },
 };
 
 function applyTheme(id){
   const t = THEMES[id] || THEMES.neon;
   const r = document.documentElement.style;
+
   r.setProperty('--accent', t.accent);
   r.setProperty('--pink', t.pink);
   r.setProperty('--gold', t.gold);
   r.setProperty('--green', t.green);
   r.setProperty('--purple', t.purple);
   r.setProperty('--orange', t.orange);
+
   r.setProperty('--bg', t.bg);
+  r.setProperty('--bg2', t.bg2 || t.bg);
+
+  if(t.card) r.setProperty('--card', t.card);
+  if(t.border) r.setProperty('--border', t.border);
+  if(t.glow) r.setProperty('--neon-glow', t.glow);
 }
 
 function setTheme(id){
@@ -2385,9 +2417,9 @@ function renderTopFromCache(){
     
     function drawBg() {
         bgCtx.clearRect(0,0,bgCvs.width, bgCvs.height);
-        bgCtx.fillStyle = '#00f2ff';
+        bgCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00f2ff';
         bgCtx.shadowBlur = 5;
-        bgCtx.shadowColor = '#00f2ff';
+        bgCtx.shadowColor = bgCtx.fillStyle;
         
         parts.forEach(p => {
             bgCtx.beginPath(); 
@@ -3221,6 +3253,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
