@@ -272,112 +272,84 @@
         .rank-platinum { background: linear-gradient(135deg, #e5e4e2, #bcc6cc); }
         .rank-diamond { background: linear-gradient(135deg, var(--accent), #00a8e8); }
 
-        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #chatBox { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-        }
-        .msg { 
-            background: rgba(255,255,255,0.03); 
-            padding: 12px 16px; 
-            border-radius: 18px; 
-            font-size: 13px; 
-            max-width: 85%; 
-            border-left: 3px solid var(--accent); 
-            word-wrap: break-word;
-            animation: msgSlide 0.3s ease-out;
-        }
-        @keyframes msgSlide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        .msg b { color: var(--accent); font-family: 'Orbitron'; font-size: 10px; display: block; margin-bottom: 4px; }
-        
-        .msg-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:4px;
+        .chat-container{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.msg-head b{
-  display:inline;           /* перебиваем твой .msg b { display:block } */
-  margin:0;
+#chatBox{
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.msg-time{
-  font-family:'Orbitron';
-  font-size:10px;
-  font-weight:800;
-  color: var(--muted);
-  opacity:0.8;
+.msg{
+  background: rgba(255,255,255,0.03);
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 13px;
+  max-width: 85%;
+  border-left: 3px solid var(--accent);
+  word-wrap: break-word;
+  animation: msgSlide 0.3s ease-out;
 }
 
-.msg-text{
-  white-space:pre-wrap;
+@keyframes msgSlide{
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-        .msg-head{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:6px;
+
+/* header: ник+ранг слева, время справа */
+.msg-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.msg-left{
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .msg-user{
   color: var(--accent);
-  font-family:'Orbitron';
-  font-size:10px;
-  font-weight:900;
-  letter-spacing:0.6px;
+  font-family: 'Orbitron';
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
 }
 
 .msg-rank{
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:0.8px;
-  padding:2px 8px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.12);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.03);
-  text-transform:uppercase;
-}
-        .msg-time{
-  margin-left:auto;
-  font-family:'Orbitron';
-  font-size:10px;
-  font-weight:800;
-  color: var(--muted);
-  opacity:0.85;
-  white-space:nowrap;
-}
-
-.msg-text{
-  white-space: pre-wrap;
-}
-        /* === CHAT TIME FIX (вставь в конец style) === */
-.msg-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:6px;
-}
-
-.msg-left{
-  display:flex;
-  align-items:center;
-  gap:8px;
+  text-transform: uppercase;
 }
 
 .msg-time{
-  font-family:'Orbitron';
-  font-size:10px;
-  font-weight:800;
+  font-family: 'Orbitron';
+  font-size: 10px;
+  font-weight: 800;
   color: var(--muted);
-  opacity:0.85;
-  white-space:nowrap;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* опционально: текст сообщения */
+.msg-text{
+  line-height: 1.45;
 }
 
         .leader-card {
@@ -3654,5 +3626,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
