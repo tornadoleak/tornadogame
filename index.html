@@ -646,6 +646,143 @@
   border-color: rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
 }
+        /* === RECENT GAMES FEED (Crash) === */
+.recent-wrap{
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.recent-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 12px;
+}
+
+.recent-title{
+  font-family:'Orbitron';
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.recent-hint{
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.85;
+}
+
+.recent-feed{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height: 180px;
+  overflow:auto;
+  padding-right: 6px;
+}
+
+.recent-feed::-webkit-scrollbar{ width: 6px; }
+.recent-feed::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.10);
+  border-radius: 999px;
+}
+
+.recent-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(0,242,255,0.12);
+
+  animation: recentIn .25s ease-out;
+}
+
+@keyframes recentIn{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+.recent-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width: 0;
+}
+
+.recent-user{
+  font-family:'Orbitron';
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.recent-meta{
+  font-size: 12px;
+  color: rgba(255,255,255,0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.recent-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  white-space:nowrap;
+}
+
+.recent-status{
+  font-family:'Orbitron';
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+}
+
+.recent-status.win{
+  color: #000;
+  background: linear-gradient(135deg, var(--green), #00b35d);
+  border: none;
+}
+
+.recent-status.lose{
+  color: #000;
+  background: linear-gradient(135deg, var(--pink), #d6006a);
+  border: none;
+}
+
+.recent-profit{
+  font-family:'Orbitron';
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.85);
+}
+
+.recent-profit.win{ color: var(--green); }
+.recent-profit.lose{ color: var(--pink); }
         
     </style>
 </head>
@@ -725,6 +862,15 @@
             </div>
             <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
+        <!-- ✅ ПОСЛЕДНИЕ ИГРЫ (Crash feed) -->
+<div class="recent-wrap">
+  <div class="recent-head">
+    <div class="recent-title">Последние игры</div>
+    <div class="recent-hint">история ставок</div>
+  </div>
+
+  <div id="recentFeed" class="recent-feed"></div>
+</div>
 
         <div id="viewMines" class="viewport">
             <div class="input-row" style="margin-bottom: 20px;">
@@ -3623,6 +3769,65 @@ window.addEventListener('load', () => {
         })
         .catch(err => console.error('AUTOLOGIN FAIL:', err));
 });
+    // === RECENT FEED API ===
+const recentFeedEl = document.getElementById("recentFeed");
+const RECENT_LIMIT = 15;
+
+function money(n){
+  // ₽ можно поменять на монеты/баланс
+  const num = Number(n);
+  if (Number.isNaN(num)) return String(n);
+  return (Math.round(num * 100) / 100).toLocaleString("ru-RU") + "₽";
+}
+
+function pushRecent({ user, bet, win, mult, payout, profit }) {
+  if (!recentFeedEl) return;
+
+  const item = document.createElement("div");
+  item.className = "recent-item";
+
+  const statusText = win ? "выиграл" : "проиграл";
+  const statusCls  = win ? "win" : "lose";
+
+  // строка как ты хотел: ник — ставка — исход — выплата/профит
+  const meta = win
+    ? `ставка ${money(bet)} · ✅ кэш-аут ${mult}x · выплата ${money(payout)} (${profit > 0 ? "+" : ""}${money(profit)})`
+    : `ставка ${money(bet)} · ❌ краш до кэшаута · проигрыш -${money(Math.abs(bet))}`;
+
+  item.innerHTML = `
+    <div class="recent-left">
+      <div class="recent-user">${user}</div>
+      <div class="recent-meta">${meta}</div>
+    </div>
+    <div class="recent-right">
+      <div class="recent-status ${statusCls}">${statusText}</div>
+      <div class="recent-profit ${statusCls}">${win ? "+" : "-"}${money(Math.abs(profit || bet))}</div>
+    </div>
+  `;
+
+  // вставляем наверх
+  recentFeedEl.prepend(item);
+
+  // лимит строк
+  while (recentFeedEl.children.length > RECENT_LIMIT) {
+    recentFeedEl.removeChild(recentFeedEl.lastElementChild);
+  }
+}
+
+/* ✅ DEMO: чтобы сразу увидеть как выглядит (потом удалишь) */
+pushRecent({ user:"KID_NEON", bet:100, win:true,  mult:2.64, payout:264,  profit:164 });
+pushRecent({ user:"TORN4DO",   bet:250, win:false, mult:null, payout:0,    profit:-250 });
+pushRecent({ user:"VORTEX",    bet:80,  win:true,  mult:5.10, payout:408,  profit:328 });
+
+/*
+  ✅ КАК ПОДКЛЮЧАТЬ К ТВОЕЙ ИГРЕ:
+  - когда игрок кэшаутит:
+    pushRecent({ user: username, bet, win:true, mult:cashoutX, payout:bet*cashoutX, profit:bet*(cashoutX-1) });
+
+  - когда раунд крашнулся и игрок НЕ кэшаутнул:
+    pushRecent({ user: username, bet, win:false, payout:0, profit:-bet });
+*/
 </script>
 </body>
 </html>
+
