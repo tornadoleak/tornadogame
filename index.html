@@ -318,6 +318,35 @@
 .msg-text{
   white-space:pre-wrap;
 }
+        .msg-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.msg-user{
+  color: var(--accent);
+  font-family:'Orbitron';
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:0.6px;
+}
+
+.msg-rank{
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:0.8px;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  text-transform:uppercase;
+}
+
+.msg-text{
+  white-space: pre-wrap;
+}
 
         .leader-card {
             display: flex;
@@ -1647,6 +1676,43 @@ else playSfx('ui');
             setTimeout(() => el.remove(), 400); 
         }, 3500);
     }
+     // ===== CHAT RANK CACHE =====
+const __chatUserCache = {};
+
+function getRankByLvl(lvl){
+  lvl = Number(lvl || 1);
+  const sorted = RANKS.slice().sort((a,b)=>a.min-b.min);
+  return sorted.filter(r => lvl >= r.min).pop() || sorted[0];
+}
+
+function rankColorByClass(rank){
+  const cls = String(rank?.class || '');
+  if(cls.includes('bronze'))   return '#cd7f32';
+  if(cls.includes('silver'))   return '#c0c0c0';
+  if(cls.includes('gold'))     return 'var(--gold)';
+  if(cls.includes('platinum')) return '#e5e4e2';
+  return 'var(--accent)'; // diamond / default
+}
+
+function ensureChatUser(name){
+  const key = String(name || '').toLowerCase();
+  if(!key) return Promise.resolve(null);
+  if(__chatUserCache[key]) return Promise.resolve(__chatUserCache[key]);
+
+  return db.ref('users/'+key+'/lvl').once('value')
+    .then(s => {
+      const lvl = Number(s.val() || 1);
+      const rank = getRankByLvl(lvl);
+      const info = { lvl, rank };
+      __chatUserCache[key] = info;
+      return info;
+    })
+    .catch(() => {
+      const info = { lvl: 1, rank: getRankByLvl(1) };
+      __chatUserCache[key] = info;
+      return info;
+    });
+}
 
 
 // ===== ULTRA SFX ENGINE (лучше звук + пресеты) =====
@@ -1980,54 +2046,74 @@ box.innerHTML = '';
 const chatQuery = chatRef.orderByChild('time').limitToLast(10);
 
 chatQuery.on('value', snap => {
-  // ✅ не прыгать вниз, если юзер читает вверх
   const nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
 
-  box.innerHTML = '';
+  const msgs = [];
+  const need = new Set();
 
   snap.forEach(s => {
     const m = s.val();
-    if (!m) return;
+    if(!m) return;
 
-    const t = Number(m.time || 0);
     const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
-    if (t > now + 2 * 60 * 1000) return; // фильтр "будущих" сообщений
 
-    const d = document.createElement('div');
-d.className = 'msg';
+    let t = Number(m.time || 0);
+    if(t > now + 2 * 60 * 1000) return;
+    if(t > now) t = now;
 
-const head = document.createElement('div');
-head.className = 'msg-head';
+    const u = String(m.u || '').toLowerCase();
+    const text = String(m.t || '');
 
-const b = document.createElement('b');
-b.textContent = String(m.u || '').toUpperCase();
+    msgs.push({ u, text, time: t });
 
-const ts = document.createElement('span');
-ts.className = 'msg-time';
-
-const tt = Number(m.time || 0);
-if(tt){
-  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
-  const dt = new Date(Math.min(tt, now)); // кламп на всякий
-  ts.textContent = dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
-} else {
-  ts.textContent = '';
-}
-
-head.appendChild(b);
-head.appendChild(ts);
-
-const text = document.createElement('div');
-text.className = 'msg-text';
-text.textContent = String(m.t || '');
-
-d.appendChild(head);
-d.appendChild(text);
-
-box.appendChild(d);
+    if(u && !__chatUserCache[u]) need.add(u);
   });
 
-  if (nearBottom) box.scrollTop = box.scrollHeight;
+  const render = () => {
+    box.innerHTML = '';
+
+    msgs.forEach(m => {
+      const info = __chatUserCache[m.u] || { lvl: 1, rank: getRankByLvl(1) };
+      const rank = info.rank || getRankByLvl(info.lvl || 1);
+      const col = rankColorByClass(rank);
+
+      const d = document.createElement('div');
+      d.className = 'msg';
+
+      const head = document.createElement('div');
+      head.className = 'msg-head';
+
+      const userEl = document.createElement('span');
+      userEl.className = 'msg-user';
+      userEl.textContent = String(m.u || '').toUpperCase();
+
+      const rankEl = document.createElement('span');
+      rankEl.className = 'msg-rank';
+      rankEl.textContent = rank.name;
+      rankEl.style.color = col;
+      rankEl.style.borderColor = col;
+
+      head.appendChild(userEl);
+      head.appendChild(rankEl);
+
+      const textEl = document.createElement('div');
+      textEl.className = 'msg-text';
+      textEl.textContent = m.text;
+
+      d.appendChild(head);
+      d.appendChild(textEl);
+
+      box.appendChild(d);
+    });
+
+    if(nearBottom) box.scrollTop = box.scrollHeight;
+  };
+
+  if(need.size){
+    Promise.all([...need].map(ensureChatUser)).then(render);
+  } else {
+    render();
+  }
 });
 
         initCrashShared();
@@ -3496,30 +3582,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
