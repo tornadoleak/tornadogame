@@ -1387,11 +1387,6 @@ if (crash.bet > 0 && crash.betRoundId && st.roundId && crash.betRoundId !== st.r
   return v || fallback;
 }
 
-function cssVar(name, fallback){
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
-}
-
 function startCrashVisual(runAtMs, targetX){
   if(crashInterval) return;
 
@@ -2678,29 +2673,31 @@ function renderTopFromCache(){
 }
 
     function addGameHistory(game, bet, profit, result) {
-        const entry = {game, bet, profit, result, time: serverNow()};
-        db.ref('users/'+user+'/history').transaction(h => {
-            if(!h) h = [];
-            h.unshift(entry);
-            return h.slice(0, 200);
-        });
-        
-        db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
-        if(result === 'win') {
-            db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
-        }
-        db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
-    }
+  const entry = { game, bet, profit, result, time: serverNow() };
 
+  db.ref('users/'+user+'/history').transaction(h => {
+    const arr = historyToArray(h);
+    arr.unshift(entry);
+    return arr.slice(0, 200);
+  });
+
+  db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
+  if(result === 'win') {
+    db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
+  }
+  db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
+}
     function checkWinStreak() {
-        const history = userData.history || [];
-        let streak = 0;
-        for(let h of history) {
-            if(h.result === 'win') streak++;
-            else break;
-        }
-        if(streak >= 5) checkAchievement('win_streak_5');
-    }
+  const history = historyToArray(userData.history);
+  let streak = 0;
+
+  for (const h of history) {
+    if (h?.result === 'win') streak++;
+    else break;
+  }
+
+  if (streak >= 5) checkAchievement('win_streak_5');
+}
 
     function updateProfile() {
         const stats = userData.stats || {games:0, wins:0, profit:0};
@@ -2728,8 +2725,8 @@ function renderTopFromCache(){
         
         const histCont = document.getElementById('gameHistory');
         histCont.innerHTML = '';
-        const history = userData.history || [];
-        history.slice(0, 10).forEach(h => {
+        const history = historyToArray(userData.history);
+history.slice(0, 10).forEach(h => { ... });
             const date = new Date(h.time).toLocaleTimeString('ru-RU');
            histCont.innerHTML += `
     <div class="history-item history-${h.result}">
@@ -2743,32 +2740,32 @@ function renderTopFromCache(){
     }
 
     function claimDaily() {
-        const now = Date.now();
-        const lastDaily = userData.lastDaily || 0;
-        const dayMs = 24 * 60 * 60 * 1000;
-        
-        if(now - lastDaily < dayMs) {
-            const left = dayMs - (now - lastDaily);
-            const hours = Math.floor(left / (60 * 60 * 1000));
-            toast(`СЛЕДУЮЩИЙ БОНУС ЧЕРЕЗ ${hours}Ч`, 'error');
-            return;
-        }
-        
-        const level = userData.lvl || 1;
-        const bonus = 100 + (level * 50);
-        
-        db.ref('users/'+user).transaction(u => {
-            if(u) {
-                u.balance = (u.balance || 0) + bonus;
-                u.lastDaily = now;
-            }
-            return u;
-        });
-        
-        toast(`ЕЖЕДНЕВНЫЙ БОНУС: +${bonus}₽`, 'gold');
-        showWinAnimation(bonus);
-        sfx(1000, 'square', 0.5);
+  const now = serverNow();
+  const lastDaily = userData.lastDaily || 0;
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  if(now - lastDaily < dayMs) {
+    const left = dayMs - (now - lastDaily);
+    const hours = Math.floor(left / (60 * 60 * 1000));
+    toast(`СЛЕДУЮЩИЙ БОНУС ЧЕРЕЗ ${hours}Ч`, 'error');
+    return;
+  }
+
+  const level = userData.lvl || 1;
+  const bonus = 100 + (level * 50);
+
+  db.ref('users/'+user).transaction(u => {
+    if(u) {
+      u.balance = (u.balance || 0) + bonus;
+      u.lastDaily = now;
     }
+    return u;
+  });
+
+  toast(`ЕЖЕДНЕВНЫЙ БОНУС: +${bonus}₽`, 'gold');
+  showWinAnimation(bonus);
+  sfx(1000, 'square', 0.5);
+}
 
     const bgCvs = document.getElementById('bgCanvas');
     const bgCtx = bgCvs.getContext('2d');
@@ -3626,3 +3623,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
