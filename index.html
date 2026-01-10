@@ -1318,49 +1318,90 @@ function applyCrashState(st){
     return;
   }
 }
+    function cssVar(name, fallback){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
 
 function startCrashVisual(runAtMs, targetX){
   if(crashInterval) return; // уже запущено
 
   crash.active = true;
   crash.startTime = runAtMs;
-  crash.pts = [];
+  crash.pts = []; // будем хранить нормализованные точки (0..1)
 
   const cvs = document.getElementById('crashCanvas');
   const ctx = cvs.getContext('2d');
-  cvs.width = cvs.offsetWidth;
-  cvs.height = cvs.offsetHeight;
+
+  function resize(){
+    cvs.width  = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
+  }
+  resize();
+
+  const GROW = 1.08;
+  const logBase = Math.log(GROW);
+  const safeTarget = Math.max(1.01, Number(targetX) || 1.2);
+
+  // сколько секунд нужно, чтобы дойти до targetX при mult = 1.08^t
+  const tTarget = Math.max(0.25, Math.log(safeTarget) / logBase);
 
   crashInterval = setInterval(() => {
+    // если канвас менялся по размеру (мобила/ресайз панелей)
+    if (cvs.width !== cvs.offsetWidth || cvs.height !== cvs.offsetHeight) resize();
+
     const now = serverNow();
     const elapsed = Math.max(0, (now - runAtMs) / 1000);
-    crash.mult = Math.pow(1.08, elapsed);
 
-    // график
-    ctx.clearRect(0,0,cvs.width,cvs.height);
-    ctx.strokeStyle = '#00f2ff';
+    crash.mult = Math.pow(GROW, elapsed);
+
+    // ✅ X: прогресс по времени (0..1)
+    const xFrac = Math.min(1, elapsed / tTarget);
+
+    // ✅ Y: прогресс по множителю (0..1) — даст красивую “экспоненту”
+    const denom = Math.max(0.01, safeTarget - 1);
+    const yFrac = Math.min(1, (crash.mult - 1) / denom);
+
+    crash.pts.push({ x: xFrac, y: yFrac });
+    if (crash.pts.length > 800) crash.pts.shift();
+
+    // ===== DRAW =====
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    const pad = 22;
+    const W = Math.max(10, cvs.width  - pad * 2);
+    const H = Math.max(10, cvs.height - pad * 2);
+
+    // ✅ цвет линии = цвет темы
+    const lineCol = cssVar('--accent', '#00f2ff');
+
+    ctx.strokeStyle = lineCol;
     ctx.lineWidth = 4;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#00f2ff';
-
-    const x = (elapsed / 12) * cvs.width;
-    const y = cvs.height - ((crash.mult - 1) / 4) * cvs.height;
-    crash.pts.push({x,y});
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = lineCol;
 
     ctx.beginPath();
-    ctx.moveTo(0, cvs.height);
-    crash.pts.forEach(p => ctx.lineTo(p.x, p.y));
+    // старт снизу-слева
+    ctx.moveTo(pad, pad + H);
+
+    for (const p of crash.pts){
+      const x = pad + p.x * W;
+      const y = pad + (1 - p.y) * H; // инверт по оси Y (0 внизу)
+      ctx.lineTo(x, y);
+    }
     ctx.stroke();
 
-    // X текст + цвет
+    // ===== UI: мультик + цвет как раньше =====
     const multEl = document.getElementById("crashMult");
     if(multEl){
-  multEl.innerText = crash.mult.toFixed(2) + 'x';
-  const col = (typeof crashColorStrict === "function") ? crashColorStrict(crash.mult) : '#fff';
-  setCrashMultStyle(multEl, col);
-}
+      multEl.innerText = crash.mult.toFixed(2) + 'x';
+      const col = (typeof crashColorStrict === "function") ? crashColorStrict(crash.mult) : '#fff';
+      setCrashMultStyle(multEl, col);
+    }
 
-    // прибыль на экране (если есть ставка и не кешаут)
+    // прибыль (если ставка есть и не кешаут)
     if(crash.bet > 0 && !crash.cashed){
       const payout = Math.floor(crash.bet * crash.mult);
       const profitEl = document.getElementById("crashProfit");
@@ -1372,7 +1413,7 @@ function startCrashVisual(runAtMs, targetX){
       }
     }
 
-    // мы НЕ останавливаемся по targetX локально — остановка приходит из Firebase (phase=crashed)
+    // ❗️остановка всё равно приходит из Firebase (phase=crashed), тут не стопаем
   }, 50);
 }
 
@@ -3311,6 +3352,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
