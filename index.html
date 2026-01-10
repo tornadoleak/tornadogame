@@ -1911,8 +1911,6 @@ db.ref('crashHistory').off();
 db.ref('events').off(); // или точнее конкретный путь daily
         
         stopPresence();
-
-betRoundId:null
         
         user = null;
         userData = {};
@@ -2340,20 +2338,32 @@ crash.betRoundId = null;
   inp.value = '';
   sfx(500, 'sine', 0.1);
 }
+    function historyToArray(h){
+  if(Array.isArray(h)) return h;
+  if(!h) return [];
+  if(typeof h === 'object') return Object.values(h);
+  return [];
+}
 
     function syncLeaders() {
   db.ref('users').on('value', snap => {
     const arr = [];
     snap.forEach(u => {
       const val = u.val() || {};
-      const hist = val.history || [];
-      arr.push({
-        n: u.key,
-        b: Number(val.balance || 0),
-        l: Number(val.lvl || 1),
-        p24: calcProfitWindow(hist, 24 * 60 * 60 * 1000),
-        p7:  calcProfitWindow(hist, 7  * 24 * 60 * 60 * 1000)
-      });
+      const hist = historyToArray(val.history);
+
+const w24 = calcWindowStats(hist, 24 * 60 * 60 * 1000);
+const w7  = calcWindowStats(hist, 7  * 24 * 60 * 60 * 1000);
+
+arr.push({
+  n: u.key,
+  b: Number(val.balance || 0),
+  l: Number(val.lvl || 1),
+  p24: w24.profit,
+  g24: w24.games,
+  p7:  w7.profit,
+  g7:  w7.games
+});
     });
 
     __topUsersCache = arr;
@@ -2374,15 +2384,51 @@ function setTopMode(mode){
   // перерисуем из последних данных
   if (typeof renderTopFromCache === 'function') renderTopFromCache();
 }
+    function calcWindowStats(historyArr, windowMs){
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+  const arr = historyToArray(historyArr);
+
+  let profit = 0;
+  let games = 0;
+
+  for (const h of arr){
+    if(!h) continue;
+
+    let t = Number(h.time || 0);
+    if(!t) continue;
+    if(t > now) t = now;
+
+    if(now - t <= windowMs){
+      profit += Number(h.profit || 0);
+      games++;
+    }
+  }
+
+  return { profit, games };
+}
+
 
 function calcProfitWindow(historyArr, windowMs){
   const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+  const arr = historyToArray(historyArr);
+
   let sum = 0;
-  (historyArr || []).forEach(h => {
-    if(!h) return;
-    const t = Number(h.time || 0);
-    if(now - t <= windowMs) sum += Number(h.profit || 0);
-  });
+
+  for (const h of arr){
+    if(!h) continue;
+
+    let t = Number(h.time || 0);
+    if(!t) continue;
+
+    // ✅ если время "в будущем" (из-за кривых часов) — клампим к now
+    if(t > now) t = now;
+
+    const dt = now - t;
+    if(dt <= windowMs){
+      sum += Number(h.profit || 0);
+    }
+  }
+
   return sum;
 }
 
@@ -2395,9 +2441,38 @@ function renderTopFromCache(){
 
   const arr = (__topUsersCache || []).slice();
 
-  if(topMode === 'profit24h') arr.sort((a,b)=> (b.p24||0) - (a.p24||0));
-  else if(topMode === 'profit7d') arr.sort((a,b)=> (b.p7||0) - (a.p7||0));
-  else arr.sort((a,b)=> (b.b||0) - (a.b||0));
+  // ✅ PROFIT 24H: показываем только тех, кто реально играл за 24ч
+  if(topMode === 'profit24h'){
+    const active = arr.filter(u => (u.g24 || 0) > 0);
+    active.sort((a,b)=> (b.p24||0) - (a.p24||0));
+
+    if(!active.length){
+      cont.innerHTML = '<div style="text-align:center; color: var(--muted); padding:40px;">НЕТ АКТИВНОСТИ ЗА 24 ЧАСА</div>';
+      return;
+    }
+
+    arr.length = 0;
+    arr.push(...active);
+  }
+
+  // ✅ PROFIT 7D: только активные за 7 дней
+  else if(topMode === 'profit7d'){
+    const active = arr.filter(u => (u.g7 || 0) > 0);
+    active.sort((a,b)=> (b.p7||0) - (a.p7||0));
+
+    if(!active.length){
+      cont.innerHTML = '<div style="text-align:center; color: var(--muted); padding:40px;">НЕТ АКТИВНОСТИ ЗА 7 ДНЕЙ</div>';
+      return;
+    }
+
+    arr.length = 0;
+    arr.push(...active);
+  }
+
+  // ✅ BALANCE как было
+  else {
+    arr.sort((a,b)=> (b.b||0) - (a.b||0));
+  }
 
   arr.slice(0, 10).forEach((u, i) => {
     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
@@ -2426,7 +2501,7 @@ function renderTopFromCache(){
 }
 
     function addGameHistory(game, bet, profit, result) {
-        const entry = {game, bet, profit, result, time:Date.now()};
+        const entry = {game, bet, profit, result, time: serverNow()};
         db.ref('users/'+user+'/history').transaction(h => {
             if(!h) h = [];
             h.unshift(entry);
@@ -3374,6 +3449,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
