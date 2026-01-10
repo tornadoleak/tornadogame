@@ -7,6 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
+            --crash-low:  var(--green);
+--crash-mid:  var(--gold);
+--crash-high: #ff3b3b;
+--crash-max:  var(--pink);
             --accent: #00f2ff; 
             --accent2: #0072ff;
             --pink: #ff007b; 
@@ -1393,10 +1397,10 @@ function crashColor(mult){
 
 // чтобы "много" было именно красным, а не accent
 function crashColorStrict(mult){
-  if(mult >= 10) return 'var(--pink)';
-  if(mult >= 5)  return '#ff3b3b';      // красный
-  if(mult >= 2)  return 'var(--gold)';
-  return 'var(--green)';
+  if(mult >= 10) return 'var(--crash-max)';
+  if(mult >= 5)  return 'var(--crash-high)';
+  if(mult >= 2)  return 'var(--crash-mid)';
+  return 'var(--crash-low)';
 }
     function setCrashMultStyle(el, color){
   if(!el) return;
@@ -1480,8 +1484,15 @@ function setCasesDisabled(disabled) {
   card:'rgba(255,255,255,0.05)',
   border:'rgba(255,255,255,0.12)',
   glow:'0 0 22px rgba(255,255,255,0.10)',
+  muted:'#b7b7b7',
 
-  muted:'#b7b7b7'
+  // ✅ цвета именно для Crash (пилюли/множитель)
+  crash: {
+    low:  '#ffffff',  // <2x
+    mid:  '#ffd54f',  // 2x-5x (желтый)
+    high: '#ff3b3b',  // 5x-10x (красный)
+    max:  '#ff5aa5'   // 10x+ (розовый)
+  }
 },
 
   sunset: { accent:'#ffb300', pink:'#ff3d7f', gold:'#ffd54f', green:'#00e676', purple:'#ff6d00', orange:'#ff8c00', bg:'#070404', bg2:'#1a0707',
@@ -1495,6 +1506,10 @@ function applyTheme(id){
   const t = THEMES[id] || THEMES.neon;
   const r = document.documentElement.style;
 
+   r.setProperty('--crash-low',  (t.crash && t.crash.low)  ? t.crash.low  : t.green);
+  r.setProperty('--crash-mid',  (t.crash && t.crash.mid)  ? t.crash.mid  : t.gold);
+  r.setProperty('--crash-high', (t.crash && t.crash.high) ? t.crash.high : '#ff3b3b');
+  r.setProperty('--crash-max',  (t.crash && t.crash.max)  ? t.crash.max  : t.pink);  
   r.setProperty('--accent', t.accent);
   r.setProperty('--accent2', t.accent2 || t.accent);
   r.setProperty('--pink', t.pink);
@@ -3296,6 +3311,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
