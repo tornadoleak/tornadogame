@@ -783,6 +783,46 @@
 
 .recent-profit.win{ color: var(--green); }
 .recent-profit.lose{ color: var(--pink); }
+        /* ✅ FIX: чтобы окно CRASH не уменьшалось */
+.crash-area{
+  height: 400px;          /* оставь 400 или поставь 420 если хочешь больше */
+  min-height: 400px;      /* главное — min-height */
+  flex: 0 0 400px;        /* запрещаем сжиматься */
+}
+
+/* ✅ делаем ленту ниже/компактнее */
+.recent-wrap{
+  padding: 12px;
+  border-radius: 18px;
+}
+
+.recent-feed{
+  max-height: 120px;      /* было 180 — стало ниже */
+  gap: 8px;
+}
+
+.recent-item{
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.recent-user{
+  font-size: 9px;
+}
+
+.recent-meta{
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.recent-status{
+  font-size: 9px;
+  padding: 2px 7px;
+}
+
+.recent-profit{
+  font-size: 10px;
+}
         
     </style>
 </head>
@@ -3830,4 +3870,5 @@ pushRecent({ user:"VORTEX",    bet:80,  win:true,  mult:5.10, payout:408,  profi
 </script>
 </body>
 </html>
+
 
