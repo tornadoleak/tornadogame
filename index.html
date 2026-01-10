@@ -2929,20 +2929,22 @@ function resetTowerUI() {
       if (r.creator === user) {
         const taken = !!r.takenBy; // если уже кто-то "захватил" (см. join ниже)
         div.style.borderColor = 'var(--accent)';
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:900; color:var(--accent);">ВАША КОМНАТА</div>
-            <div style="font-size:11px; color:#5d727b;">
-              ${Number(r.bet||0).toLocaleString()}₽ • ${r.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}
-              ${taken ? ' • <b style="color:var(--gold)">ПРИНЯЛИ...</b>' : ''}
-            </div>
-          </div>
-          <button class="btn-ui btn-pink" style="padding:10px 20px; font-size:11px;"
-            onclick="cancelPVPRoom('${r.key}')"
-            ${taken ? 'disabled class="btn-ui btn-pink btn-disabled"' : ''}>
-            ОТМЕНИТЬ
-          </button>
-        `;
+        const cls = taken ? 'btn-ui btn-pink btn-disabled' : 'btn-ui btn-pink';
+const dis = taken ? 'disabled' : '';
+
+div.innerHTML = `
+  <div>
+    <div style="font-weight:900; color:var(--accent);">ВАША КОМНАТА</div>
+    <div style="font-size:11px; color:#5d727b;">
+      ${Number(r.bet||0).toLocaleString()}₽ • ${r.side==='heads'?'🪙 ОРЁЛ':'🎯 РЕШКА'}
+      ${taken ? ' • <b style="color:var(--gold)">ПРИНЯЛИ...</b>' : ''}
+    </div>
+  </div>
+  <button class="${cls}" style="padding:10px 20px; font-size:11px;"
+    onclick="cancelPVPRoom('${r.key}')" ${dis}>
+    ОТМЕНИТЬ
+  </button>
+`;
         cont.appendChild(div);
         return;
       }
@@ -3219,6 +3221,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
