@@ -556,6 +556,31 @@
   background: var(--green);
   box-shadow: 0 0 12px rgba(0,255,136,0.6);
 }
+        .top-tabs{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.top-tab{
+  padding:10px 14px;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#5d727b;
+  background: rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(18px);
+}
+.top-tab.active{
+  color: var(--accent);
+  border-color: rgba(0,242,255,0.35);
+  background: rgba(0,242,255,0.08);
+}
         
     </style>
 </head>
@@ -601,6 +626,21 @@
             <div class="crash-area">
                 <canvas id="crashCanvas"></canvas>
                 <div class="crash-info">
+                    <div id="eventBanner" style="
+  margin:0 auto 10px auto;
+  padding:10px 14px;
+  border-radius:16px;
+  max-width: 520px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+">
+</div>
                     <div id="crashHistory" class="crash-history"></div>
                     <div id="crashMult">1.00x</div>
                     <div id="crashProfit" style="color:var(--green); font-family:'Orbitron'; font-size:1.8rem; height:30px; font-weight:800;"></div>
@@ -763,11 +803,26 @@
 
         <div id="viewTop" class="viewport">
             <h2 style="font-family:'Orbitron'; text-align:center; margin-bottom:25px;">🏆 РЕЙТИНГ МАГНАТОВ</h2>
+            <div class="top-tabs">
+  <div class="top-tab active" id="topTabBalance" onclick="setTopMode('balance')">BALANCE</div>
+  <div class="top-tab" id="topTab24h" onclick="setTopMode('profit24h')">PROFIT 24H</div>
+  <div class="top-tab" id="topTab7d" onclick="setTopMode('profit7d')">PROFIT 7D</div>
+</div>
             <div id="listTop"></div>
         </div>
 
         <div id="viewProfile" class="viewport">
             <h2 style="font-family:'Orbitron'; text-align:center; margin-bottom:25px;">👤 ПРОФИЛЬ</h2>
+
+            <div class="field-group" style="max-width:360px; margin:0 auto 15px auto;">
+  <label>Тема</label>
+  <select id="themeSelect" class="field" onchange="setTheme(this.value)">
+    <option value="neon">NEON</option>
+    <option value="sunset">SUNSET</option>
+    <option value="ice">ICE</option>
+    <option value="purple">PURPLE</option>
+  </select>
+</div>
             
             <div class="stats-grid">
                 <div class="stat-box">
@@ -948,6 +1003,54 @@ function startPresence(){
     const el = document.getElementById('onlineCount');
     if(el) el.textContent = String(count);
   });
+}
+    const DAILY_EVENT = { minMult: 10, reward: 5000 };
+
+function dayKey(){
+  const t = (typeof serverNow === 'function') ? serverNow() : Date.now();
+  return new Date(t).toISOString().slice(0,10); // UTC-день
+}
+
+function renderDailyEventBanner(done){
+  const el = document.getElementById('eventBanner');
+  if(!el) return;
+
+  if(done){
+    el.style.borderColor = 'rgba(0,255,136,0.35)';
+    el.innerHTML = `🎉 EVENT выполнен сегодня • +${DAILY_EVENT.reward.toLocaleString()} ₽`;
+  } else {
+    el.style.borderColor = 'rgba(255,204,0,0.35)';
+    el.innerHTML = `🎯 EVENT: поймай ≥${DAILY_EVENT.minMult}x сегодня → +${DAILY_EVENT.reward.toLocaleString()} ₽`;
+  }
+}
+
+function watchDailyEvent(){
+  if(!user) return;
+  const key = dayKey();
+  db.ref(`events/daily10x/${key}/${user}`).on('value', s => {
+    renderDailyEventBanner(!!s.val());
+  });
+}
+
+function tryClaimDailyEvent(mult){
+  if(mult < DAILY_EVENT.minMult) return;
+  if(!user) return;
+
+  const key = dayKey();
+  const ref = db.ref(`events/daily10x/${key}/${user}`);
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+
+  ref.transaction(cur => {
+    if(cur) return; // уже получал сегодня
+    return { at: now, mult: Number(mult.toFixed(2)) };
+  }).then(res => {
+    if(res.committed){
+      db.ref('users/'+user+'/balance').transaction(b => (b||0) + DAILY_EVENT.reward);
+      toast(`🎉 EVENT: +${DAILY_EVENT.reward.toLocaleString()} ₽ за ${DAILY_EVENT.minMult}x!`, 'gold');
+      showWinAnimation(DAILY_EVENT.reward);
+      sfx([1200, 1600], 'square', 0.25, 0.12);
+    }
+  }).catch(()=>{});
 }
 
 function stopPresence(){
@@ -1336,6 +1439,29 @@ function setCasesDisabled(disabled) {
   {id:'g9',  n:'RTX 4090',     p:6000000,  i:7000},
   {id:'g10', n:'SERVER ASIC',  p:15000000, i:20000}
 ];
+    const THEMES = {
+  neon:   { accent:'#00f2ff', pink:'#ff007b', gold:'#ffcc00', green:'#00ff88', purple:'#b24bf3', orange:'#ff8c00', bg:'#030507' },
+  sunset: { accent:'#ffb300', pink:'#ff3d7f', gold:'#ffd54f', green:'#00e676', purple:'#ff6d00', orange:'#ff8c00', bg:'#070404' },
+  ice:    { accent:'#7ae7ff', pink:'#ff5aa5', gold:'#ffe082', green:'#7cffc4', purple:'#9aa7ff', orange:'#ffb86b', bg:'#020609' },
+  purple: { accent:'#b24bf3', pink:'#ff4fd8', gold:'#ffcc00', green:'#4dff9a', purple:'#7c4dff', orange:'#ff8c00', bg:'#040214' },
+};
+
+function applyTheme(id){
+  const t = THEMES[id] || THEMES.neon;
+  const r = document.documentElement.style;
+  r.setProperty('--accent', t.accent);
+  r.setProperty('--pink', t.pink);
+  r.setProperty('--gold', t.gold);
+  r.setProperty('--green', t.green);
+  r.setProperty('--purple', t.purple);
+  r.setProperty('--orange', t.orange);
+  r.setProperty('--bg', t.bg);
+}
+
+function setTheme(id){
+  applyTheme(id);
+  if(user) db.ref('users/'+user+'/theme').set(id).catch(()=>{});
+}
 
     const ACHIEVEMENTS = [
         {id:'first_win', name:'Первая победа', desc:'Выиграй первую игру', icon:'🎯', reward:500},
@@ -1642,6 +1768,10 @@ localStorage.removeItem('tornado_user');
         db.ref('users/' + user).off();
         db.ref('chat').off();
         db.ref('pvp').off();
+        db.ref('crash').off();
+db.ref('crashHost').off();
+db.ref('crashHistory').off();
+db.ref('events').off(); // или точнее конкретный путь daily
         
         stopPresence();
         
@@ -1668,6 +1798,9 @@ localStorage.removeItem('tornado_user');
         
         db.ref('users/' + user).on('value', snap => {
             userData = snap.val() || {};
+            applyTheme(userData.theme || 'neon');
+const sel = document.getElementById('themeSelect');
+if(sel) sel.value = userData.theme || 'neon';
             if(!userData.gpus) userData.gpus = {};
             if(!userData.stats) userData.stats = {games:0, wins:0, profit:0};
             if(!userData.achievements) userData.achievements = {};
@@ -1714,6 +1847,8 @@ chatQuery.on('value', snap => {
 });
 
         initCrashShared();
+        watchDailyEvent();
+        renderDailyEventBanner(false);
         syncLeaders();
         renderGPUs();
         loadPVPRooms();
@@ -1962,6 +2097,7 @@ if(nextEl){
             document.getElementById('crashProfit').innerText = '';
             
             toast(`ВЫПЛАТА: ${win.toLocaleString()} ₽ (${crash.mult.toFixed(2)}x)`, 'success');
+            tryClaimDailyEvent(crash.mult);
             showWinAnimation(win);
             sfx(800);
             
@@ -2053,33 +2189,95 @@ if(nextEl){
 }
 
     function syncLeaders() {
-        db.ref('users').orderByChild('balance').limitToLast(10).on('value', snap => {
-            const cont = document.getElementById('listTop');
-            cont.innerHTML = '';
-            let arr = [];
-            snap.forEach(u => {
-                const val = u.val();
-                arr.push({n: u.key, b: val.balance || 0, l: val.lvl || 1});
-            });
-            arr.reverse().forEach((u, i) => {
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-                const rank = RANKS.slice().reverse().find(r => u.l >= r.min);
-                cont.innerHTML += `
-                    <div class="leader-card">
-                        <span>${medal} #${i+1} ${u.n.toUpperCase()} <span style="font-size:10px; color:${rank.class.includes('bronze')?'#cd7f32':rank.class.includes('silver')?'#c0c0c0':rank.class.includes('gold')?'var(--gold)':rank.class.includes('platinum')?'#e5e4e2':'var(--accent)'};">${rank.name}</span></span>
-                        <b style="color:var(--accent)">${Math.floor(u.b).toLocaleString()} ₽</b>
-                    </div>
-                `;
-            });
-        });
+  db.ref('users').on('value', snap => {
+    const arr = [];
+    snap.forEach(u => {
+      const val = u.val() || {};
+      const hist = val.history || [];
+      arr.push({
+        n: u.key,
+        b: Number(val.balance || 0),
+        l: Number(val.lvl || 1),
+        p24: calcProfitWindow(hist, 24 * 60 * 60 * 1000),
+        p7:  calcProfitWindow(hist, 7  * 24 * 60 * 60 * 1000)
+      });
+    });
+
+    __topUsersCache = arr;
+    renderTopFromCache();
+  });
+}
+
+    let topMode = 'balance';
+
+function setTopMode(mode){
+  topMode = mode;
+
+  const a = (id, on) => document.getElementById(id)?.classList.toggle('active', on);
+  a('topTabBalance', mode==='balance');
+  a('topTab24h', mode==='profit24h');
+  a('topTab7d', mode==='profit7d');
+
+  // перерисуем из последних данных
+  if (typeof renderTopFromCache === 'function') renderTopFromCache();
+}
+
+function calcProfitWindow(historyArr, windowMs){
+  const now = (typeof serverNow === 'function') ? serverNow() : Date.now();
+  let sum = 0;
+  (historyArr || []).forEach(h => {
+    if(!h) return;
+    const t = Number(h.time || 0);
+    if(now - t <= windowMs) sum += Number(h.profit || 0);
+  });
+  return sum;
+}
+
+let __topUsersCache = [];
+
+function renderTopFromCache(){
+  const cont = document.getElementById('listTop');
+  if(!cont) return;
+  cont.innerHTML = '';
+
+  const arr = (__topUsersCache || []).slice();
+
+  if(topMode === 'profit24h') arr.sort((a,b)=> (b.p24||0) - (a.p24||0));
+  else if(topMode === 'profit7d') arr.sort((a,b)=> (b.p7||0) - (a.p7||0));
+  else arr.sort((a,b)=> (b.b||0) - (a.b||0));
+
+  arr.slice(0, 10).forEach((u, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+    const rank = RANKS.slice().reverse().find(r => (u.l||1) >= r.min) || RANKS[0];
+
+    let right = '';
+    if(topMode === 'profit24h'){
+      right = `<b style="color:${(u.p24||0)>=0?'var(--green)':'var(--pink)'}">${(u.p24||0)>=0?'+':''}${Math.floor(u.p24||0).toLocaleString()} ₽</b>`;
+    } else if(topMode === 'profit7d'){
+      right = `<b style="color:${(u.p7||0)>=0?'var(--green)':'var(--pink)'}">${(u.p7||0)>=0?'+':''}${Math.floor(u.p7||0).toLocaleString()} ₽</b>`;
+    } else {
+      right = `<b style="color:var(--accent)">${Math.floor(u.b||0).toLocaleString()} ₽</b>`;
     }
+
+    cont.innerHTML += `
+      <div class="leader-card">
+        <span>${medal} #${i+1} ${String(u.n||'').toUpperCase()}
+          <span style="font-size:10px; color:${rank.class.includes('bronze')?'#cd7f32':rank.class.includes('silver')?'#c0c0c0':rank.class.includes('gold')?'var(--gold)':rank.class.includes('platinum')?'#e5e4e2':'var(--accent)'};">
+            ${rank.name}
+          </span>
+        </span>
+        ${right}
+      </div>
+    `;
+  });
+}
 
     function addGameHistory(game, bet, profit, result) {
         const entry = {game, bet, profit, result, time:Date.now()};
         db.ref('users/'+user+'/history').transaction(h => {
             if(!h) h = [];
             h.unshift(entry);
-            return h.slice(0, 20);
+            return h.slice(0, 200);
         });
         
         db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
@@ -3021,6 +3219,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
