@@ -646,183 +646,6 @@
   border-color: rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
 }
-        /* === RECENT GAMES FEED (Crash) === */
-.recent-wrap{
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 22px;
-  padding: 16px;
-}
-
-.recent-head{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom: 12px;
-}
-
-.recent-title{
-  font-family:'Orbitron';
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #fff;
-}
-
-.recent-hint{
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  opacity: 0.85;
-}
-
-.recent-feed{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  max-height: 180px;
-  overflow:auto;
-  padding-right: 6px;
-}
-
-.recent-feed::-webkit-scrollbar{ width: 6px; }
-.recent-feed::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,0.10);
-  border-radius: 999px;
-}
-
-.recent-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(0,242,255,0.12);
-
-  animation: recentIn .25s ease-out;
-}
-
-@keyframes recentIn{
-  from{ opacity:0; transform: translateY(6px); }
-  to{ opacity:1; transform: translateY(0); }
-}
-
-.recent-left{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width: 0;
-}
-
-.recent-user{
-  font-family:'Orbitron';
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.7px;
-  color: var(--accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-}
-
-.recent-meta{
-  font-size: 12px;
-  color: rgba(255,255,255,0.82);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 320px;
-}
-
-.recent-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:4px;
-  white-space:nowrap;
-}
-
-.recent-status{
-  font-family:'Orbitron';
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.03);
-}
-
-.recent-status.win{
-  color: #000;
-  background: linear-gradient(135deg, var(--green), #00b35d);
-  border: none;
-}
-
-.recent-status.lose{
-  color: #000;
-  background: linear-gradient(135deg, var(--pink), #d6006a);
-  border: none;
-}
-
-.recent-profit{
-  font-family:'Orbitron';
-  font-size: 11px;
-  font-weight: 900;
-  color: rgba(255,255,255,0.85);
-}
-
-.recent-profit.win{ color: var(--green); }
-.recent-profit.lose{ color: var(--pink); }
-        /* ✅ FIX: чтобы окно CRASH не уменьшалось */
-.crash-area{
-  height: 400px;          /* оставь 400 или поставь 420 если хочешь больше */
-  min-height: 400px;      /* главное — min-height */
-  flex: 0 0 400px;        /* запрещаем сжиматься */
-}
-
-/* ✅ делаем ленту ниже/компактнее */
-.recent-wrap{
-  padding: 12px;
-  border-radius: 18px;
-}
-
-.recent-feed{
-  max-height: 120px;      /* было 180 — стало ниже */
-  gap: 8px;
-}
-
-.recent-item{
-  padding: 8px 10px;
-  border-radius: 14px;
-}
-
-.recent-user{
-  font-size: 9px;
-}
-
-.recent-meta{
-  font-size: 11px;
-  opacity: 0.9;
-}
-
-.recent-status{
-  font-size: 9px;
-  padding: 2px 7px;
-}
-
-.recent-profit{
-  font-size: 10px;
-}
         
     </style>
 </head>
@@ -866,12 +689,6 @@
 
         <div id="viewCrash" class="viewport active">
             <div class="crash-area">
-                        <!-- ✅ ПОСЛЕДНИЕ ИГРЫ (Crash feed) -->
-<div class="recent-wrap">
-  <div class="recent-head">
-    <div class="recent-title">Последние игры</div>
-    <div class="recent-hint">история ставок</div>
-  </div>
                 <canvas id="crashCanvas"></canvas>
                 <div class="crash-info">
                     <div id="eventBanner" style="
@@ -908,9 +725,6 @@
             </div>
             <button id="btnCrash" class="btn-ui btn-accent" onclick="actionCrash()">СДЕЛАТЬ СТАВКУ</button>
         </div>
-
-  <div id="recentFeed" class="recent-feed"></div>
-</div>
 
         <div id="viewMines" class="viewport">
             <div class="input-row" style="margin-bottom: 20px;">
@@ -2190,7 +2004,6 @@ localStorage.removeItem('tornado_user');
 db.ref('crashHost').off();
 db.ref('crashHistory').off();
 db.ref('events').off(); // или точнее конкретный путь daily
-        db.ref('recentGames').off();
         
         stopPresence();
         
@@ -2225,7 +2038,6 @@ if(sel) sel.value = userData.theme || 'neon';
             if(!userData.achievements) userData.achievements = {};
             if(!userData.history) userData.history = [];
             updateUI();
-            subscribeRecentFeed();
         });
 
         function formatChatTime(ts){
@@ -2594,10 +2406,7 @@ db.ref('users/'+user+'/balance').transaction(b => (b || 0) - amt);
   return u;
 });
             
-            addGameHistory('Crash', crash.bet, profit, 'win', {
-  mult: Number(crash.mult.toFixed(2)),
-  payout: win
-});
+            addGameHistory('Crash', crash.bet, profit, 'win');
             checkWinStreak();
             
             btn.innerText = "ВЫПЛАТА: " + win.toLocaleString() + " ₽";
@@ -2868,35 +2677,20 @@ function renderTopFromCache(){
   });
 }
 
-    function addGameHistory(game, bet, profit, result, meta = {}) {
-  const t = serverNow();
-  const entry = { game, bet, profit, result, time: t, ...meta };
-
-  // локальная история игрока
-  db.ref('users/'+user+'/history').transaction(h => {
-    if(!h) h = [];
-    h.unshift(entry);
-    return h.slice(0, 200);
-  });
-
-  db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
-  if(result === 'win') {
-    db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
-  }
-  db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
-
-  // ✅ ГЛОБАЛЬНАЯ ЛЕНТА (для всех игроков)
-  db.ref('recentGames').push({
-    u: user,
-    game,
-    bet,
-    profit,
-    result,
-    mult: meta.mult ?? null,
-    payout: meta.payout ?? (result === 'win' ? (bet + profit) : 0),
-    time: t
-  });
-}
+    function addGameHistory(game, bet, profit, result) {
+        const entry = {game, bet, profit, result, time: serverNow()};
+        db.ref('users/'+user+'/history').transaction(h => {
+            if(!h) h = [];
+            h.unshift(entry);
+            return h.slice(0, 200);
+        });
+        
+        db.ref('users/'+user+'/stats/games').transaction(g => (g || 0) + 1);
+        if(result === 'win') {
+            db.ref('users/'+user+'/stats/wins').transaction(w => (w || 0) + 1);
+        }
+        db.ref('users/'+user+'/stats/profit').transaction(p => (p || 0) + profit);
+    }
 
     function checkWinStreak() {
         const history = userData.history || [];
@@ -3141,10 +2935,7 @@ function renderTopFromCache(){
             return u; 
         });
         
-        addGameHistory('Mines', mines.bet, profit, 'win', {
-  mult: Number(curMult.toFixed(2)),
-  payout: win
-});
+        addGameHistory('Mines', mines.bet, profit, 'win');
         checkWinStreak();
         
         mines.active = false;
@@ -3357,10 +3148,7 @@ function collectTower() {
         return u;
     });
     
-    addGameHistory('Tower', tower.bet, profit, 'win', {
-  mult: Number(curMult.toFixed(2)),
-  payout: win
-});
+    addGameHistory('Tower', tower.bet, profit, 'win');
     checkWinStreak();
     
     tower.active = false;
@@ -3488,7 +3276,7 @@ function resetTowerUI() {
                 return u;
             });
 
-            addGameHistory('Roulette', amt, profit, 'win', { mult: multi, payout: win });
+            addGameHistory('Roulette', amt, profit, 'win');
             checkWinStreak();
 
             toast(`ВЫПЛАТА: ${win.toLocaleString()} ₽ (${multi}x)`, 'success');
@@ -3729,7 +3517,7 @@ function openBox(cost, min, max) {
       });
 
       const profit = final - cost;
-      addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss', { payout: final });
+      addGameHistory('Case', cost, profit, profit > 0 ? 'win' : 'loss');
 
       if (profit > 0) {
         toast(`ВЫПЛАТА: ${final.toLocaleString()} ₽`, 'success');
@@ -3835,70 +3623,6 @@ window.addEventListener('load', () => {
         })
         .catch(err => console.error('AUTOLOGIN FAIL:', err));
 });
-    // === RECENT FEED API ===
-// === GLOBAL RECENT GAMES (shared feed) ===
-const RECENT_LIMIT = 15;
-const recentRef = db.ref('recentGames');
-
-function subscribeRecentFeed(){
-  recentRef
-    .orderByChild('time')
-    .limitToLast(RECENT_LIMIT)
-    .on('value', snap => {
-      const list = [];
-      snap.forEach(s => {
-        const v = s.val();
-        if(v) list.push(v);
-      });
-
-      // новые сверху
-      list.sort((a,b) => (b.time||0) - (a.time||0));
-      renderRecentFeed(list);
-    });
-}
-
-function renderRecentFeed(list){
-  if(!recentFeedEl) return;
-  recentFeedEl.innerHTML = '';
-  list.forEach(e => renderRecentItem(e));
-}
-
-function renderRecentItem(e){
-  const user = String(e.u || '???').toUpperCase();
-  const game = String(e.game || '');
-  const bet = Number(e.bet || 0);
-  const profit = Number(e.profit || 0);
-  const win = (e.result === 'win');
-  const mult = (e.mult == null) ? null : Number(e.mult);
-  const payout = (e.payout == null)
-    ? (win ? (bet + profit) : 0)
-    : Number(e.payout);
-
-  const statusText = win ? "выиграл" : "проиграл";
-  const statusCls  = win ? "win" : "lose";
-
-  const meta = win
-    ? `${game} · ставка ${money(bet)} · ${mult ? `✅ ${mult.toFixed(2)}x · ` : '✅ '}выплата ${money(payout)} (${profit>=0?'+':''}${money(profit)})`
-    : `${game} · ставка ${money(bet)} · ❌ проигрыш -${money(Math.abs(bet))}`;
-
-  const item = document.createElement("div");
-  item.className = "recent-item";
-  item.innerHTML = `
-    <div class="recent-left">
-      <div class="recent-user">${user}</div>
-      <div class="recent-meta">${meta}</div>
-    </div>
-    <div class="recent-right">
-      <div class="recent-status ${statusCls}">${statusText}</div>
-      <div class="recent-profit ${statusCls}">${win ? "+" : "-"}${money(Math.abs(win ? profit : bet))}</div>
-    </div>
-  `;
-
-  recentFeedEl.appendChild(item);
-}
 </script>
 </body>
 </html>
-
-
-
