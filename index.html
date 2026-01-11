@@ -2700,44 +2700,61 @@ function renderTopFromCache(){
 }
 
     function updateProfile() {
-        const stats = userData.stats || {games:0, wins:0, profit:0};
-        document.getElementById('statGames').innerText = stats.games || 0;
-        document.getElementById('statWins').innerText = stats.wins || 0;
-        document.getElementById('statProfit').innerText = (stats.profit || 0).toLocaleString() + ' ₽';
-        const winrate = stats.games > 0 ? ((stats.wins / stats.games) * 100).toFixed(1) : 0;
-        document.getElementById('statWinrate').innerText = winrate + '%';
-        
-        const achCont = document.getElementById('achievements');
-        achCont.innerHTML = '';
-        ACHIEVEMENTS.forEach(ach => {
-            const unlocked = userData.achievements?.[ach.id];
-            achCont.innerHTML += `
-                <div class="achievement ${unlocked?'':'locked'}">
-                    <div class="achievement-icon">${ach.icon}</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:800; font-size:13px;">${ach.name}</div>
-                        <div style="font-size:11px; color: var(--muted);">${ach.desc}</div>
-                    </div>
-                    <div style="color:var(--gold); font-weight:800; font-size:12px;">+${ach.reward}₽</div>
-                </div>
-            `;
-        });
-        
-        const histCont = document.getElementById('gameHistory');
-        histCont.innerHTML = '';
-        const history = historyToArray(userData.history);
-history.slice(0, 10).forEach(h => { ... });
-            const date = new Date(h.time).toLocaleTimeString('ru-RU');
-           histCont.innerHTML += `
-    <div class="history-item history-${h.result}">
-        <span><b>${h.game}</b> • ${date}</span>
-        <span style="color:${h.profit>=0?'var(--green)':'var(--pink)'}; font-weight:800;">
-            ${h.profit>=0?'+':''}${h.profit.toLocaleString()}₽
+  const stats = userData.stats || { games: 0, wins: 0, profit: 0 };
+
+  document.getElementById('statGames').innerText = stats.games || 0;
+  document.getElementById('statWins').innerText  = stats.wins || 0;
+  document.getElementById('statProfit').innerText = (stats.profit || 0).toLocaleString() + ' ₽';
+
+  const winrate = (stats.games > 0) ? ((stats.wins / stats.games) * 100).toFixed(1) : 0;
+  document.getElementById('statWinrate').innerText = winrate + '%';
+
+  // Достижения
+  const achCont = document.getElementById('achievements');
+  achCont.innerHTML = '';
+  ACHIEVEMENTS.forEach(ach => {
+    const unlocked = userData.achievements?.[ach.id];
+    achCont.innerHTML += `
+      <div class="achievement ${unlocked ? '' : 'locked'}">
+        <div class="achievement-icon">${ach.icon}</div>
+        <div style="flex:1;">
+          <div style="font-weight:800; font-size:13px;">${ach.name}</div>
+          <div style="font-size:11px; color: var(--muted);">${ach.desc}</div>
+        </div>
+        <div style="color:var(--gold); font-weight:800; font-size:12px;">+${ach.reward}₽</div>
+      </div>
+    `;
+  });
+
+  // История игр
+  const histCont = document.getElementById('gameHistory');
+  histCont.innerHTML = '';
+
+  const history = historyToArray(userData.history);
+
+  history.slice(0, 10).forEach(h => {
+    if (!h) return;
+
+    const t = Number(h.time || 0) || Date.now();
+    const date = new Date(t).toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const profit = Number(h.profit || 0);
+
+    histCont.innerHTML += `
+      <div class="history-item history-${h.result}">
+        <span><b>${h.game || 'Game'}</b> • ${date}</span>
+        <span style="color:${profit >= 0 ? 'var(--green)' : 'var(--pink)'}; font-weight:800;">
+          ${profit >= 0 ? '+' : ''}${profit.toLocaleString()}₽
         </span>
-    </div>
-`;
-        });
-    }
+      </div>
+    `;
+  });
+}
 
     function claimDaily() {
   const now = serverNow();
@@ -3623,4 +3640,5 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
