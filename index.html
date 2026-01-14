@@ -646,6 +646,51 @@
   border-color: rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
 }
+        /* === MICRO INTERACTIONS PACK (10 min) === */
+.btn-ui, .game-cell, .nav-btn, .top-tab, .gpu-card, .pvp-room, .leader-card {
+  transform: translateZ(0);
+  will-change: transform, box-shadow, filter;
+}
+
+.btn-ui:active, .nav-btn:active, .top-tab:active {
+  transform: scale(0.98);
+}
+
+.game-cell:active {
+  transform: scale(0.97);
+}
+
+/* "живой" hover для карточек */
+.gpu-card:hover, .pvp-room:hover, .leader-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+/* ripple */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after{
+  content:"";
+  position:absolute;
+  left: var(--rx, 50%);
+  top:  var(--ry, 50%);
+  width: 0;
+  height: 0;
+  border-radius: 999px;
+  transform: translate(-50%,-50%);
+  background: rgba(255,255,255,0.18);
+  opacity: 0;
+  pointer-events:none;
+}
+.ripple.rip::after{
+  animation: rip 520ms ease-out;
+}
+@keyframes rip{
+  0%   { width:0; height:0; opacity:0.55; }
+  100% { width:520px; height:520px; opacity:0; }
+}
         
     </style>
 </head>
@@ -3638,9 +3683,33 @@ window.addEventListener('load', () => {
         })
         .catch(err => console.error('AUTOLOGIN FAIL:', err));
 });
+
+// === RIPPLE ON CLICK (10 min) ===
+function attachRipple(selector){
+  document.querySelectorAll(selector).forEach(el => {
+    el.classList.add('ripple');
+    el.addEventListener('pointerdown', e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--rx', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--ry', (e.clientY - r.top) + 'px');
+
+      el.classList.remove('rip');
+      // reflow
+      void el.offsetWidth;
+      el.classList.add('rip');
+    }, { passive:true });
+  });
+}
+
+// навигация + кнопки + плитки
+window.addEventListener('load', () => {
+  attachRipple('.btn-ui, .nav-btn, .top-tab, .game-cell, .leader-card, .gpu-card, .pvp-room');
+});
+    
 </script>
 </body>
 </html>
+
 
 
 
