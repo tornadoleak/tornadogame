@@ -2206,7 +2206,12 @@ db.ref('events').off(); // или точнее конкретный путь dai
         document.getElementById('authBox').style.display = 'none';
         document.getElementById('mainApp').style.display = 'grid';
         document.getElementById('uName').innerText = user.toUpperCase();
-
+db.ref('jackpot').on('value', snap => {
+  const v = Number(snap.val() || 0);
+  const el = document.getElementById('jackpotVal');
+  if (el) el.innerText = Math.floor(v).toLocaleString() + ' ₽';
+    });
+        
         db.ref('users/' + user).on('value', snap => {
             userData = snap.val() || {};
             applyTheme(userData.theme || 'neon');
@@ -2217,10 +2222,6 @@ if(sel) sel.value = userData.theme || 'neon';
             if(!userData.achievements) userData.achievements = {};
             if(!userData.history) userData.history = [];
             updateUI();
-            db.ref('jackpot').on('value', snap => {
-  const v = Number(snap.val() || 0);
-  const el = document.getElementById('jackpotVal');
-  if (el) el.innerText = Math.floor(v).toLocaleString() + ' ₽';
 });
 
         function formatChatTime(ts){
@@ -3193,6 +3194,8 @@ lockAction('mines_action', 900);
     }
     
     function toggleTower() {
+        addToJackpot(amt);
+tryJackpot(user, amt);
         if (tooFast('tower_click', 700)) return;
 if (isLocked('tower_action')) return;
 lockAction('tower_action', 900);
@@ -3904,6 +3907,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
