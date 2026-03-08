@@ -113,15 +113,46 @@
   border:none;
   background:var(--accent);
   color:#000;
-  font-size:12px;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
-  line-height:18px;
-  padding:0;
 }
 
 .jackpot-info:hover{
-  transform:scale(1.1);
+  transform:scale(1.15);
+}
+
+.jackpot-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.jackpot-modal-box{
+  background:var(--card);
+  border:1px solid var(--accent);
+  border-radius:14px;
+  padding:30px;
+  max-width:360px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(0,242,255,0.4);
+}
+
+.jackpot-modal-title{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:15px;
+  color:var(--accent);
+}
+
+.jackpot-modal-text{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:20px;
+  line-height:1.5;
 }
         
         .sidebar-nav{
@@ -997,8 +1028,7 @@
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div class="jackpot-box">
   JACKPOT: <span id="jackpotVal">0 ₽</span>
-
-  <button class="jackpot-info" onclick="showJackpotInfo()">ℹ</button>
+  <button class="jackpot-info" onclick="openJackpotInfo()">ℹ</button>
 </div>
             <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
             <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
@@ -1116,16 +1146,12 @@ db.ref(".info/serverTimeOffset").on("value", s => {
   serverOffset = s.val() || 0;
 });
 
-    function showJackpotInfo(){
-  alert(
-`ДЖЕКПОТ
+    function openJackpotInfo(){
+  document.getElementById("jackpotInfoModal").style.display = "flex";
+}
 
-• 2% со всех ставок идут в общий банк.
-• Иногда случайный игрок выигрывает весь jackpot.
-• Чем больше ставок — тем больше приз.
-
-Удачи!`
-  );
+function closeJackpotInfo(){
+  document.getElementById("jackpotInfoModal").style.display = "none";
 }
     
 function serverNow(){ return Date.now() + serverOffset; }
@@ -3936,10 +3962,30 @@ function attachRipple(selector){
 window.addEventListener('load', () => {
   attachRipple('.btn-ui, .nav-btn, .top-tab, .game-cell, .leader-card, .gpu-card, .pvp-room');
 });
+    <div id="jackpotInfoModal" class="jackpot-modal">
+  <div class="jackpot-modal-box">
+
+    <div class="jackpot-modal-title">
+      🎰 JACKPOT
+    </div>
+
+    <div class="jackpot-modal-text">
+      • 2% со всех ставок идут в общий jackpot.<br><br>
+      • Иногда случайный игрок выигрывает весь банк.<br><br>
+      • Чем больше игроки ставят — тем больше jackpot.
+    </div>
+
+    <button class="btn-ui btn-accent" onclick="closeJackpotInfo()">
+      ПОНЯТНО
+    </button>
+
+  </div>
+</div>
     
 </script>
 </body>
 </html>
+
 
 
 
