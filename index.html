@@ -1059,53 +1059,6 @@ function canBet(amount, min = 1) {
   return true;
 }
 
-    const ACTION_LOCKS = {};
-const LAST_ACTION_AT = {};
-
-function nowMs() {
-  return Date.now();
-}
-
-function isLocked(key) {
-  return !!ACTION_LOCKS[key];
-}
-
-function lockAction(key, ms = 1200) {
-  ACTION_LOCKS[key] = true;
-  setTimeout(() => {
-    ACTION_LOCKS[key] = false;
-  }, ms);
-}
-
-function tooFast(key, ms = 800) {
-  const now = nowMs();
-  const last = LAST_ACTION_AT[key] || 0;
-  if (now - last < ms) return true;
-  LAST_ACTION_AT[key] = now;
-  return false;
-}
-
-function getSafeBalance() {
-  return Math.max(0, Number(userData?.balance || 0));
-}
-
-function canBet(amount, min = 1) {
-  amount = Number(amount);
-  if (!Number.isFinite(amount)) {
-    toast('ВВЕДИ НОРМАЛЬНОЕ ЧИСЛО', 'error');
-    return false;
-  }
-  if (amount < min) {
-    toast(`МИНИМАЛЬНАЯ СТАВКА ${min}₽`, 'error');
-    return false;
-  }
-  if (amount > getSafeBalance()) {
-    toast('НЕДОСТАТОЧНО СРЕДСТВ', 'error');
-    return false;
-  }
-  return true;
-}
-
     function subscribeCrashHistory(){
   db.ref('crashHistory').orderByChild('time').limitToLast(12).on('value', snap => {
     const arr = [];
@@ -3906,6 +3859,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
