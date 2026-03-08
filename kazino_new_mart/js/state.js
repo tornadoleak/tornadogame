@@ -173,3 +173,64 @@ function setTheme(id){
         {min:100, name:'DIAMOND', class:'rank-diamond'}
     ];
 
+window.appState = {
+  user: null,
+  userData: {
+    balance: 0,
+    xp: 0,
+    level: 1,
+    rank: 'BRONZE'
+  },
+
+  ui: {
+    currentTab: 'viewCrash'
+  },
+
+  crash: {
+    active: false,
+    mult: 1,
+    bet: 0,
+    cashed: false,
+    betRoundId: null,
+    pts: [],
+    startTime: 0,
+    waitingForRound: false
+  },
+
+  mines: {
+    active: false,
+    locked: false,
+    bet: 0,
+    bombs: [],
+    open: 0,
+    total: 3
+  },
+
+  tower: {
+    active: false,
+    locked: false,
+    bet: 0,
+    level: 0,
+    bombs: [],
+    maxLevel: 10
+  },
+
+  roulette: {
+    spinning: false
+  },
+
+  cases: {
+    rolling: false,
+    resultTimer: null
+  },
+
+  timers: {
+    crashInterval: null,
+    passiveInterval: null,
+    crashCountdownTimer: null,
+    onlineInterval: null,
+    hostBeatTimer: null,
+    crashHostTimer: null
+  }
+};
+
