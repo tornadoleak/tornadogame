@@ -105,6 +105,24 @@
   color:var(--gold);
   margin-left:15px;
 }
+        .jackpot-info{
+  margin-left:6px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:none;
+  background:var(--accent);
+  color:#000;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  line-height:18px;
+  padding:0;
+}
+
+.jackpot-info:hover{
+  transform:scale(1.1);
+}
         
         .sidebar-nav{
   display:flex !important;
@@ -979,6 +997,8 @@
             <div class="bal-display" id="uBalance">0 ₽</div>
             <div class="jackpot-box">
   JACKPOT: <span id="jackpotVal">0 ₽</span>
+
+  <button class="jackpot-info" onclick="showJackpotInfo()">ℹ</button>
 </div>
             <div id="uRank" class="rank-badge rank-bronze">BRONZE</div>
             <div id="uRankNext" class="rank-next">до следующего ранга: —</div>
@@ -1095,6 +1115,19 @@ let serverOffset = 0;
 db.ref(".info/serverTimeOffset").on("value", s => {
   serverOffset = s.val() || 0;
 });
+
+    function showJackpotInfo(){
+  alert(
+`ДЖЕКПОТ
+
+• 2% со всех ставок идут в общий банк.
+• Иногда случайный игрок выигрывает весь jackpot.
+• Чем больше ставок — тем больше приз.
+
+Удачи!`
+  );
+}
+    
 function serverNow(){ return Date.now() + serverOffset; }
 
 let crashState = null;
@@ -3907,6 +3940,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
