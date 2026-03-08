@@ -588,9 +588,6 @@ if(nextEl){
         sfx(1200, 'square', 0.5, 0.15);
     }
 
-    const cvs = document.getElementById('crashCanvas');
-    const ctx = cvs.getContext('2d');
-
     /* ===== LEGACY LOCAL CRASH (DISABLED) =====
     function initCrash() {
         crash.active = false; 
