@@ -1008,6 +1008,53 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(); // ✅ добавь эту строку
 
+    const ACTION_LOCKS = {};
+const LAST_ACTION_AT = {};
+
+function nowMs() {
+  return Date.now();
+}
+
+function isLocked(key) {
+  return !!ACTION_LOCKS[key];
+}
+
+function lockAction(key, ms = 1200) {
+  ACTION_LOCKS[key] = true;
+  setTimeout(() => {
+    ACTION_LOCKS[key] = false;
+  }, ms);
+}
+
+function tooFast(key, ms = 800) {
+  const now = nowMs();
+  const last = LAST_ACTION_AT[key] || 0;
+  if (now - last < ms) return true;
+  LAST_ACTION_AT[key] = now;
+  return false;
+}
+
+function getSafeBalance() {
+  return Math.max(0, Number(userData?.balance || 0));
+}
+
+function canBet(amount, min = 1) {
+  amount = Number(amount);
+  if (!Number.isFinite(amount)) {
+    toast('ВВЕДИ НОРМАЛЬНОЕ ЧИСЛО', 'error');
+    return false;
+  }
+  if (amount < min) {
+    toast(`МИНИМАЛЬНАЯ СТАВКА ${min}₽`, 'error');
+    return false;
+  }
+  if (amount > getSafeBalance()) {
+    toast('НЕДОСТАТОЧНО СРЕДСТВ', 'error');
+    return false;
+  }
+  return true;
+}
+
     function subscribeCrashHistory(){
   db.ref('crashHistory').orderByChild('time').limitToLast(12).on('value', snap => {
     const arr = [];
@@ -2219,6 +2266,7 @@ head.appendChild(ts);
     }
 
     function updateUI() {
+        if ((userData.balance || 0) < 0) userData.balance = 0;
         document.getElementById('uBalance').innerText = Math.floor(userData.balance || 0).toLocaleString() + ' ₽';
         const nextXp = (userData.lvl || 1) * 2000;
         const currentXp = userData.xp || 0;
@@ -2411,12 +2459,14 @@ if(nextEl){
     } */
 
     function actionCrash() {
+        if (tooFast('crash_click', 700)) return;
+if (isLocked('crash_action')) return;
+lockAction('crash_action', 900);
         const btn = document.getElementById('btnCrash');
         
         if((crashState?.phase === "waiting") && crash.bet === 0) {
             let amt = parseInt(document.getElementById('betCrash').value);
-            if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
-            if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
+            if (!canBet(amt, 10)) return;
             
             crash.bet = amt;
 crash.cashed = false;
@@ -2542,6 +2592,7 @@ crash.betRoundId = null;
     }
 
     function sendMsg() {
+        if (tooFast('chat_send', 1200)) return;
   const inp = document.getElementById('chatInput');
   const msg = inp.value.trim();
   if(!msg) return;
@@ -2879,10 +2930,14 @@ function renderTopFromCache(){
     return mult;
 }
     function toggleMines() {
+        if (tooFast('mines_click', 700)) return;
+if (isLocked('mines_action')) return;
+lockAction('mines_action', 900);
         if (mines.locked) return;
         if(mines.active) return collectMines();
         
         let amt = parseInt(document.getElementById('betMines').value);
+        if (!canBet(amt, 10)) return;
         if(isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
         if(amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
         
@@ -3012,6 +3067,9 @@ function renderTopFromCache(){
     }
     
     function toggleTower() {
+        if (tooFast('tower_click', 700)) return;
+if (isLocked('tower_action')) return;
+lockAction('tower_action', 900);
     const btn = document.getElementById('btnTower');
 
         if (tower.locked) return;
@@ -3034,6 +3092,7 @@ function renderTopFromCache(){
 
     // Начинаем новую игру
     let amt = parseInt(document.getElementById('betTower').value);
+        if (!canBet(amt, 10)) return;
     if (isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
     if (amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
 
@@ -3259,9 +3318,14 @@ function resetTowerUI() {
     }
 
     function playRoulette() {
+        if (tooFast('roulette_click', 900)) return;
+if (isLocked('roulette_action')) return;
+if (rouletteSpinning) return toast('РУЛЕТКА УЖЕ КРУТИТСЯ', 'error');
+lockAction('roulette_action', 1200);
     if (rouletteSpinning) return;
 
     let amt = parseInt(document.getElementById('betRoulette').value);
+        if (!canBet(amt, 10)) return;
     if (isNaN(amt) || amt < 10) return toast("МИНИМАЛЬНАЯ СТАВКА 10₽", 'error');
     if (amt > (userData.balance || 0)) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
 
@@ -3535,6 +3599,11 @@ div.innerHTML = `
 ];
 
 function openBox(cost, min, max) {
+    if (!canBet(price, 1)) return;
+    if (tooFast('case_click', 1000)) return;
+if (isLocked('case_action')) return;
+if (boxRolling) return toast('КЕЙС УЖЕ ОТКРЫВАЕТСЯ', 'error');
+lockAction('case_action', 1500);
   if (boxRolling) return toast("ПОДОЖДИТЕ... КЕЙС УЖЕ ОТКРЫВАЕТСЯ", 'error');
   if ((userData.balance || 0) < cost) return toast("НЕДОСТАТОЧНО СРЕДСТВ", 'error');
 
@@ -3708,6 +3777,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
