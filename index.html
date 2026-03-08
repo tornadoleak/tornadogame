@@ -1040,6 +1040,57 @@ function getSafeBalance() {
 
 function canBet(amount, min = 1) {
   amount = Number(amount);
+
+  if (!Number.isFinite(amount)) {
+    toast('ВВЕДИ НОРМАЛЬНОЕ ЧИСЛО', 'error');
+    return false;
+  }
+
+  if (amount < min) {
+    toast(`МИНИМАЛЬНАЯ СТАВКА ${min}₽`, 'error');
+    return false;
+  }
+
+  if (amount > getSafeBalance()) {
+    toast('НЕДОСТАТОЧНО СРЕДСТВ', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+    const ACTION_LOCKS = {};
+const LAST_ACTION_AT = {};
+
+function nowMs() {
+  return Date.now();
+}
+
+function isLocked(key) {
+  return !!ACTION_LOCKS[key];
+}
+
+function lockAction(key, ms = 1200) {
+  ACTION_LOCKS[key] = true;
+  setTimeout(() => {
+    ACTION_LOCKS[key] = false;
+  }, ms);
+}
+
+function tooFast(key, ms = 800) {
+  const now = nowMs();
+  const last = LAST_ACTION_AT[key] || 0;
+  if (now - last < ms) return true;
+  LAST_ACTION_AT[key] = now;
+  return false;
+}
+
+function getSafeBalance() {
+  return Math.max(0, Number(userData?.balance || 0));
+}
+
+function canBet(amount, min = 1) {
+  amount = Number(amount);
   if (!Number.isFinite(amount)) {
     toast('ВВЕДИ НОРМАЛЬНОЕ ЧИСЛО', 'error');
     return false;
@@ -1526,30 +1577,82 @@ function startCrashVisual(runAtMs, targetX){
     // ===== DRAW =====
     ctx.clearRect(0,0,cvs.width,cvs.height);
 
-    const W = Math.max(10, cvs.width  - pad * 2);
-    const H = Math.max(10, cvs.height - pad * 2);
+const W = Math.max(10, cvs.width  - pad * 2);
+const H = Math.max(10, cvs.height - pad * 2);
 
-    const lineCol = cssVar('--accent', '#00f2ff');
-    ctx.strokeStyle = lineCol;
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = lineCol;
+const lineCol = cssVar('--accent', '#00f2ff');
+const glowCol = lineCol;
+
+// фоновые линии-сетка
+ctx.save();
+ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+ctx.lineWidth = 1;
+
+for(let i = 0; i <= 4; i++){
+  const gy = pad + (H / 4) * i;
+  ctx.beginPath();
+  ctx.moveTo(pad, gy);
+  ctx.lineTo(pad + W, gy);
+  ctx.stroke();
+}
+
+for(let i = 0; i <= 5; i++){
+  const gx = pad + (W / 5) * i;
+  ctx.beginPath();
+  ctx.moveTo(gx, pad);
+  ctx.lineTo(gx, pad + H);
+  ctx.stroke();
+}
+ctx.restore();
+
+// свечение линии
+ctx.strokeStyle = lineCol;
+ctx.lineWidth = 4;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.shadowBlur = 18;
+ctx.shadowColor = glowCol;
 
     ctx.beginPath();
-    ctx.moveTo(pad, pad + H);
+ctx.moveTo(pad, pad + H);
 
-    for (const p of crash.pts){
-      // X = позиция во времени внутри окна (0..1)
-      const xFrac = (p.t - cut) / (WINDOW_SEC * 1000);
-      const yFrac = yFracFromMult(p.m);
+let lastX = pad;
+let lastY = pad + H;
 
-      const x = pad + Math.max(0, Math.min(1, xFrac)) * W;
-      const y = pad + (1 - Math.max(0, Math.min(1, yFrac))) * H;
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
+for (const p of crash.pts){
+  const xFrac = (p.t - cut) / (WINDOW_SEC * 1000);
+  const yFrac = yFracFromMult(p.m);
+
+  const x = pad + Math.max(0, Math.min(1, xFrac)) * W;
+  const y = pad + (1 - Math.max(0, Math.min(1, yFrac))) * H;
+
+  ctx.lineTo(x, y);
+  lastX = x;
+  lastY = y;
+}
+ctx.stroke();
+
+// мягкая подсветка под линией
+ctx.save();
+ctx.lineTo(lastX, pad + H);
+ctx.lineTo(pad, pad + H);
+ctx.closePath();
+const grad = ctx.createLinearGradient(0, pad, 0, pad + H);
+grad.addColorStop(0, 'rgba(0,242,255,0.20)');
+grad.addColorStop(1, 'rgba(0,242,255,0.00)');
+ctx.fillStyle = grad;
+ctx.fill();
+ctx.restore();
+
+// светящаяся точка на конце линии
+ctx.save();
+ctx.beginPath();
+ctx.fillStyle = '#ffffff';
+ctx.shadowBlur = 30;
+ctx.shadowColor = glowCol;
+ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+ctx.fill();
+ctx.restore();
 
     // ===== UI =====
     const multEl = document.getElementById("crashMult");
@@ -1557,6 +1660,7 @@ function startCrashVisual(runAtMs, targetX){
       multEl.innerText = crash.mult.toFixed(2) + 'x';
       const col = (typeof crashColorStrict === "function") ? crashColorStrict(crash.mult) : '#fff';
       setCrashMultStyle(multEl, col);
+        multEl.style.transform = `scale(${1 + Math.min(0.08, (crash.mult - 1) * 0.01)})`;
     }
 
     if(crash.bet > 0 && !crash.cashed){
@@ -1930,6 +2034,31 @@ function crashBoom(){
   stopCrashSfx();
   if(!allowCrashSfx()) return;
   sfx([140, 90], 'sawtooth', 0.25, 0.14);
+
+  const multEl = document.getElementById('crashMult');
+  const area = document.querySelector('.crash-area');
+  if(multEl){
+    multEl.animate([
+      { transform: 'scale(1)', opacity: 1 },
+      { transform: 'scale(1.25)', opacity: 1 },
+      { transform: 'scale(0.9)', opacity: 0.7 },
+      { transform: 'scale(1)', opacity: 1 }
+    ], {
+      duration: 450,
+      easing: 'ease-out'
+    });
+  }
+
+  if(area){
+    area.animate([
+      { boxShadow: '0 0 0 rgba(255,0,123,0)' },
+      { boxShadow: '0 0 60px rgba(255,0,123,0.55)' },
+      { boxShadow: '0 0 0 rgba(255,0,123,0)' }
+    ], {
+      duration: 500,
+      easing: 'ease-out'
+    });
+  }
 }
 
 function crashCashout(){
@@ -3777,6 +3906,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
